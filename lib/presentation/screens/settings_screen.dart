@@ -414,7 +414,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
             ),
-            if (app.signedIn && app.emailVerified) ...[
+            if (app.signedIn &&
+                app.emailVerified &&
+                s.plan == PlanTier.free) ...[
               const SizedBox(height: 12),
               Card(
                 child: Column(
@@ -425,6 +427,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                         color: caveBlue,
                       ),
                       title: Text(context.l10n.text('redeemFounderCode')),
+                      subtitle: Text(
+                        context.l10n.text('promoCodeDescription'),
+                      ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => redeemFounderCode(app),
                     ),
@@ -555,7 +560,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                     leading: const Icon(Icons.support_agent_outlined),
                     title: Text(context.l10n.text('support')),
                     trailing: const Icon(Icons.open_in_new, size: 18),
-                    onTap: () => open('mailto:support@warrantycave.com'),
+                    onTap: () => open(
+                      'mailto:bokimk.ap@gmail.com?subject=WarrantyCave%20Support',
+                    ),
                   ),
                   ListTile(
                     leading: const Icon(Icons.language_outlined),

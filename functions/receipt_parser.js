@@ -7,6 +7,16 @@ const MONTHS = {
   oct: 10, october: 10, nov: 11, november: 11, dec: 12, december: 12,
 };
 
+const DOCUMENT_HEADING = /^(receipt|invoice|tax invoice|фактура|сметка|фискал(?:на сметка)?|original|оригинал)$/i;
+const TOTAL_LABEL = /(?:amount\s+due|grand\s+total|total\s+due|износ\s+за\s+пла[ќк]ање|за\s+пла[ќк]ање|вкупен\s+износ|вкупно|vkupno|total|amount|sum|итого|totale|gesamt)/i;
+const COMPANY_SUFFIX = /(?:дооел|доо|ад|llc|ltd\.?|gmbh|srl|spa)(?:\s|$)/i;
+const SERIAL_LABEL = /(?:serial(?:\s*(?:number|no\.?))?|s\s*\/\s*n|сериски\s*број|сериски)/i;
+const KNOWN_BRANDS = [
+  'Apple', 'Samsung', 'Sony', 'LG', 'Lenovo', 'HP', 'Dell', 'Asus', 'Acer',
+  'Huawei', 'Xiaomi', 'Bosch', 'Beko', 'Gorenje', 'Philips', 'Panasonic',
+  'Whirlpool', 'Electrolux', 'Hisense', 'TCL', 'Nintendo', 'Microsoft',
+];
+
 function validDate(year, month, day) {
   if (year < 2000 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) return null;
   const value = new Date(Date.UTC(year, month - 1, day));
@@ -38,23 +48,81 @@ function parseMoney(value) {
   return Number.isFinite(amount) && amount >= 0 ? amount : null;
 }
 
+function moneyValues(line) {
+  const values = [];
+  const pattern = /(?:MKD|DEN|EUR|USD|€|\$|ден)?\s*(\d{1,3}(?:[ .]\d{3})*(?:[.,]\d{2})|\d+[.,]\d{2}|\d+)\s*(?:MKD|DEN|EUR|USD|€|\$|ден)?/gi;
+  for (const match of line.matchAll(pattern)) {
+    const value = parseMoney(match[1]);
+    if (value !== null) values.push(value);
+  }
+  return values;
+}
+
+function findPrice(lines) {
+  const labelled = lines
+    .map((line, index) => ({line, index}))
+    .filter(({line}) => TOTAL_LABEL.test(line));
+  for (const {line, index} of labelled.reverse()) {
+    const sameLine = moneyValues(line);
+    if (sameLine.length) return sameLine.at(-1);
+    const nextValues = moneyValues(lines[index + 1] || '');
+    if (nextValues.length) return nextValues.at(-1);
+  }
+  return null;
+}
+
+function findStore(lines) {
+  const sellerIndex = lines.findIndex((line) => /^(?:seller|vendor|merchant|продавач)(?:\s|$)/i.test(line));
+  if (sellerIndex >= 0) {
+    const nearby = lines.slice(sellerIndex + 1, sellerIndex + 5)
+      .find((line) => COMPANY_SUFFIX.test(line) || /[A-Za-zА-Яа-яЀ-ӿ]{3}/u.test(line));
+    if (nearby) return nearby;
+  }
+  return lines.find((line) => COMPANY_SUFFIX.test(line)) ||
+    lines.find((line) => /[A-Za-zА-Яа-яЀ-ӿ]{3}/u.test(line) && !DOCUMENT_HEADING.test(line)) || null;
+}
+
+function findSerial(lines) {
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!SERIAL_LABEL.test(line)) continue;
+    const afterLabel = line.replace(/^.*?(?:serial(?:\s*(?:number|no\.?))?|s\s*\/\s*n|сериски\s*број|сериски)\s*[:#-]?\s*/i, '').trim();
+    const candidate = afterLabel || lines[index + 1] || '';
+    const token = candidate.match(/[A-Z0-9][A-Z0-9-]{5,}/i)?.[0];
+    if (token) return {serialNumber: token, index};
+  }
+  return {serialNumber: null, index: -1};
+}
+
+function findProduct(lines, serialIndex) {
+  if (serialIndex < 0) return {productName: null, brand: null, model: null};
+  const candidates = lines.slice(Math.max(0, serialIndex - 3), serialIndex)
+    .filter((line) => !SERIAL_LABEL.test(line) && !TOTAL_LABEL.test(line) && !DOCUMENT_HEADING.test(line))
+    .filter((line) => /[A-Za-zА-Яа-яЀ-ӿ]{3}/u.test(line));
+  const productName = candidates.at(-1) || null;
+  if (!productName) return {productName: null, brand: null, model: null};
+  const brand = KNOWN_BRANDS.find((value) => new RegExp(`\\b${value}\\b`, 'i').test(productName)) || null;
+  const model = brand ? productName.replace(new RegExp(`^.*?\\b${brand}\\b\\s*`, 'i'), '').trim() || null : null;
+  return {productName, brand, model};
+}
+
 function parseReceipt(text) {
   const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  const totalLine = [...lines].reverse().find((line) => /\b(total|amount|вкупно|vkupno|sum|итого|totale|gesamt)\b/i.test(line));
-  const moneyMatch = totalLine?.match(/(?:MKD|DEN|EUR|USD|€|\$|ден)?\s*([\d.,]+)\s*(?:MKD|DEN|EUR|USD|€|\$|ден)?/i);
-  const currencySource = `${totalLine || ''} ${text}`;
+  const price = findPrice(lines);
+  const currencySource = text;
   const currency = /€|\bEUR\b/i.test(currencySource) ? 'EUR'
     : /\$|\bUSD\b/i.test(currencySource) ? 'USD'
     : /\b(MKD|DEN)\b|ден/i.test(currencySource) ? 'MKD' : null;
-  const store = lines.find((line) => /[A-Za-zА-Яа-я]{3}/.test(line) && !/receipt|invoice|фискал|сметка/i.test(line)) || null;
-  const serialLine = lines.find((line) => /\b(serial|s\/n|sn|сериски)\b/i.test(line));
-  const serialNumber = serialLine?.replace(/^.*?\b(serial(?: number)?|s\/n|sn|сериски(?: број)?)\b\s*[:#-]?\s*/i, '').trim() || null;
+  const store = findStore(lines);
+  const {serialNumber, index: serialIndex} = findSerial(lines);
+  const product = findProduct(lines, serialIndex);
   return {
     store,
     purchaseDate: parseDate(text),
-    price: moneyMatch ? parseMoney(moneyMatch[1]) : null,
+    price,
     currency,
     serialNumber,
+    ...product,
     rawText: text.slice(0, 12000),
   };
 }

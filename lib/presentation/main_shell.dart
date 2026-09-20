@@ -57,46 +57,6 @@ class _MainShellState extends State<MainShell> {
       await _showUpgradeSheet();
       return;
     }
-    final action = await AppBottomSheets.show<String>(
-      context,
-      title: context.l10n.text('addAWarranty'),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _AddChoice(
-            icon: Icons.document_scanner_outlined,
-            title: context.l10n.text('smartScan'),
-            subtitle: context.l10n.text('scanDocument'),
-            onTap: () => Navigator.pop(context, 'scan'),
-          ),
-          const SizedBox(height: 10),
-          _AddChoice(
-            icon: Icons.edit_note_rounded,
-            title: context.l10n.text('addManually'),
-            subtitle: context.l10n.text('enterDetails'),
-            onTap: () => Navigator.pop(context, 'manual'),
-          ),
-        ],
-      ),
-    );
-    if (!mounted || action == null) return;
-    if (action == 'scan') {
-      if (!controller.signedIn ||
-          !controller.emailVerified ||
-          controller.settings.smartScanCredits < 1) {
-        await _showUpgradeSheet(smartScan: true);
-        return;
-      }
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => AddWarrantyScreen(
-            onSelectTab: _returnToTab,
-            startSmartScan: true,
-          ),
-        ),
-      );
-      return;
-    }
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AddWarrantyScreen(onSelectTab: _returnToTab),
@@ -104,12 +64,10 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  Future<void> _showUpgradeSheet({bool smartScan = false}) =>
+  Future<void> _showUpgradeSheet() =>
       AppBottomSheets.show<void>(
         context,
-        title: smartScan
-            ? context.l10n.text('smartScanPack')
-            : context.l10n.text('upgradePlan'),
+        title: context.l10n.text('upgradePlan'),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -120,30 +78,22 @@ class _MainShellState extends State<MainShell> {
                 color: AppColors.softBlue,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                smartScan
-                    ? Icons.document_scanner_outlined
-                    : Icons.workspace_premium_outlined,
+              child: const Icon(
+                Icons.workspace_premium_outlined,
                 color: caveTeal,
                 size: 31,
               ),
             ),
             const SizedBox(height: 14),
             Text(
-              smartScan
-                  ? context.l10n.text('scanPackInfo')
-                  : context.l10n.text('freeLimitReached'),
+              context.l10n.text('freeLimitReached'),
               textAlign: TextAlign.center,
               style: AppTypography.muted,
             ),
             const SizedBox(height: 18),
             PrimaryButton(
-              label: smartScan
-                  ? context.l10n.text('viewScanPack')
-                  : context.l10n.text('viewPlans'),
-              icon: smartScan
-                  ? Icons.document_scanner_outlined
-                  : Icons.workspace_premium_outlined,
+              label: context.l10n.text('viewPlans'),
+              icon: Icons.workspace_premium_outlined,
               onPressed: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -223,46 +173,4 @@ class _MainShellState extends State<MainShell> {
       ),
     );
   }
-}
-
-class _AddChoice extends StatelessWidget {
-  const _AddChoice({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String title, subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => AppCards(
-    onTap: onTap,
-    child: Row(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: AppColors.softBlue,
-            borderRadius: BorderRadius.circular(AppRadius.medium),
-          ),
-          child: Icon(icon, color: caveBlue),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: AppTypography.subtitle),
-              const SizedBox(height: 3),
-              Text(subtitle, style: AppTypography.muted),
-            ],
-          ),
-        ),
-        const Icon(Icons.chevron_right_rounded, color: caveBlue),
-      ],
-    ),
-  );
 }

@@ -52,6 +52,10 @@ class AppController extends ChangeNotifier {
       items = loaded.$1;
       settings = loaded.$2;
       if (signedIn && emailVerified) await _syncForUser();
+      await notifications.initialize();
+      for (final item in items) {
+        await notifications.scheduleFor(item, settings);
+      }
     } catch (error) {
       loadError = error.toString();
     } finally {
@@ -205,8 +209,15 @@ class AppController extends ChangeNotifier {
     await _persist();
   }
 
-  Future<bool> requestNotificationPermission() =>
-      notifications.requestPermission();
+  Future<bool> requestNotificationPermission() async {
+    final granted = await notifications.requestPermission();
+    if (granted) {
+      for (final item in items) {
+        await notifications.scheduleFor(item, settings);
+      }
+    }
+    return granted;
+  }
   Future<void> completeOnboarding() =>
       updateSettings(settings.copyWith(onboardingComplete: true));
 

@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owns(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /users/{uid} {
+      allow read: if owns(uid);
+      allow create: if owns(uid)
+        && !request.resource.data.keys().hasAny([
+          'plan', 'planExpiresAt', 'promotionalBasicUntil',
+          'smartScanCredits', 'entitlementSource', 'referralRewardUntil'
+        ]);
+      allow update: if owns(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'firstName', 'lastName', 'phone', 'defaultCurrency', 'languageCode',
+          'referralCode', 'pendingReferralCode', 'referralCreatedAt',
+          'referralStatus', 'emailLower', 'updatedAt', 'cloudOwnerUid'
+        ]);
+      allow delete: if owns(uid);
+
+      match /items/{itemId} {
+        allow read, create, update, delete: if owns(uid);
+      }
+    }
+
+    match /founderCodes/{codeHash} {
+      allow read, write: if false;
+    }
+
+    match /referralCodes/{code} {
+      allow read, write: if false;
+    }
+  }
+}

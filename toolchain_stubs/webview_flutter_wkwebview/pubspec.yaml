@@ -1,0 +1,17 @@
+name: webview_flutter_wkwebview
+version: 3.18.4
+publish_to: none
+description: Android-only dependency resolution stub; never packaged on Android.
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_flutter_platform_interface: ^2.10.0
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: FWFWebViewFlutterWKWebViewExternalAPI
+      macos:
+        pluginClass: FWFWebViewFlutterWKWebViewExternalAPI

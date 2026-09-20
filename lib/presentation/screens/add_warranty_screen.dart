@@ -67,7 +67,10 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
     purchaseDate = e?.purchaseDate ?? purchaseDate;
     expiryDate = e?.expiryDate ?? expiryDate;
     duration = e?.durationLabel ?? duration;
-    durationMonths = durations[duration] ?? 12;
+    durationMonths =
+        durations[duration] ??
+        int.tryParse(RegExp(r'^\d+').stringMatch(duration) ?? '') ??
+        12;
     expiryManuallyEdited =
         e != null &&
         addMonthsClamped(purchaseDate, durationMonths) != expiryDate;
@@ -113,8 +116,8 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
   }
 
   void recalculate() {
-    if (!expiryManuallyEdited)
-      expiryDate = addMonthsClamped(purchaseDate, durationMonths);
+    expiryDate = addMonthsClamped(purchaseDate, durationMonths);
+    expiryManuallyEdited = false;
   }
 
   Future<void> pickDate(bool purchase) async {
@@ -648,55 +651,6 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
         children: [
-          AppCards(
-            onTap: context.watch<AppController>().smartScanBusy
-                ? null
-                : smartScanReceipt,
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  backgroundColor: AppColors.softBlue,
-                  child: Icon(Icons.document_scanner_outlined, color: caveBlue),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.l10n.text('smartScan'),
-                        style: AppTypography.subtitle,
-                      ),
-                      Text(
-                        context.l10n.text('scanDocument'),
-                        style: AppTypography.muted,
-                      ),
-                    ],
-                  ),
-                ),
-                if (context.watch<AppController>().smartScanBusy)
-                  const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else
-                  Column(
-                    children: [
-                      const Icon(Icons.auto_awesome_rounded, color: caveTeal),
-                      Text(
-                        '${context.watch<AppController>().settings.smartScanCredits}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: caveNavy,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
           _FormHeading(context.l10n.text('product')),
           InkWell(
             onTap: chooseType,
@@ -841,29 +795,38 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
           Row(
             children: [
               Expanded(
-                child: _DateField(
-                  label: context.l10n.text('purchaseDateRequired'),
-                  date: purchaseDate,
-                  onTap: () => pickDate(true),
+                child: SizedBox(
+                  height: 78,
+                  child: _DateField(
+                    label: context.l10n.text('purchaseDateRequired'),
+                    date: purchaseDate,
+                    onTap: () => pickDate(true),
+                    compact: true,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: InkWell(
-                  onTap: chooseDuration,
-                  borderRadius: BorderRadius.circular(AppRadius.medium),
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: context.l10n.text('durationRequired'),
-                      suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded),
-                    ),
-                    child: Text(
-                      duration,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: caveNavy,
-                        fontWeight: FontWeight.w600,
+                child: SizedBox(
+                  height: 78,
+                  child: InkWell(
+                    onTap: chooseDuration,
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: context.l10n.text('durationRequired'),
+                        suffixIcon: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                        ),
+                      ),
+                      child: Text(
+                        duration,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: caveNavy,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -876,7 +839,9 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
             label: context.l10n.text('expiryDateEditable'),
             date: expiryDate,
             onTap: () => pickDate(false),
-            helper: context.l10n.text('expiryCalculated'),
+            helper: expiryManuallyEdited
+                ? null
+                : context.l10n.text('expiryCalculated'),
           ),
           const SizedBox(height: 22),
           _FormHeading(context.l10n.text('purchaseDetails')),
@@ -1045,11 +1010,13 @@ class _DateField extends StatelessWidget {
     required this.date,
     required this.onTap,
     this.helper,
+    this.compact = false,
   });
   final String label;
   final DateTime date;
   final VoidCallback onTap;
   final String? helper;
+  final bool compact;
   @override
   Widget build(BuildContext context) => InkWell(
     onTap: onTap,
@@ -1061,8 +1028,14 @@ class _DateField extends StatelessWidget {
         suffixIcon: const Icon(Icons.calendar_today_outlined),
       ),
       child: Text(
-        DateFormat.yMMMd().format(date),
-        style: const TextStyle(color: caveNavy, fontWeight: FontWeight.w600),
+        DateFormat('MMM d, yyyy').format(date),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: caveNavy,
+          fontSize: compact ? 15 : null,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
   );

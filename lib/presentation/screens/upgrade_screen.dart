@@ -66,6 +66,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             features: [
               context.l10n.text('upTo15'),
               context.l10n.text('cloudSync'),
+              context.l10n.text('barcodeScanner'),
               context.l10n.text('allReminders'),
               context.l10n.text('claimPacks'),
             ],
@@ -81,52 +82,13 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             features: [
               context.l10n.text('upTo50'),
               context.l10n.text('cloudSync'),
+              context.l10n.text('barcodeScanner'),
               context.l10n.text('allReminders'),
               context.l10n.text('claimPacks'),
             ],
             selected: chosen == PlanTier.plus,
             current: app.settings.plan == PlanTier.plus,
             onTap: () => setState(() => selected = PlanTier.plus),
-          ),
-          const SizedBox(height: 20),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    backgroundColor: AppColors.softBlue,
-                    child: Icon(
-                      Icons.document_scanner_outlined,
-                      color: caveBlue,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.l10n.text('smartScanPack'),
-                          style: AppTypography.subtitle,
-                        ),
-                        Text(
-                          context.l10n.text('scanCredits'),
-                          style: AppTypography.muted,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    '\$1.99',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: caveBlue,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
           const SizedBox(height: 12),
           Text(

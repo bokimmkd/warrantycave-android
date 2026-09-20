@@ -421,19 +421,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                   children: [
                     ListTile(
                       leading: const Icon(
-                        Icons.auto_awesome_rounded,
-                        color: caveTeal,
-                      ),
-                      title: Text(context.l10n.text('smartScanPack')),
-                      subtitle: Text(
-                        context.l10n.format('smartScanCreditsRemaining', {
-                          'count': s.smartScanCredits,
-                        }),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(
                         Icons.redeem_rounded,
                         color: caveBlue,
                       ),

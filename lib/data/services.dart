@@ -183,6 +183,7 @@ class LocalNotificationService implements NotificationService {
   Future<void> scheduleFor(WarrantyItem item, AppSettings settings) async {
     await initialize();
     await cancelFor(item.id);
+    if (!settings.notificationConsentGranted) return;
     final reminders = <int, bool>{
       60: settings.reminder60,
       30: settings.reminder30,

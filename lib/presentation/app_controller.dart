@@ -212,6 +212,8 @@ class AppController extends ChangeNotifier {
   Future<bool> requestNotificationPermission() async {
     final granted = await notifications.requestPermission();
     if (granted) {
+      settings = settings.copyWith(notificationConsentGranted: true);
+      await _persist();
       for (final item in items) {
         await notifications.scheduleFor(item, settings);
       }

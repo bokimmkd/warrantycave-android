@@ -27,6 +27,8 @@ class ReferralPolicy {
   static const rewardDays = 30;
   static const minimumCodeLength = 6;
   static const maximumCodeLength = 24;
+  static const googlePlayDownloadUrl =
+      'https://play.google.com/store/apps/details?id=com.warrantycave.app';
 
   static String normalize(String value) =>
       value.trim().toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
@@ -260,10 +262,11 @@ class AppSettings {
   const AppSettings({
     this.onboardingComplete = false,
     this.expiringThresholdDays = 60,
-    this.reminder60 = true,
-    this.reminder30 = true,
-    this.reminder7 = true,
-    this.reminderExpiry = true,
+    this.reminder60 = false,
+    this.reminder30 = false,
+    this.reminder7 = false,
+    this.reminderExpiry = false,
+    this.notificationConsentGranted = false,
     this.plan = PlanTier.free,
     this.firstName = '',
     this.lastName = '',
@@ -284,6 +287,7 @@ class AppSettings {
   final bool reminder30;
   final bool reminder7;
   final bool reminderExpiry;
+  final bool notificationConsentGranted;
   final PlanTier plan;
   final String firstName;
   final String lastName;
@@ -304,6 +308,7 @@ class AppSettings {
     bool? reminder30,
     bool? reminder7,
     bool? reminderExpiry,
+    bool? notificationConsentGranted,
     PlanTier? plan,
     String? firstName,
     String? lastName,
@@ -324,6 +329,8 @@ class AppSettings {
     reminder30: reminder30 ?? this.reminder30,
     reminder7: reminder7 ?? this.reminder7,
     reminderExpiry: reminderExpiry ?? this.reminderExpiry,
+    notificationConsentGranted:
+        notificationConsentGranted ?? this.notificationConsentGranted,
     plan: plan ?? this.plan,
     firstName: firstName ?? this.firstName,
     lastName: lastName ?? this.lastName,
@@ -345,6 +352,7 @@ class AppSettings {
     'reminder30': reminder30,
     'reminder7': reminder7,
     'reminderExpiry': reminderExpiry,
+    'notificationConsentGranted': notificationConsentGranted,
     'plan': plan.name,
     'firstName': firstName,
     'lastName': lastName,
@@ -362,10 +370,12 @@ class AppSettings {
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
     onboardingComplete: json['onboardingComplete'] as bool? ?? false,
     expiringThresholdDays: json['expiringThresholdDays'] as int? ?? 60,
-    reminder60: json['reminder60'] as bool? ?? true,
-    reminder30: json['reminder30'] as bool? ?? true,
-    reminder7: json['reminder7'] as bool? ?? true,
-    reminderExpiry: json['reminderExpiry'] as bool? ?? true,
+    reminder60: json['reminder60'] as bool? ?? false,
+    reminder30: json['reminder30'] as bool? ?? false,
+    reminder7: json['reminder7'] as bool? ?? false,
+    reminderExpiry: json['reminderExpiry'] as bool? ?? false,
+    notificationConsentGranted:
+        json['notificationConsentGranted'] as bool? ?? false,
     plan:
         PlanTier.values.where((e) => e.name == json['plan']).firstOrNull ??
         PlanTier.free,

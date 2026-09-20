@@ -136,11 +136,24 @@ void main() {
     expect(restored.pendingReferralCode, 'WCINVITE99');
   });
 
+  test('reminders require explicit user opt-in', () {
+    const settings = AppSettings();
+    expect(settings.reminder60, isFalse);
+    expect(settings.reminder30, isFalse);
+    expect(settings.reminder7, isFalse);
+    expect(settings.reminderExpiry, isFalse);
+    expect(settings.notificationConsentGranted, isFalse);
+  });
+
   test('referral policy normalizes codes and never implies signup reward', () {
     expect(ReferralPolicy.normalize(' wc-ab 12! '), 'WCAB12');
     expect(ReferralPolicy.isValid('WCAB12'), isTrue);
     expect(ReferralPolicy.isValid('123'), isFalse);
     expect(ReferralPolicy.rewardDays, 30);
+    expect(
+      ReferralPolicy.googlePlayDownloadUrl,
+      'https://play.google.com/store/apps/details?id=com.warrantycave.app',
+    );
     expect(
       ReferralPolicy.linkForCode('wc-ab12'),
       'https://warrantycave.com/ref/WCAB12',

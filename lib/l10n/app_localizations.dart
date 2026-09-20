@@ -995,7 +995,8 @@ class AppLocalizations {
       'planUsage': '{count} von {limit} Garantien • {storage}',
       'referralReward':
           '{code}\n30 Tage Plus nach dem ersten bezahlten Kauf erhalten.',
-      'referralShare': 'Garantien mit WarrantyCave schützen: {link}',
+      'referralShare':
+          'WarrantyCave bei Google Play herunterladen:\n{downloadLink}\n\nEmpfehlungscode:\n{code}',
       'serialScanned': 'Seriennummer gescannt',
       'chooseGallery': 'Aus Galerie wählen',
       'photoAdded': 'Foto hinzugefügt',
@@ -1136,7 +1137,8 @@ class AppLocalizations {
       'planUsage': '{count} de {limit} garantías • {storage}',
       'referralReward':
           '{code}\nObtén 30 días de Plus tras su primera compra pagada.',
-      'referralShare': 'Protege tus garantías con WarrantyCave: {link}',
+      'referralShare':
+          'Descarga WarrantyCave en Google Play:\n{downloadLink}\n\nCódigo de referido:\n{code}',
       'serialScanned': 'Número de serie escaneado',
       'chooseGallery': 'Elegir de la galería',
       'photoAdded': 'Foto añadida',
@@ -1278,7 +1280,8 @@ class AppLocalizations {
       'planUsage': '{count} garanties sur {limit} • {storage}',
       'referralReward':
           '{code}\nGagnez 30 jours de Plus après leur premier achat.',
-      'referralShare': 'Protégez vos garanties avec WarrantyCave : {link}',
+      'referralShare':
+          'Téléchargez WarrantyCave sur Google Play :\n{downloadLink}\n\nCode de parrainage :\n{code}',
       'serialScanned': 'Numéro de série scanné',
       'chooseGallery': 'Choisir dans la galerie',
       'photoAdded': 'Photo ajoutée',
@@ -1420,7 +1423,8 @@ class AppLocalizations {
       'planUsage': '{count} garanzie su {limit} • {storage}',
       'referralReward':
           '{code}\nGuadagna 30 giorni Plus dopo il loro primo acquisto.',
-      'referralShare': 'Proteggi le garanzie con WarrantyCave: {link}',
+      'referralShare':
+          'Scarica WarrantyCave da Google Play:\n{downloadLink}\n\nCodice referral:\n{code}',
       'serialScanned': 'Numero di serie scansionato',
       'chooseGallery': 'Scegli dalla galleria',
       'photoAdded': 'Foto aggiunta',
@@ -1560,7 +1564,8 @@ class AppLocalizations {
       'planUsage': '{count}/{limit} garanti • {storage}',
       'referralReward':
           '{code}\nİlk ücretli alışverişlerinden sonra 30 gün Plus kazanın.',
-      'referralShare': 'Garantilerinizi WarrantyCave ile koruyun: {link}',
+      'referralShare':
+          "WarrantyCave'i Google Play'den indirin:\n{downloadLink}\n\nReferans kodu:\n{code}",
       'serialScanned': 'Seri numarası tarandı',
       'chooseGallery': 'Galeriden seç',
       'photoAdded': 'Fotoğraf eklendi',
@@ -1699,7 +1704,8 @@ class AppLocalizations {
       'planUsage': '{count} από {limit} εγγυήσεις • {storage}',
       'referralReward':
           '{code}\nΚερδίστε 30 ημέρες Plus μετά την πρώτη αγορά τους.',
-      'referralShare': 'Προστατέψτε τις εγγυήσεις με WarrantyCave: {link}',
+      'referralShare':
+          'Κατεβάστε το WarrantyCave από το Google Play:\n{downloadLink}\n\nΚωδικός παραπομπής:\n{code}',
       'serialScanned': 'Ο σειριακός αριθμός σαρώθηκε',
       'chooseGallery': 'Επιλογή από συλλογή',
       'photoAdded': 'Η φωτογραφία προστέθηκε',
@@ -2495,7 +2501,8 @@ class AppLocalizations {
       'planUsage': '{count} of {limit} warranty items • {storage}',
       'referralReward':
           '{code}\nEarn 30 days of Plus after their first paid purchase.',
-      'referralShare': 'Keep your warranties safe with WarrantyCave: {link}',
+      'referralShare':
+          'Download WarrantyCave from Google Play:\n{downloadLink}\n\nReferral code:\n{code}',
       'serialScanned': 'Serial number scanned',
       'chooseGallery': 'Choose from Gallery',
       'photoAdded': 'Photo added',
@@ -2640,7 +2647,8 @@ class AppLocalizations {
       'planUsage': '{count} од {limit} гаранции • {storage}',
       'referralReward':
           '{code}\nДобијте 30 дена Plus по нивното прво платено купување.',
-      'referralShare': 'Чувајте ги гаранциите со WarrantyCave: {link}',
+      'referralShare':
+          'Преземете го WarrantyCave од Google Play:\n{downloadLink}\n\nРеферален код:\n{code}',
       'serialScanned': 'Серискиот број е скениран',
       'chooseGallery': 'Избери од галерија',
       'photoAdded': 'Фотографијата е додадена',

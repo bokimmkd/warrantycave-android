@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,8 +19,20 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen>
     with AutomaticKeepAliveClientMixin {
+  late final Future<String> _installedVersion = _loadInstalledVersion();
+
   @override
   bool get wantKeepAlive => true;
+
+  Future<String> _loadInstalledVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      return 'WarrantyCave ${info.version} (${info.buildNumber})';
+    } catch (_) {
+      return 'WarrantyCave';
+    }
+  }
+
   Future<void> open(String value) async {
     final uri = Uri.parse(value);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted)
@@ -458,7 +471,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                     onPressed: () => SharePlus.instance.share(
                       ShareParams(
                         text: context.l10n.format('referralShare', {
-                          'link': ReferralPolicy.linkForCode(s.referralCode),
+                          'downloadLink': ReferralPolicy.googlePlayDownloadUrl,
+                          'code': ReferralPolicy.normalize(s.referralCode),
                         }),
                       ),
                     ),
@@ -575,11 +589,14 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ),
             const SizedBox(height: 22),
-            const Center(
-              child: Text(
-                'WarrantyCave 1.0.5\nScan. Store. Relax.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.blueGrey),
+            Center(
+              child: FutureBuilder<String>(
+                future: _installedVersion,
+                builder: (context, snapshot) => Text(
+                  '${snapshot.data ?? 'WarrantyCave'}\nScan. Store. Relax.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.blueGrey),
+                ),
               ),
             ),
           ],

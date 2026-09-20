@@ -49,6 +49,13 @@ void main() {
   });
 
   group('expiry calculation', () {
+    test('one year keeps the same calendar day', () {
+      expect(
+        addMonthsClamped(DateTime(2026, 9, 20), 12),
+        DateTime(2027, 9, 20),
+      );
+    });
+
     test('clamps leap day safely', () {
       expect(
         addMonthsClamped(DateTime(2024, 2, 29), 12),

@@ -100,6 +100,17 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() => busy = true);
+    try {
+      await context.read<AppController>().signInWithGoogle();
+    } catch (error) {
+      if (mounted) AppSnackbars.error(context, _message(error));
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppController>();
@@ -221,7 +232,7 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: null,
+              onPressed: busy ? null : _signInWithGoogle,
               icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
               label: Text(context.l10n.text('googlePending')),
             ),

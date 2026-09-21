@@ -988,7 +988,7 @@ class AppLocalizations {
       'freeLimitReached':
           'Limit des kostenlosen Plans erreicht. Für weitere Garantien upgraden.',
       'viewScanPack': 'Scan-Paket anzeigen',
-      'googlePending': 'Google-Anmeldung wartet auf Freigabe',
+      'googlePending': 'Mit Google anmelden',
       'alreadyAccount': 'Bereits ein Konto? Anmelden',
       'newCreateProfile': 'Neu hier? Profil erstellen',
       'planName': '{plan}-Plan',
@@ -1130,7 +1130,7 @@ class AppLocalizations {
       'freeLimitReached':
           'Alcanzaste el límite gratuito. Mejora el plan para añadir más garantías.',
       'viewScanPack': 'Ver paquete de escaneos',
-      'googlePending': 'Acceso con Google pendiente de aprobación',
+      'googlePending': 'Iniciar sesión con Google',
       'alreadyAccount': '¿Ya tienes cuenta? Inicia sesión',
       'newCreateProfile': '¿Eres nuevo? Crea un perfil',
       'planName': 'Plan {plan}',
@@ -1273,7 +1273,7 @@ class AppLocalizations {
       'freeLimitReached':
           'Limite du forfait gratuit atteinte. Changez de forfait pour ajouter des garanties.',
       'viewScanPack': 'Voir le pack de scans',
-      'googlePending': 'Connexion Google en attente d’approbation',
+      'googlePending': 'Se connecter avec Google',
       'alreadyAccount': 'Vous avez déjà un compte ? Connectez-vous',
       'newCreateProfile': 'Nouveau ? Créez un profil',
       'planName': 'Forfait {plan}',
@@ -1416,7 +1416,7 @@ class AppLocalizations {
       'freeLimitReached':
           'Limite del piano gratuito raggiunto. Aggiorna per aggiungere garanzie.',
       'viewScanPack': 'Vedi pacchetto scansioni',
-      'googlePending': 'Accesso Google in attesa di approvazione',
+      'googlePending': 'Accedi con Google',
       'alreadyAccount': 'Hai già un account? Accedi',
       'newCreateProfile': 'Sei nuovo? Crea un profilo',
       'planName': 'Piano {plan}',
@@ -1557,7 +1557,7 @@ class AppLocalizations {
       'freeLimitReached':
           'Ücretsiz plan sınırına ulaştınız. Daha fazlası için yükseltin.',
       'viewScanPack': 'Tarama paketini gör',
-      'googlePending': 'Google girişi onay bekliyor',
+      'googlePending': 'Google ile giriş yap',
       'alreadyAccount': 'Hesabınız var mı? Giriş yapın',
       'newCreateProfile': 'Yeni misiniz? Profil oluşturun',
       'planName': '{plan} planı',
@@ -1697,7 +1697,7 @@ class AppLocalizations {
       'freeLimitReached':
           'Φτάσατε το δωρεάν όριο. Αναβαθμίστε για περισσότερες εγγυήσεις.',
       'viewScanPack': 'Προβολή πακέτου σαρώσεων',
-      'googlePending': 'Η σύνδεση Google αναμένει έγκριση',
+      'googlePending': 'Σύνδεση με Google',
       'alreadyAccount': 'Έχετε λογαριασμό; Συνδεθείτε',
       'newCreateProfile': 'Νέος χρήστης; Δημιουργήστε προφίλ',
       'planName': 'Πρόγραμμα {plan}',
@@ -2494,7 +2494,7 @@ class AppLocalizations {
       'freeLimitReached':
           'You reached the Free plan limit. Upgrade to add more warranties.',
       'viewScanPack': 'View Scan Pack',
-      'googlePending': 'Google Sign-In pending owner approval',
+      'googlePending': 'Sign in with Google',
       'alreadyAccount': 'Already have an account? Sign in',
       'newCreateProfile': 'New here? Create a profile',
       'planName': '{plan} plan',
@@ -2640,7 +2640,7 @@ class AppLocalizations {
       'freeLimitReached':
           'Го достигнавте лимитот на бесплатниот план. Надградете за повеќе гаранции.',
       'viewScanPack': 'Види Scan пакет',
-      'googlePending': 'Google најава чека одобрение од сопственикот',
+      'googlePending': 'Најави се со Google',
       'alreadyAccount': 'Веќе имате профил? Најавете се',
       'newCreateProfile': 'Нов корисник? Создајте профил',
       'planName': '{plan} план',

@@ -284,11 +284,19 @@ class _SettingsScreenState extends State<SettingsScreen>
     final app = context.watch<AppController>();
     final s = app.settings;
     return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: app.refreshCloud,
-        child: ListView(
+      child: ListTileTheme(
+        data: const ListTileThemeData(
+          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          minLeadingWidth: 40,
+          horizontalTitleGap: 12,
+          minVerticalPadding: 6,
+          dense: true,
+        ),
+        child: RefreshIndicator(
+          onRefresh: app.refreshCloud,
+          child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
           children: [
             Text(
               context.l10n.text('settings'),
@@ -298,11 +306,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                 color: caveNavy,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
             _Label(context.l10n.text('account')),
             Card(
               child: ListTile(
-                contentPadding: const EdgeInsets.all(18),
                 leading: const CircleAvatar(
                   backgroundColor: AppColors.softBlue,
                   child: Icon(Icons.person_outline, color: caveBlue),
@@ -337,7 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ),
             if (app.signedIn) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Card(
                 child: Column(
                   children: [
@@ -390,10 +397,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
             ],
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Card(
               child: ListTile(
-                contentPadding: const EdgeInsets.all(18),
                 leading: const CircleAvatar(
                   backgroundColor: Color(0xFFE2F7F4),
                   child: Icon(
@@ -430,7 +436,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             if (app.signedIn &&
                 app.emailVerified &&
                 s.plan == PlanTier.free) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Card(
                 child: Column(
                   children: [
@@ -451,7 +457,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ],
             if (app.signedIn && s.referralCode.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Card(
                 child: ListTile(
                   leading: const Icon(
@@ -480,7 +486,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             _Label(context.l10n.text('warrantyPreferences')),
             Card(
               child: Column(
@@ -527,7 +533,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             _Label(context.l10n.text('language')),
             Card(
               child: ListTile(
@@ -553,7 +559,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             _Label(context.l10n.text('legalSupport')),
             Card(
               child: Column(
@@ -600,6 +606,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ),
           ],
+          ),
         ),
       ),
     );

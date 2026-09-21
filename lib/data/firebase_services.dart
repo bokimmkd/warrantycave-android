@@ -14,6 +14,8 @@ class FirebaseAccountService {
 
   final FirebaseAuth _auth;
   bool _googleReady = false;
+  static const _googleServerClientId =
+      '491401464312-pkie3i2v4dc1h3r3sbcoub7kp3g2tvto.apps.googleusercontent.com';
 
   User? get currentUser => _auth.currentUser;
   bool get usesPassword =>
@@ -46,7 +48,9 @@ class FirebaseAccountService {
 
   Future<User> signInWithGoogle() async {
     if (!_googleReady) {
-      await GoogleSignIn.instance.initialize();
+      await GoogleSignIn.instance.initialize(
+        serverClientId: _googleServerClientId,
+      );
       _googleReady = true;
     }
     final googleUser = await GoogleSignIn.instance.authenticate();
@@ -87,7 +91,9 @@ class FirebaseAccountService {
       );
     } else {
       if (!_googleReady) {
-        await GoogleSignIn.instance.initialize();
+        await GoogleSignIn.instance.initialize(
+          serverClientId: _googleServerClientId,
+        );
         _googleReady = true;
       }
       final account = await GoogleSignIn.instance.authenticate();

@@ -195,7 +195,28 @@ class AppController extends ChangeNotifier {
     await _cloudAction(() => cloud!.saveItem(user!.uid, item));
   }
 
-  Future<void> delete(WarrantyItem item) async {
+  Future<bool> delete(WarrantyItem item) async {
+    // For cloud-backed plans, delete the remote record first. Removing the
+    // local copy while the cloud delete is still pending (or has failed)
+    // allows the next refresh to download the item again.
+    if (signedIn &&
+        emailVerified &&
+        cloud != null &&
+        settings.plan.hasCloud) {
+      cloudError = null;
+      cloudSyncing = true;
+      notifyListeners();
+      try {
+        await cloud!.deleteItem(user!.uid, item.id);
+        lastCloudSync = DateTime.now();
+      } catch (error) {
+        cloudError = error.toString();
+        return false;
+      } finally {
+        cloudSyncing = false;
+        notifyListeners();
+      }
+    }
     items = items.where((entry) => entry.id != item.id).toList();
     await notifications.cancelFor(item.id);
     for (final path in [
@@ -205,7 +226,7 @@ class AppController extends ChangeNotifier {
     ])
       await photos.delete(path);
     await _persist();
-    await _cloudAction(() => cloud!.deleteItem(user!.uid, item.id));
+    return true;
   }
 
   Future<String?> addPhoto({

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -35,6 +36,10 @@ class AppController extends ChangeNotifier {
   String? loadError;
   String? cloudError;
   bool smartScanBusy = false;
+  bool billingBusy = false;
+  bool billingAvailable = false;
+  String? billingError;
+  StreamSubscription<BillingUpdate>? _billingSubscription;
 
   User? get user => accounts?.currentUser;
   bool get accountEnabled => accounts != null && cloud != null;
@@ -51,7 +56,14 @@ class AppController extends ChangeNotifier {
       final loaded = await storage.load();
       items = loaded.$1;
       settings = loaded.$2;
+      _billingSubscription ??= subscriptions.updates.listen(
+        _handleBillingUpdate,
+      );
+      await subscriptions.initialize();
+      billingAvailable = subscriptions.isAvailable;
+      billingError = subscriptions.setupError;
       if (signedIn && emailVerified) await _syncForUser();
+      await subscriptions.restorePurchases();
       await notifications.initialize();
       for (final item in items) {
         await notifications.scheduleFor(item, settings);
@@ -65,7 +77,94 @@ class AppController extends ChangeNotifier {
   }
 
   bool get canAdd => subscriptions.canAddItem(settings.plan, items.length);
+  String billingPrice(PlanTier tier) => subscriptions.priceFor(tier);
   String newId() => _uuid.v4();
+
+  Future<void> purchasePlan(PlanTier tier) async {
+    if (tier == PlanTier.free) return;
+    if (!signedIn || !emailVerified || cloud == null) {
+      throw StateError('verified-account-required');
+    }
+    billingError = null;
+    billingBusy = true;
+    notifyListeners();
+    final launched = await subscriptions.purchase(tier);
+    if (!launched) {
+      billingBusy = false;
+      billingError =
+          subscriptions.setupError ?? 'Google Play Billing is unavailable.';
+      notifyListeners();
+      throw StateError(billingError!);
+    }
+  }
+
+  Future<void> restorePurchases() async {
+    billingError = null;
+    billingBusy = true;
+    notifyListeners();
+    try {
+      await subscriptions.restorePurchases();
+    } finally {
+      // Google Play sends restored purchases through the update stream, but it
+      // sends no event when there is nothing to restore. Always release the UI.
+      billingBusy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _handleBillingUpdate(BillingUpdate update) async {
+    if (update.status == BillingUpdateStatus.pending) {
+      billingBusy = true;
+      billingError = null;
+      notifyListeners();
+      return;
+    }
+    if (update.status == BillingUpdateStatus.canceled) {
+      billingBusy = false;
+      notifyListeners();
+      return;
+    }
+    if (update.status == BillingUpdateStatus.error) {
+      billingBusy = false;
+      billingError = update.error ?? 'Google Play purchase failed.';
+      notifyListeners();
+      return;
+    }
+    final token = update.purchaseToken;
+    final productId = update.productId;
+    if (!signedIn || !emailVerified || cloud == null) {
+      billingBusy = false;
+      billingError = 'Sign in with a verified account to restore this plan.';
+      notifyListeners();
+      return;
+    }
+    if (token == null || token.isEmpty || productId == null) {
+      billingBusy = false;
+      billingError = 'Google Play did not return a valid purchase token.';
+      notifyListeners();
+      return;
+    }
+    try {
+      final entitlement = await cloud!.confirmPlayPurchase(
+        productId: productId,
+        purchaseToken: token,
+      );
+      await subscriptions.completePurchase(token);
+      settings = settings.copyWith(
+        plan: _isPlusTester ? PlanTier.plus : entitlement.plan,
+        planExpiresAt: entitlement.expiresAt,
+        clearPlanExpiry: entitlement.expiresAt == null,
+      );
+      await storage.save(items, settings);
+      billingError = null;
+      if (settings.plan.hasCloud) await _syncForUser();
+    } catch (error) {
+      billingError = error.toString();
+    } finally {
+      billingBusy = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> upsert(WarrantyItem item) async {
     final index = items.indexWhere((entry) => entry.id == item.id);
@@ -392,4 +491,14 @@ class AppController extends ChangeNotifier {
       .length;
   bool photoExists(String path) =>
       path.startsWith('https://') || File(path).existsSync();
+
+  @override
+  void dispose() {
+    final billingSubscription = _billingSubscription;
+    if (billingSubscription != null) {
+      unawaited(billingSubscription.cancel());
+    }
+    unawaited(subscriptions.dispose());
+    super.dispose();
+  }
 }

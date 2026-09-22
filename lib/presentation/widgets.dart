@@ -176,14 +176,18 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, icon) = switch (status) {
-      WarrantyStatus.active => ('Active', caveTeal, Icons.shield_outlined),
+      WarrantyStatus.active => (
+        context.l10n.text('active'),
+        caveTeal,
+        Icons.shield_outlined,
+      ),
       WarrantyStatus.expiringSoon => (
-        'Expiring Soon',
+        context.l10n.text('expiringSoon'),
         Colors.orange,
         Icons.schedule_outlined,
       ),
       WarrantyStatus.expired => (
-        'Expired',
+        context.l10n.text('expired'),
         Colors.redAccent,
         Icons.cancel_outlined,
       ),
@@ -263,7 +267,7 @@ class WarrantyCard extends StatelessWidget {
                 ),
               const SizedBox(height: 5),
               Text(
-                '${DateFormat.yMMMd().format(item.expiryDate)} • ${item.remainingLabel()}',
+                '${DateFormat.yMMMd(context.l10n.locale.languageCode).format(item.expiryDate)} • ${localizedRemainingLabel(context, item)}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -278,4 +282,20 @@ class WarrantyCard extends StatelessWidget {
       ],
     ),
   );
+}
+
+String localizedRemainingLabel(
+  BuildContext context,
+  WarrantyItem item, {
+  DateTime? now,
+}) {
+  final days = item.remainingDays(now: now);
+  if (days < 0) {
+    return context.l10n.format('expiredDaysAgo', {'days': -days});
+  }
+  if (days == 0) return context.l10n.text('expiresToday');
+  if (days <= 60) {
+    return context.l10n.format('expiresInDays', {'days': days});
+  }
+  return context.l10n.format('daysRemaining', {'days': days});
 }

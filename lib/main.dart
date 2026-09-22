@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'data/services.dart';
+import 'data/play_billing_service.dart';
 import 'data/ad_service.dart';
 import 'data/firebase_services.dart';
 import 'firebase_options.dart';
@@ -21,7 +22,7 @@ Future<void> main() async {
         storage: JsonLocalStorageService(),
         photos: LocalPhotoStorageService(),
         notifications: LocalNotificationService(),
-        subscriptions: LocalSubscriptionService(),
+        subscriptions: GooglePlaySubscriptionService(),
         accounts: FirebaseAccountService(),
         cloud: FirebaseCloudService(),
       )..initialize(),

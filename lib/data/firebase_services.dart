@@ -509,11 +509,21 @@ class FirebaseCloudService {
   Future<void> deleteItem(String uid, String itemId) async {
     final document = _items(uid).doc(itemId);
     final data = (await document.get()).data();
+    // The Firestore record is the source of truth during sync. Delete it
+    // before cleaning up Storage so a missing/locked photo can never leave a
+    // live record that gets downloaded again.
+    await document.delete();
     for (final url in _remotePhotoUrls(data)) {
       final path = _storagePath(url);
-      if (path != null) await _deleteObject(path);
+      if (path != null) {
+        try {
+          await _deleteObject(path);
+        } catch (_) {
+          // An orphaned image is preferable to resurrecting the warranty.
+          // It can be cleaned up later without blocking record deletion.
+        }
+      }
     }
-    await document.delete();
   }
 
   Future<void> deleteUserData(String uid) async {

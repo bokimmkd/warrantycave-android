@@ -25,6 +25,10 @@ jobs:
         run: |
           test -n "$ANDROID_KEYSTORE_BASE64"
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/upload-keystore.jks
+      - name: Prepare Unicode PDF fonts
+        run: |
+          base64 --decode assets/fonts/DejaVuSans.ttf.b64 > assets/fonts/DejaVuSans.ttf
+          base64 --decode assets/fonts/DejaVuSans-Bold.ttf.b64 > assets/fonts/DejaVuSans-Bold.ttf
       - name: Dependencies
         run: flutter pub get
       - name: Tests
@@ -40,7 +44,7 @@ jobs:
           flutter build appbundle --release
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.9-final
+          name: WarrantyCave-1.0.13-billing-final
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab

@@ -214,8 +214,13 @@ class ItemDetailScreen extends StatelessWidget {
       icon: Icons.delete_forever_outlined,
     );
     if (confirmed) {
-      await app.delete(item);
-      if (context.mounted) Navigator.pop(context);
+      final deleted = await app.delete(item);
+      if (!context.mounted) return;
+      if (deleted) {
+        Navigator.pop(context);
+      } else {
+        AppSnackbars.error(context, context.l10n.text('networkFailed'));
+      }
     }
   }
 

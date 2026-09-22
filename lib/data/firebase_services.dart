@@ -183,6 +183,24 @@ class FirebaseCloudService {
     );
   }
 
+  Future<EntitlementResult> confirmPlayPurchase({
+    required String productId,
+    required String purchaseToken,
+  }) async {
+    final result = await _callFunction('confirmPlayPurchase', {
+      'productId': productId,
+      'purchaseToken': purchaseToken,
+    });
+    final planName = result['plan'] as String? ?? 'free';
+    return EntitlementResult(
+      plan:
+          PlanTier.values.where((tier) => tier.name == planName).firstOrNull ??
+          PlanTier.free,
+      smartScanCredits: 0,
+      expiresAt: DateTime.tryParse(result['expiresAt'] as String? ?? ''),
+    );
+  }
+
   Future<ScanSuggestion> smartScanReceipt(String localImagePath) async {
     final bytes = await File(localImagePath).readAsBytes();
     final result = await _callFunction('smartScanReceipt', {

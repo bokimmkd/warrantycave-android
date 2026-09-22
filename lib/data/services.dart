@@ -31,8 +31,34 @@ abstract interface class CloudSyncService {
 }
 
 abstract interface class SubscriptionService {
-  Future<PlanTier> currentPlan();
+  Stream<BillingUpdate> get updates;
+  bool get isAvailable;
+  String? get setupError;
+  String priceFor(PlanTier tier);
+  Future<void> initialize();
+  Future<bool> purchase(PlanTier tier);
+  Future<void> restorePurchases();
+  Future<void> completePurchase(String purchaseToken);
   bool canAddItem(PlanTier tier, int currentCount);
+  Future<void> dispose();
+}
+
+enum BillingUpdateStatus { pending, purchased, restored, canceled, error }
+
+class BillingUpdate {
+  const BillingUpdate({
+    required this.status,
+    this.plan,
+    this.productId,
+    this.purchaseToken,
+    this.error,
+  });
+
+  final BillingUpdateStatus status;
+  final PlanTier? plan;
+  final String? productId;
+  final String? purchaseToken;
+  final String? error;
 }
 
 class ScanSuggestion {
@@ -240,10 +266,30 @@ class LocalNotificationService implements NotificationService {
 
 class LocalSubscriptionService implements SubscriptionService {
   @override
-  Future<PlanTier> currentPlan() async => PlanTier.free;
+  Stream<BillingUpdate> get updates => const Stream.empty();
+  @override
+  bool get isAvailable => false;
+  @override
+  String? get setupError => null;
+  @override
+  String priceFor(PlanTier tier) => switch (tier) {
+    PlanTier.basic => '\$2.99 / year',
+    PlanTier.plus => '\$5.99 / year',
+    PlanTier.free => '\$0 forever',
+  };
+  @override
+  Future<void> initialize() async {}
+  @override
+  Future<bool> purchase(PlanTier tier) async => false;
+  @override
+  Future<void> restorePurchases() async {}
+  @override
+  Future<void> completePurchase(String purchaseToken) async {}
   @override
   bool canAddItem(PlanTier tier, int currentCount) =>
       currentCount < tier.itemLimit;
+  @override
+  Future<void> dispose() async {}
 }
 
 class FirebaseReadyCloudSyncService implements CloudSyncService {

@@ -62,7 +62,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           const SizedBox(height: 12),
           _PlanCard(
             tier: PlanTier.basic,
-            price: '\$2.99 / year',
+            price: app.billingPrice(PlanTier.basic),
             features: [
               context.l10n.text('upTo15'),
               context.l10n.text('cloudSync'),
@@ -78,7 +78,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           const SizedBox(height: 12),
           _PlanCard(
             tier: PlanTier.plus,
-            price: '\$5.99 / year',
+            price: app.billingPrice(PlanTier.plus),
             features: [
               context.l10n.text('upTo50'),
               context.l10n.text('cloudSync'),
@@ -102,17 +102,58 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 ? context.l10n.text('currentPlan')
                 : context.l10n.format('continueWith', {
                     'plan': _tierLabel(context, chosen),
-                    'price': _priceFor(chosen),
+                    'price': app.billingPrice(chosen),
                   }),
-            onPressed: chosen == app.settings.plan || chosen == PlanTier.free
+            onPressed:
+                chosen == app.settings.plan ||
+                    chosen == PlanTier.free ||
+                    app.billingBusy
                 ? null
-                : () => AppSnackbars.error(
-                    context,
-                    context.l10n.text('billingPending'),
-                  ),
+                : () async {
+                    try {
+                      await app.purchasePlan(chosen);
+                    } catch (_) {
+                      if (context.mounted) {
+                        AppSnackbars.error(
+                          context,
+                          app.billingError ??
+                              context.l10n.text('purchaseUnavailable'),
+                        );
+                      }
+                    }
+                  },
             icon: chosen == app.settings.plan
                 ? Icons.check_circle_outline
                 : Icons.arrow_forward_rounded,
+          ),
+          const SizedBox(height: 10),
+          OutlineButton(
+            label: app.billingBusy
+                ? context.l10n.text('restoringPurchases')
+                : context.l10n.text('restorePurchases'),
+            onPressed: app.billingBusy
+                ? null
+                : () async {
+                    if (!app.signedIn || !app.emailVerified) {
+                      AppSnackbars.error(
+                        context,
+                        context.l10n.text('purchaseRequiresAccount'),
+                      );
+                      return;
+                    }
+                    try {
+                      await app.restorePurchases();
+                    } catch (_) {
+                      if (context.mounted) {
+                        AppSnackbars.error(
+                          context,
+                          app.billingError ??
+                              context.l10n.text('purchaseUnavailable'),
+                        );
+                      }
+                    }
+                  },
+            icon: Icons.restore_rounded,
           ),
           const SizedBox(height: 10),
           OutlineButton(
@@ -128,12 +169,6 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
       ),
     );
   }
-
-  String _priceFor(PlanTier tier) => switch (tier) {
-    PlanTier.free => '\$0',
-    PlanTier.basic => '\$2.99/year',
-    PlanTier.plus => '\$5.99/year',
-  };
 
   String _tierLabel(BuildContext context, PlanTier tier) =>
       context.l10n.text(switch (tier) {

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -99,7 +100,7 @@ class ItemDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    item.remainingLabel(),
+                    localizedRemainingLabel(context, item),
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       color: caveBlue,
@@ -224,13 +225,23 @@ class ItemDetailScreen extends StatelessWidget {
           text: context.l10n.format('shareWarrantyText', {
             'product': item.productName,
             'details': '${item.brand} ${item.model}',
-            'date': DateFormat.yMMMd().format(item.expiryDate),
+            'date': DateFormat.yMMMd(
+              context.l10n.locale.languageCode,
+            ).format(item.expiryDate),
           }),
         ),
       );
   Future<void> _claimPack(BuildContext context, WarrantyItem item) async {
     try {
-      final doc = pw.Document();
+      final regularFont = pw.Font.ttf(
+        await rootBundle.load('assets/fonts/DejaVuSans.ttf'),
+      );
+      final boldFont = pw.Font.ttf(
+        await rootBundle.load('assets/fonts/DejaVuSans-Bold.ttf'),
+      );
+      final doc = pw.Document(
+        theme: pw.ThemeData.withFont(base: regularFont, bold: boldFont),
+      );
       final attachments = <({String label, String path})>[
         if (item.productPhoto != null)
           (label: context.l10n.text('productPhoto'), path: item.productPhoto!),
@@ -348,7 +359,10 @@ class ItemDetailScreen extends StatelessWidget {
                 [context.l10n.text('model'), item.model],
                 [context.l10n.text('serialNumber'), item.serialNumber],
                 [context.l10n.text('warrantyStatus'), status],
-                [context.l10n.text('timeRemaining'), item.remainingLabel()],
+                [
+                  context.l10n.text('timeRemaining'),
+                  localizedRemainingLabel(context, item),
+                ],
                 [context.l10n.text('retailer'), item.store],
                 [
                   context.l10n.text('authorizedService'),
@@ -359,12 +373,16 @@ class ItemDetailScreen extends StatelessWidget {
                 [context.l10n.text('usedAt'), item.location],
                 [
                   context.l10n.text('purchaseDate'),
-                  DateFormat.yMMMd().format(item.purchaseDate),
+                  DateFormat.yMMMd(
+                    context.l10n.locale.languageCode,
+                  ).format(item.purchaseDate),
                 ],
                 [context.l10n.text('warrantyDuration'), item.durationLabel],
                 [
                   context.l10n.text('expiryDate'),
-                  DateFormat.yMMMd().format(item.expiryDate),
+                  DateFormat.yMMMd(
+                    context.l10n.locale.languageCode,
+                  ).format(item.expiryDate),
                 ],
                 [
                   context.l10n.text('purchasePrice'),
@@ -394,7 +412,9 @@ class ItemDetailScreen extends StatelessWidget {
             pw.SizedBox(height: 28),
             pw.Text(
               context.l10n.format('generatedOn', {
-                'date': DateFormat.yMMMd().add_jm().format(DateTime.now()),
+                'date': DateFormat.yMMMd(
+                  context.l10n.locale.languageCode,
+                ).add_jm().format(DateTime.now()),
               }),
               style: const pw.TextStyle(color: PdfColors.grey),
             ),
@@ -488,7 +508,9 @@ class _Details extends StatelessWidget {
       MapEntry(context.l10n.text('usedAt'), item.location),
       MapEntry(
         context.l10n.text('purchaseDate'),
-        DateFormat.yMMMd().format(item.purchaseDate),
+        DateFormat.yMMMd(
+          context.l10n.locale.languageCode,
+        ).format(item.purchaseDate),
       ),
       MapEntry(
         context.l10n.text('purchasePrice'),
@@ -499,7 +521,9 @@ class _Details extends StatelessWidget {
       MapEntry(context.l10n.text('warrantyDuration'), item.durationLabel),
       MapEntry(
         context.l10n.text('expiryDate'),
-        DateFormat.yMMMd().format(item.expiryDate),
+        DateFormat.yMMMd(
+          context.l10n.locale.languageCode,
+        ).format(item.expiryDate),
       ),
     ].where((e) => e.value.isNotEmpty);
     return Card(

@@ -310,9 +310,10 @@ class _SettingsScreenState extends State<SettingsScreen>
             _Label(context.l10n.text('account')),
             Card(
               child: ListTile(
-                leading: const CircleAvatar(
+                leading: const _SettingsIconBadge(
+                  icon: Icons.person_rounded,
                   backgroundColor: AppColors.softBlue,
-                  child: Icon(Icons.person_outline, color: caveBlue),
+                  foregroundColor: caveBlue,
                 ),
                 title: Text(
                   [
@@ -349,9 +350,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                 child: Column(
                   children: [
                     ListTile(
-                      leading: const Icon(
-                        Icons.cloud_done_outlined,
-                        color: caveTeal,
+                      leading: const _SettingsIconBadge(
+                        icon: Icons.cloud_done_rounded,
+                        backgroundColor: Color(0xFFE3F5EF),
+                        foregroundColor: caveTeal,
                       ),
                       title: Text(context.l10n.text('connectedAccount')),
                       subtitle: Text(
@@ -378,14 +380,19 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                     const Divider(height: 1),
                     ListTile(
-                      leading: const Icon(Icons.logout_outlined),
+                      leading: const _SettingsIconBadge(
+                        icon: Icons.logout_rounded,
+                        backgroundColor: Color(0xFFF0F2F5),
+                        foregroundColor: Color(0xFF536273),
+                      ),
                       title: Text(context.l10n.text('signOut')),
                       onTap: () => logout(app),
                     ),
                     ListTile(
-                      leading: const Icon(
-                        Icons.delete_forever_outlined,
-                        color: Colors.redAccent,
+                      leading: const _SettingsIconBadge(
+                        icon: Icons.delete_forever_rounded,
+                        backgroundColor: Color(0xFFFFE8EC),
+                        foregroundColor: Colors.redAccent,
                       ),
                       title: Text(
                         context.l10n.text('deleteAccount'),
@@ -399,13 +406,13 @@ class _SettingsScreenState extends State<SettingsScreen>
             ],
             const SizedBox(height: 12),
             Card(
+              color: const Color(0xFFF0F2F5),
+              surfaceTintColor: Colors.transparent,
               child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFE9ECEF),
-                  child: Icon(
-                    Icons.workspace_premium_rounded,
-                    color: Color(0xFF747B84),
-                  ),
+                leading: const _SettingsIconBadge(
+                  icon: Icons.workspace_premium_rounded,
+                  backgroundColor: Color(0xFFFFF1C7),
+                  foregroundColor: Color(0xFFD99A00),
                 ),
                 title: Text(
                   context.l10n.format('planName', {'plan': s.plan.label}),
@@ -441,9 +448,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                 child: Column(
                   children: [
                     ListTile(
-                      leading: const Icon(
-                        Icons.redeem_rounded,
-                        color: caveBlue,
+                      leading: const _SettingsIconBadge(
+                        icon: Icons.redeem_rounded,
+                        backgroundColor: AppColors.softBlue,
+                        foregroundColor: caveBlue,
                       ),
                       title: Text(context.l10n.text('redeemFounderCode')),
                       subtitle: Text(
@@ -460,9 +468,10 @@ class _SettingsScreenState extends State<SettingsScreen>
               const SizedBox(height: 8),
               Card(
                 child: ListTile(
-                  leading: const Icon(
-                    Icons.card_giftcard_rounded,
-                    color: caveTeal,
+                  leading: const _SettingsIconBadge(
+                    icon: Icons.card_giftcard_rounded,
+                    backgroundColor: Color(0xFFE3F5EF),
+                    foregroundColor: caveTeal,
                   ),
                   title: Text(context.l10n.text('inviteFriends')),
                   subtitle: Text(
@@ -516,10 +525,16 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: Icon(
-                      app.signedIn
-                          ? Icons.cloud_done_outlined
-                          : Icons.cloud_off_outlined,
+                    leading: _SettingsIconBadge(
+                      icon: app.signedIn
+                          ? Icons.cloud_done_rounded
+                          : Icons.cloud_off_rounded,
+                      backgroundColor: app.signedIn
+                          ? const Color(0xFFE3F5EF)
+                          : const Color(0xFFF0F2F5),
+                      foregroundColor: app.signedIn
+                          ? caveTeal
+                          : const Color(0xFF697586),
                     ),
                     title: Text(context.l10n.text('cloudBackup')),
                     subtitle: Text(
@@ -537,7 +552,11 @@ class _SettingsScreenState extends State<SettingsScreen>
             _Label(context.l10n.text('language')),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.translate_rounded, color: caveBlue),
+                leading: const _SettingsIconBadge(
+                  icon: Icons.translate_rounded,
+                  backgroundColor: AppColors.softBlue,
+                  foregroundColor: caveBlue,
+                ),
                 title: Text(context.l10n.text('language')),
                 trailing: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -565,19 +584,31 @@ class _SettingsScreenState extends State<SettingsScreen>
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.privacy_tip_outlined),
+                    leading: const _SettingsIconBadge(
+                      icon: Icons.shield_rounded,
+                      backgroundColor: Color(0xFFE8EEFF),
+                      foregroundColor: caveBlue,
+                    ),
                     title: Text(context.l10n.text('privacyPolicy')),
                     trailing: const Icon(Icons.open_in_new, size: 18),
                     onTap: () => open('https://warrantycave.com/privacy'),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.description_outlined),
+                    leading: const _SettingsIconBadge(
+                      icon: Icons.description_rounded,
+                      backgroundColor: Color(0xFFF0F2F5),
+                      foregroundColor: Color(0xFF536273),
+                    ),
                     title: Text(context.l10n.text('terms')),
                     trailing: const Icon(Icons.open_in_new, size: 18),
                     onTap: () => open('https://warrantycave.com/terms'),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.support_agent_outlined),
+                    leading: const _SettingsIconBadge(
+                      icon: Icons.support_agent_rounded,
+                      backgroundColor: Color(0xFFE3F5EF),
+                      foregroundColor: caveTeal,
+                    ),
                     title: Text(context.l10n.text('support')),
                     trailing: const Icon(Icons.open_in_new, size: 18),
                     onTap: () => open(
@@ -585,7 +616,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.language_outlined),
+                    leading: const _SettingsIconBadge(
+                      icon: Icons.language_rounded,
+                      backgroundColor: AppColors.softBlue,
+                      foregroundColor: caveBlue,
+                    ),
                     title: Text(context.l10n.text('website')),
                     subtitle: const Text('warrantycave.com'),
                     trailing: const Icon(Icons.open_in_new, size: 18),
@@ -627,5 +662,29 @@ class _Label extends StatelessWidget {
         color: caveBlue,
       ),
     ),
+  );
+}
+
+class _SettingsIconBadge extends StatelessWidget {
+  const _SettingsIconBadge({
+    required this.icon,
+    required this.backgroundColor,
+    required this.foregroundColor,
+  });
+
+  final IconData icon;
+  final Color backgroundColor;
+  final Color foregroundColor;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 40,
+    height: 40,
+    decoration: BoxDecoration(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(13),
+    ),
+    alignment: Alignment.center,
+    child: Icon(icon, color: foregroundColor, size: 22),
   );
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
 import '../domain/models.dart';
 import 'services.dart';
@@ -88,9 +90,16 @@ class GooglePlaySubscriptionService implements SubscriptionService {
     await initialize();
     final product = _products[tier];
     if (!_available || product == null) return false;
-    return _store.buyNonConsumable(
+    final launched = await _store.buyNonConsumable(
       purchaseParam: PurchaseParam(productDetails: product),
     );
+    if (launched) {
+      // Some Play Store versions occasionally fail to replay the purchase on
+      // purchaseStream after returning to the app. Querying owned purchases is
+      // a safe recovery path and gives us the token in time to acknowledge it.
+      unawaited(_recoverAndroidPurchasesAfterCheckout());
+    }
+    return launched;
   }
 
   @override
@@ -105,7 +114,44 @@ class GooglePlaySubscriptionService implements SubscriptionService {
       );
       return;
     }
-    await _store.restorePurchases();
+    if (Platform.isAndroid) {
+      await _queryAndroidPurchases().timeout(const Duration(seconds: 15));
+      return;
+    }
+    await _store.restorePurchases().timeout(const Duration(seconds: 15));
+  }
+
+  Future<void> _recoverAndroidPurchasesAfterCheckout() async {
+    if (!Platform.isAndroid) return;
+    // Give the Play purchase sheet time to close and persist the transaction.
+    await Future<void>.delayed(const Duration(seconds: 2));
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        final found = await _queryAndroidPurchases();
+        if (found) return;
+      } catch (_) {
+        // The normal purchase stream can still complete the transaction. A
+        // later retry below covers short BillingClient reconnects.
+      }
+      await Future<void>.delayed(const Duration(seconds: 3));
+    }
+  }
+
+  Future<bool> _queryAndroidPurchases() async {
+    final android = _store
+        .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
+    final response = await android.queryPastPurchases();
+    if (response.error != null) {
+      throw StateError(response.error!.message);
+    }
+    final purchases = response.pastPurchases
+        .where(
+          (purchase) =>
+              PlayBillingProducts.ids.contains(purchase.productID),
+        )
+        .toList(growable: false);
+    if (purchases.isNotEmpty) await _handlePurchases(purchases);
+    return purchases.isNotEmpty;
   }
 
   Future<void> _handlePurchases(List<PurchaseDetails> purchases) async {

@@ -103,7 +103,15 @@ class AppController extends ChangeNotifier {
     billingBusy = true;
     notifyListeners();
     try {
-      await subscriptions.restorePurchases();
+      await subscriptions
+          .restorePurchases()
+          .timeout(const Duration(seconds: 18));
+    } on TimeoutException {
+      billingError = 'Google Play did not respond. Please try again.';
+      rethrow;
+    } catch (error) {
+      billingError = error.toString();
+      rethrow;
     } finally {
       // Google Play sends restored purchases through the update stream, but it
       // sends no event when there is nothing to restore. Always release the UI.

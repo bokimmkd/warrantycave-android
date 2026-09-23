@@ -25,7 +25,7 @@ android {
         versionName = flutter.versionName
         manifestPlaceholders["admobAppId"] =
             project.findProperty("ADMOB_APP_ID")?.toString()
-                ?: "ca-app-pub-3940256099942544~3347511713"
+                ?: "ca-app-pub-1171723950608276~6729595224"
     }
 
     signingConfigs {

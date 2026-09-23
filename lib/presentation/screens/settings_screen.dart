@@ -401,10 +401,10 @@ class _SettingsScreenState extends State<SettingsScreen>
             Card(
               child: ListTile(
                 leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFE2F7F4),
+                  backgroundColor: Color(0xFFE9ECEF),
                   child: Icon(
-                    Icons.workspace_premium_outlined,
-                    color: caveTeal,
+                    Icons.workspace_premium_rounded,
+                    color: Color(0xFF747B84),
                   ),
                 ),
                 title: Text(

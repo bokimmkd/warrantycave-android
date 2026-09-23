@@ -1,11 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 abstract final class AdService {
-  static const _bannerId = String.fromEnvironment(
-    'ADMOB_BANNER_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/6300978111',
-  );
+  static const _testBannerId = 'ca-app-pub-3940256099942544/6300978111';
+  static const _productionBannerId =
+      'ca-app-pub-1171723950608276/9463569777';
+
+  static String get _bannerId =>
+      kDebugMode ? _testBannerId : _productionBannerId;
 
   static Future<void> initialize() async {
     await MobileAds.instance.initialize();

@@ -59,20 +59,41 @@ class AppController extends ChangeNotifier {
       _billingSubscription ??= subscriptions.updates.listen(
         _handleBillingUpdate,
       );
-      await subscriptions.initialize();
-      billingAvailable = subscriptions.isAvailable;
-      billingError = subscriptions.setupError;
-      if (signedIn && emailVerified) await _syncForUser();
-      await subscriptions.restorePurchases();
-      await notifications.initialize();
-      for (final item in items) {
-        await notifications.scheduleFor(item, settings);
-      }
     } catch (error) {
       loadError = error.toString();
     } finally {
       loading = false;
       notifyListeners();
+    }
+    // Local data is enough to render the app. Billing, cloud and notification
+    // plugins continue after the first useful frame instead of blocking it.
+    unawaited(_initializeDeferredServices());
+  }
+
+  Future<void> _initializeDeferredServices() async {
+    try {
+      await subscriptions.initialize();
+      billingAvailable = subscriptions.isAvailable;
+      billingError = subscriptions.setupError;
+      notifyListeners();
+    } catch (error) {
+      billingError = error.toString();
+      notifyListeners();
+    }
+    if (signedIn && emailVerified) await _syncForUser();
+    try {
+      await subscriptions.restorePurchases();
+    } catch (error) {
+      billingError = error.toString();
+      notifyListeners();
+    }
+    try {
+      await notifications.initialize();
+      for (final item in items) {
+        await notifications.scheduleFor(item, settings);
+      }
+    } catch (error) {
+      debugPrint('Deferred notification setup failed: $error');
     }
   }
 
@@ -353,16 +374,20 @@ class AppController extends ChangeNotifier {
 
   Future<void> _syncForUser() async {
     if (!signedIn || !emailVerified || cloud == null) return;
-    if (settings.referralCode.isEmpty) {
-      final ownCode = ReferralPolicy.codeForUser(user!.uid);
+    final ownCode = ReferralPolicy.codeForUser(user!.uid);
+    if (settings.referralCode != ownCode) {
       settings = settings.copyWith(referralCode: ownCode);
       await storage.save(items, settings);
+    }
+    try {
       await cloud!.registerReferralSignup(
         uid: user!.uid,
         ownCode: ownCode,
         invitedByCode: settings.pendingReferralCode,
         email: user?.email ?? settings.email,
       );
+    } catch (error) {
+      cloudError = error.toString();
     }
     try {
       final entitlement = await cloud!.getEntitlements();

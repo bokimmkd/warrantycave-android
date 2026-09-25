@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -15,7 +17,6 @@ import 'presentation/theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: WarrantyCaveFirebaseOptions.android);
-  await AdService.initialize();
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppController(
@@ -29,6 +30,10 @@ Future<void> main() async {
       child: const WarrantyCaveApp(),
     ),
   );
+  // Ads and consent must never delay the first useful frame.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(AdService.initialize());
+  });
 }
 
 class WarrantyCaveApp extends StatelessWidget {

@@ -64,50 +64,73 @@ class _SerialScannerScreenState extends State<SerialScannerScreen> {
         ),
       ],
     ),
-    body: Stack(
-      fit: StackFit.expand,
-      children: [
-        MobileScanner(controller: controller, onDetect: onDetect),
-        const _ScannerOverlay(),
-        SafeArea(
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: caveNavy.withValues(alpha: .92),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Text(
-                context.l10n.text('scanHint'),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, height: 1.35),
+    body: LayoutBuilder(
+      builder: (context, constraints) {
+        final scanWindow = scannerWindowFor(
+          Size(constraints.maxWidth, constraints.maxHeight),
+        );
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            MobileScanner(
+              controller: controller,
+              scanWindow: scanWindow,
+              onDetect: onDetect,
+            ),
+            _ScannerOverlay(scanWindow: scanWindow),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 15,
+                  ),
+                  decoration: BoxDecoration(
+                    color: caveNavy.withValues(alpha: .92),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    context.l10n.text('scanHint'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, height: 1.35),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     ),
   );
 }
 
+@visibleForTesting
+Rect scannerWindowFor(Size size) => Rect.fromCenter(
+  center: Offset(size.width / 2, size.height * .42),
+  width: size.width * .82,
+  height: size.width * .48,
+);
+
 class _ScannerOverlay extends StatelessWidget {
-  const _ScannerOverlay();
+  const _ScannerOverlay({required this.scanWindow});
+
+  final Rect scanWindow;
 
   @override
-  Widget build(BuildContext context) =>
-      IgnorePointer(child: CustomPaint(painter: _ScannerOverlayPainter()));
+  Widget build(BuildContext context) => IgnorePointer(
+    child: CustomPaint(painter: _ScannerOverlayPainter(scanWindow)),
+  );
 }
 
 class _ScannerOverlayPainter extends CustomPainter {
+  const _ScannerOverlayPainter(this.frame);
+
+  final Rect frame;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final frame = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height * .42),
-      width: size.width * .82,
-      height: size.width * .48,
-    );
     final shade = Paint()..color = Colors.black.withValues(alpha: .46);
     final path = Path()
       ..addRect(Offset.zero & size)
@@ -133,5 +156,6 @@ class _ScannerOverlayPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _ScannerOverlayPainter oldDelegate) =>
+      oldDelegate.frame != frame;
 }

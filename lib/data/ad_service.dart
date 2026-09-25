@@ -10,7 +10,12 @@ abstract final class AdService {
   static String get _bannerId =>
       kDebugMode ? _testBannerId : _productionBannerId;
 
-  static Future<void> initialize() async {
+  static Future<void>? _initialization;
+
+  static Future<void> initialize() =>
+      _initialization ??= _initializeOnce();
+
+  static Future<void> _initializeOnce() async {
     await MobileAds.instance.initialize();
     final consent = ConsentInformation.instance;
     consent.requestConsentInfoUpdate(ConsentRequestParameters(), () async {
@@ -51,14 +56,22 @@ class _FreeBannerAdState extends State<FreeBannerAd> {
   @override
   void initState() {
     super.initState();
-    ad = AdService.banner(
+    _load();
+  }
+
+  Future<void> _load() async {
+    await AdService.initialize();
+    if (!mounted) return;
+    final banner = AdService.banner(
       onLoaded: () {
         if (mounted) setState(() => loaded = true);
       },
       onFailed: () {
         if (mounted) setState(() => loaded = false);
       },
-    )..load();
+    );
+    ad = banner;
+    banner.load();
   }
 
   @override

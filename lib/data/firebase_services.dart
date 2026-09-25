@@ -322,34 +322,26 @@ class FirebaseCloudService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-  /// Records referral intent only. It never grants an entitlement client-side.
-  /// A trusted billing webhook/Cloud Function must validate the first paid
-  /// purchase, reject self/device/payment abuse, and reward only the inviter.
+  /// Registers the user's deterministic code and optional inviter through the
+  /// trusted backend. Rewards are granted only after Play verifies a purchase.
   Future<void> registerReferralSignup({
     required String uid,
     required String ownCode,
     required String invitedByCode,
     required String email,
   }) async {
-    final normalizedOwn = ReferralPolicy.normalize(ownCode);
     final normalizedInviter = ReferralPolicy.normalize(invitedByCode);
-    if (!ReferralPolicy.isValid(normalizedOwn)) return;
+    if (!ReferralPolicy.isValid(ReferralPolicy.normalize(ownCode))) return;
     if (normalizedInviter.isNotEmpty &&
         !ReferralPolicy.isValid(normalizedInviter)) {
       throw StateError('invalid-referral-code');
     }
-    if (normalizedInviter == normalizedOwn) {
+    if (normalizedInviter == ReferralPolicy.normalize(ownCode)) {
       throw StateError('self-referral-not-allowed');
     }
-    await _profile(uid).set({
-      'referralCode': normalizedOwn,
-      'emailLower': email.trim().toLowerCase(),
-      'referralCreatedAt': FieldValue.serverTimestamp(),
-      if (normalizedInviter.isNotEmpty) ...{
-        'pendingReferralCode': normalizedInviter,
-        'referralStatus': 'awaiting_first_paid_purchase',
-      },
-    }, SetOptions(merge: true));
+    await _callFunction('registerReferralSignup', {
+      'invitedByCode': normalizedInviter,
+    });
   }
 
   Future<void> saveItem(String uid, WarrantyItem item) async {

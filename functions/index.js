@@ -7,6 +7,11 @@ const {getFirestore, FieldValue, Timestamp} = require('firebase-admin/firestore'
 const {GoogleAuth} = require('google-auth-library');
 const vision = require('@google-cloud/vision');
 const {parseReceipt} = require('./receipt_parser');
+const {
+  normalizeCode,
+  referralCodeForUid,
+  referralRewardExpiryMs,
+} = require('./referral');
 
 initializeApp();
 const db = getFirestore();
@@ -27,13 +32,71 @@ function requireUser(request) {
   return request.auth;
 }
 
-function normalizeCode(value) {
-  return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-}
-
 function codeHash(code) {
   return crypto.createHash('sha256').update(code).digest('hex');
 }
+
+exports.registerReferralSignup = onCall({region: 'us-central1'}, async (request) => {
+  const auth = requireUser(request);
+  const ownCode = referralCodeForUid(auth.uid);
+  const invitedByCode = normalizeCode(request.data?.invitedByCode);
+  if (invitedByCode && (invitedByCode.length < 6 || invitedByCode.length > 24)) {
+    throw new HttpsError('invalid-argument', 'Invalid referral code.');
+  }
+  if (invitedByCode === ownCode) {
+    throw new HttpsError('failed-precondition', 'You cannot use your own referral code.');
+  }
+  const userRef = db.collection('users').doc(auth.uid);
+  const ownCodeRef = db.collection('referralCodes').doc(ownCode);
+  const inviterCodeRef = invitedByCode
+    ? db.collection('referralCodes').doc(invitedByCode)
+    : null;
+
+  return db.runTransaction(async (transaction) => {
+    const reads = [transaction.get(userRef), transaction.get(ownCodeRef)];
+    if (inviterCodeRef) reads.push(transaction.get(inviterCodeRef));
+    const [userSnap, ownCodeSnap, inviterCodeSnap] = await Promise.all(reads);
+    const existing = userSnap.data() || {};
+    if (ownCodeSnap.exists && ownCodeSnap.data()?.uid !== auth.uid) {
+      throw new HttpsError('already-exists', 'Referral code collision.');
+    }
+
+    let inviterUid = null;
+    if (inviterCodeRef) {
+      if (!inviterCodeSnap?.exists) {
+        throw new HttpsError('not-found', 'Referral code not found.');
+      }
+      inviterUid = inviterCodeSnap.data()?.uid || null;
+      if (!inviterUid || inviterUid === auth.uid) {
+        throw new HttpsError('failed-precondition', 'Invalid referral code.');
+      }
+      if (existing.referralInviterUid && existing.referralInviterUid !== inviterUid) {
+        throw new HttpsError('failed-precondition', 'A referral is already registered.');
+      }
+    }
+
+    transaction.set(ownCodeRef, {
+      uid: auth.uid,
+      code: ownCode,
+      createdAt: ownCodeSnap.exists
+        ? ownCodeSnap.data()?.createdAt || FieldValue.serverTimestamp()
+        : FieldValue.serverTimestamp(),
+    }, {merge: true});
+    transaction.set(userRef, {
+      referralCode: ownCode,
+      referralCreatedAt: existing.referralCreatedAt || FieldValue.serverTimestamp(),
+      ...(inviterUid && !existing.referralRewardedAt ? {
+        pendingReferralCode: invitedByCode,
+        referralInviterUid: inviterUid,
+        referralStatus: 'awaiting_first_paid_purchase',
+      } : {}),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+    return {referralCode: ownCode, referralStatus: inviterUid
+      ? 'awaiting_first_paid_purchase'
+      : existing.referralStatus || 'registered'};
+  });
+});
 
 exports.redeemFounderCode = onCall({region: 'us-central1'}, async (request) => {
   const auth = requireUser(request);
@@ -94,11 +157,15 @@ exports.getEntitlements = onCall({region: 'us-central1'}, async (request) => {
   const isOwner = String(auth.token.email || '').toLowerCase() === OWNER_EMAIL;
   const paidUntil = user.planExpiresAt?.toMillis?.() || 0;
   const promoUntil = user.promotionalBasicUntil?.toMillis?.() || 0;
+  const referralPlusUntil = user.referralPlusUntil?.toMillis?.() || 0;
   let plan = 'free';
   let expiresAt = null;
   if (isOwner) {
     plan = 'plus';
     expiresAt = '2099-12-31T23:59:59.000Z';
+  } else if (referralPlusUntil > now) {
+    plan = 'plus';
+    expiresAt = user.referralPlusUntil.toDate().toISOString();
   } else if (paidUntil > now && ['basic', 'plus'].includes(user.plan)) {
     plan = user.plan;
     expiresAt = user.planExpiresAt.toDate().toISOString();
@@ -152,15 +219,58 @@ exports.confirmPlayPurchase = onCall({region: 'us-central1'}, async (request) =>
   const plan = PLAY_PRODUCTS.get(line.productId);
   const expiresAt = new Date(line.expiryTime);
   const userRef = db.collection('users').doc(auth.uid);
-  await userRef.set({
-    plan,
-    planExpiresAt: Timestamp.fromDate(expiresAt),
-    playProductId: line.productId,
-    playPurchaseTokenHash: codeHash(purchaseToken),
-    playSubscriptionState: purchase.subscriptionState || null,
-    entitlementSource: 'google_play',
-    updatedAt: FieldValue.serverTimestamp(),
-  }, {merge: true});
+  const tokenHash = codeHash(purchaseToken);
+  const tokenRef = db.collection('playPurchaseTokens').doc(tokenHash);
+  await db.runTransaction(async (transaction) => {
+    const [userSnap, tokenSnap] = await Promise.all([
+      transaction.get(userRef),
+      transaction.get(tokenRef),
+    ]);
+    const userData = userSnap.data() || {};
+    if (tokenSnap.exists && tokenSnap.data()?.uid !== auth.uid) {
+      throw new HttpsError('permission-denied', 'This purchase belongs to another account.');
+    }
+    const inviterUid = userData.referralStatus === 'awaiting_first_paid_purchase'
+      ? userData.referralInviterUid
+      : null;
+    const inviterRef = inviterUid ? db.collection('users').doc(inviterUid) : null;
+    const inviterSnap = inviterRef ? await transaction.get(inviterRef) : null;
+
+    transaction.set(tokenRef, {
+      uid: auth.uid,
+      productId: line.productId,
+      createdAt: tokenSnap.exists
+        ? tokenSnap.data()?.createdAt || FieldValue.serverTimestamp()
+        : FieldValue.serverTimestamp(),
+      verifiedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+    transaction.set(userRef, {
+      plan,
+      planExpiresAt: Timestamp.fromDate(expiresAt),
+      playProductId: line.productId,
+      playPurchaseTokenHash: tokenHash,
+      playSubscriptionState: purchase.subscriptionState || null,
+      entitlementSource: 'google_play',
+      ...(inviterRef ? {
+        referralStatus: 'rewarded',
+        referralRewardedAt: FieldValue.serverTimestamp(),
+      } : {}),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    if (inviterRef && inviterSnap?.exists) {
+      const currentReward = inviterSnap.data()?.referralPlusUntil?.toMillis?.() || 0;
+      const rewardUntil = Timestamp.fromMillis(
+        referralRewardExpiryMs(Date.now(), currentReward),
+      );
+      transaction.set(inviterRef, {
+        referralPlusUntil: rewardUntil,
+        referralRewardCount: FieldValue.increment(1),
+        lastReferralRewardedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+    }
+  });
 
   return {plan, expiresAt: expiresAt.toISOString()};
 });

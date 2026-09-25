@@ -9,13 +9,15 @@ service cloud.firestore {
       allow create: if owns(uid)
         && !request.resource.data.keys().hasAny([
           'plan', 'planExpiresAt', 'promotionalBasicUntil',
-          'smartScanCredits', 'entitlementSource', 'referralRewardUntil'
+          'smartScanCredits', 'entitlementSource', 'referralPlusUntil',
+          'referralRewardCount', 'lastReferralRewardedAt',
+          'referralInviterUid', 'referralRewardedAt'
         ]);
       allow update: if owns(uid)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'firstName', 'lastName', 'phone', 'defaultCurrency', 'languageCode',
-          'referralCode', 'pendingReferralCode', 'referralCreatedAt',
-          'referralStatus', 'emailLower', 'updatedAt', 'cloudOwnerUid'
+          'referralCode', 'pendingReferralCode',
+          'updatedAt', 'cloudOwnerUid'
         ]);
       allow delete: if owns(uid);
 
@@ -29,6 +31,10 @@ service cloud.firestore {
     }
 
     match /referralCodes/{code} {
+      allow read, write: if false;
+    }
+
+    match /playPurchaseTokens/{tokenHash} {
       allow read, write: if false;
     }
   }

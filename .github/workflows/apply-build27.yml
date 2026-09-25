@@ -1,8 +1,29 @@
-name: Apply WarrantyCave build 27
+name: Publish WarrantyCave build 27
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-build27.yml
+permissions:
+  actions: read
+  contents: write
 jobs:
-  retired:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Build 27 patch already applied"
+      - name: Download verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 36146313216 -R "$GITHUB_REPOSITORY" -n WarrantyCave-1.0.17-build-27 -D release-artifacts
+          find release-artifacts -type f
+      - name: Publish test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v1.0.17-build-27 \
+            $(find release-artifacts -type f \( -name '*.apk' -o -name '*.aab' \)) \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "WarrantyCave 1.0.17 build 27" \
+            --notes "Test build 27: faster startup, scanner restricted to the visible frame, and referral backend integration." \
+            --prerelease

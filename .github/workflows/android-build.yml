@@ -32,7 +32,9 @@ jobs:
       - name: Dependencies
         run: flutter pub get
       - name: Tests
-        run: flutter test
+        run: |
+          flutter test
+          cd functions && npm ci && npm test
       - name: Build final APK and AAB
         env:
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/upload-keystore.jks
@@ -44,7 +46,7 @@ jobs:
           flutter build appbundle --release
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.16-build-26
+          name: WarrantyCave-1.0.17-build-27
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab

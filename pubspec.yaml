@@ -51,7 +51,8 @@ dependencies:
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
   cloud_firestore: ^6.10.0
-  google_sign_in: ^7.2.0
+  # 6.x uses the Android GoogleSignInClient flow used by School Assistant.
+  google_sign_in: 6.3.0
   http: ^1.6.0
   mobile_scanner: ^7.4.2
   google_mobile_ads: ^5.1.0

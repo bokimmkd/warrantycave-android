@@ -128,10 +128,16 @@ class EntitlementResult {
     required this.plan,
     required this.smartScanCredits,
     this.expiresAt,
+    this.paidExpiresAt,
+    this.referralPlusUntil,
+    this.nextBillingAt,
   });
   final PlanTier plan;
   final int smartScanCredits;
   final DateTime? expiresAt;
+  final DateTime? paidExpiresAt;
+  final DateTime? referralPlusUntil;
+  final DateTime? nextBillingAt;
 }
 
 class FirebaseCloudService {
@@ -181,6 +187,9 @@ class FirebaseCloudService {
           PlanTier.free,
       smartScanCredits: (result['smartScanCredits'] as num?)?.toInt() ?? 0,
       expiresAt: DateTime.tryParse(result['expiresAt'] as String? ?? ''),
+      paidExpiresAt: DateTime.tryParse(result['paidExpiresAt'] as String? ?? ''),
+      referralPlusUntil: DateTime.tryParse(result['referralPlusUntil'] as String? ?? ''),
+      nextBillingAt: DateTime.tryParse(result['nextBillingAt'] as String? ?? ''),
     );
   }
 
@@ -208,6 +217,8 @@ class FirebaseCloudService {
           PlanTier.free,
       smartScanCredits: 0,
       expiresAt: DateTime.tryParse(result['expiresAt'] as String? ?? ''),
+      paidExpiresAt: DateTime.tryParse(result['paidExpiresAt'] as String? ?? ''),
+      nextBillingAt: DateTime.tryParse(result['nextBillingAt'] as String? ?? ''),
     );
   }
 

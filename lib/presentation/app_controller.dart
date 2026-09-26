@@ -183,6 +183,10 @@ class AppController extends ChangeNotifier {
         plan: _isPlusTester ? PlanTier.plus : entitlement.plan,
         planExpiresAt: entitlement.expiresAt,
         clearPlanExpiry: entitlement.expiresAt == null,
+        paidExpiresAt: entitlement.paidExpiresAt,
+        referralPlusUntil: entitlement.referralPlusUntil,
+        nextBillingAt: entitlement.nextBillingAt,
+        updateSubscriptionDates: true,
       );
       await storage.save(items, settings);
       billingError = null;
@@ -396,6 +400,10 @@ class AppController extends ChangeNotifier {
         smartScanCredits: entitlement.smartScanCredits,
         planExpiresAt: entitlement.expiresAt,
         clearPlanExpiry: entitlement.expiresAt == null,
+        paidExpiresAt: entitlement.paidExpiresAt,
+        referralPlusUntil: entitlement.referralPlusUntil,
+        nextBillingAt: entitlement.nextBillingAt,
+        updateSubscriptionDates: true,
       );
       await storage.save(items, settings);
     } catch (error) {
@@ -452,6 +460,10 @@ class AppController extends ChangeNotifier {
         smartScanCredits: entitlement.smartScanCredits,
         planExpiresAt: entitlement.expiresAt,
         clearPlanExpiry: entitlement.expiresAt == null,
+        paidExpiresAt: entitlement.paidExpiresAt,
+        referralPlusUntil: entitlement.referralPlusUntil,
+        nextBillingAt: entitlement.nextBillingAt,
+        updateSubscriptionDates: true,
       );
       final result = await cloud!.refresh(user!.uid, settings);
       items = result.items;

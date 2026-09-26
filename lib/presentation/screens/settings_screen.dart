@@ -421,14 +421,38 @@ class _SettingsScreenState extends State<SettingsScreen>
                     color: caveNavy,
                   ),
                 ),
-                subtitle: Text(
-                  context.l10n.format('planUsage', {
-                    'count': app.items.length,
-                    'limit': s.plan.itemLimit,
-                    'storage': context.l10n.text(
-                      s.plan.hasCloud ? 'cloudSync' : 'localStorage',
-                    ),
-                  }),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(context.l10n.format('planUsage', {
+                      'count': app.items.length,
+                      'limit': s.plan.itemLimit,
+                      'storage': context.l10n.text(
+                        s.plan.hasCloud ? 'cloudSync' : 'localStorage',
+                      ),
+                    })),
+                    if (s.planExpiresAt != null &&
+                        s.planExpiresAt!.isAfter(DateTime.now()))
+                      Text(context.l10n.format('planAccessUntil', {
+                        'date': DateFormat.yMMMd().format(s.planExpiresAt!.toLocal()),
+                      })),
+                    if (s.referralPlusUntil != null &&
+                        s.referralPlusUntil!.isAfter(DateTime.now()))
+                      Text(context.l10n.format('planReferralUntil', {
+                        'date': DateFormat.yMMMd().format(s.referralPlusUntil!.toLocal()),
+                      })),
+                    if (s.paidExpiresAt != null &&
+                        s.paidExpiresAt!.isAfter(DateTime.now()))
+                      Text(context.l10n.format('planPaidUntil', {
+                        'date': DateFormat.yMMMd().format(s.paidExpiresAt!.toLocal()),
+                      })),
+                    if (s.nextBillingAt != null &&
+                        s.nextBillingAt!.isAfter(DateTime.now()))
+                      Text(context.l10n.format('planNextBilling', {
+                        'date': DateFormat.yMMMd().format(s.nextBillingAt!.toLocal()),
+                      })),
+                  ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.push(

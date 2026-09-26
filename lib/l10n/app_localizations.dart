@@ -2579,6 +2579,10 @@ class AppLocalizations {
       'newCreateProfile': 'New here? Create a profile',
       'planName': '{plan} plan',
       'planUsage': '{count} of {limit} warranty items • {storage}',
+      'planAccessUntil': 'Plan access until {date}',
+      'planReferralUntil': 'Referral Plus until {date}',
+      'planPaidUntil': 'Paid period until {date}',
+      'planNextBilling': 'Next Google Play billing: {date}',
       'referralReward':
           '{code}\nEarn 30 days of Plus after their first paid purchase.',
       'referralShare':
@@ -2725,6 +2729,10 @@ class AppLocalizations {
       'newCreateProfile': 'Нов корисник? Создајте профил',
       'planName': '{plan} план',
       'planUsage': '{count} од {limit} гаранции • {storage}',
+      'planAccessUntil': 'Пристап до планот: {date}',
+      'planReferralUntil': 'Реферален Plus до: {date}',
+      'planPaidUntil': 'Платен период до: {date}',
+      'planNextBilling': 'Следна наплата преку Google Play: {date}',
       'referralReward':
           '{code}\nДобијте 30 дена Plus по нивното прво платено купување.',
       'referralShare':

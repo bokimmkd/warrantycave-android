@@ -46,7 +46,7 @@ jobs:
           flutter build appbundle --release
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.18-build-28-google-signin-test
+          name: WarrantyCave-1.0.19-build-29-subscription-dates-test
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab

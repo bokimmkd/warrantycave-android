@@ -1,0 +1,28 @@
+name: Android and backend checks
+
+on:
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'functions/**'
+      - 'pubspec.*'
+      - '.github/workflows/feature-checks.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.5
+          cache: true
+      - name: Prepare Unicode PDF fonts
+        run: |
+          base64 --decode assets/fonts/DejaVuSans.ttf.b64 > assets/fonts/DejaVuSans.ttf
+          base64 --decode assets/fonts/DejaVuSans-Bold.ttf.b64 > assets/fonts/DejaVuSans-Bold.ttf
+      - run: flutter pub get
+      - run: flutter test
+      - run: cd functions && npm ci && npm test && node --check index.js

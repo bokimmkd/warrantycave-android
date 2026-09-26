@@ -13,9 +13,11 @@ class FirebaseAccountService {
     : _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
-  bool _googleReady = false;
   static const _googleServerClientId =
       '491401464312-pkie3i2v4dc1h3r3sbcoub7kp3g2tvto.apps.googleusercontent.com';
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: _googleServerClientId,
+  );
 
   User? get currentUser => _auth.currentUser;
   bool get usesPassword =>
@@ -47,16 +49,20 @@ class FirebaseAccountService {
       )).user!;
 
   Future<User> signInWithGoogle() async {
-    if (!_googleReady) {
-      await GoogleSignIn.instance.initialize(
-        serverClientId: _googleServerClientId,
+    // Match School Assistant: clear the previous Google selection before
+    // requesting an ID token for the Firebase web OAuth client.
+    await _googleSignIn.signOut();
+    final googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) {
+      throw FirebaseAuthException(
+        code: 'google-sign-in-canceled',
+        message: 'Google sign-in was canceled.',
       );
-      _googleReady = true;
     }
-    final googleUser = await GoogleSignIn.instance.authenticate();
-    final googleAuth = googleUser.authentication;
+    final googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
+      accessToken: googleAuth.accessToken,
     );
     return (await _auth.signInWithCredential(credential)).user!;
   }
@@ -74,7 +80,7 @@ class FirebaseAccountService {
 
   Future<void> signOut() async {
     await _auth.signOut();
-    if (_googleReady) await GoogleSignIn.instance.signOut();
+    await _googleSignIn.signOut();
   }
 
   Future<void> reauthenticate({String? password}) async {
@@ -90,16 +96,20 @@ class FirebaseAccountService {
         EmailAuthProvider.credential(email: email, password: password),
       );
     } else {
-      if (!_googleReady) {
-        await GoogleSignIn.instance.initialize(
-          serverClientId: _googleServerClientId,
+      await _googleSignIn.signOut();
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        throw FirebaseAuthException(
+          code: 'google-sign-in-canceled',
+          message: 'Google sign-in was canceled.',
         );
-        _googleReady = true;
       }
-      final account = await GoogleSignIn.instance.authenticate();
-      final authentication = account.authentication;
+      final authentication = await account.authentication;
       await user.reauthenticateWithCredential(
-        GoogleAuthProvider.credential(idToken: authentication.idToken),
+        GoogleAuthProvider.credential(
+          idToken: authentication.idToken,
+          accessToken: authentication.accessToken,
+        ),
       );
     }
   }

@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {renderEmail} = require('../transactional_email');
+const {deferralState} = require('../play_deferral');
 
 test('welcome explains actual Free, Basic and Plus limits without claiming a purchase', () => {
   const message = renderEmail('welcome', {name: 'Alex <script>'});
@@ -28,6 +29,17 @@ test('referral email promises a new charge date only after Play actually deferre
     nextBillingAt: '2027-10-26T09:38:00.000Z',
   });
   assert.match(deferred.text, /moved to 26 October 2027/);
+  const pending = renderEmail('referral', {
+    rewardUntil: '2026-10-26T09:38:00.000Z', billingPending: true,
+  });
+  assert.match(pending.text, /only confirm a new charge date after Google Play verifies it/);
+});
+
+test('a normal annual renewal cannot be confused with a 30-day referral deferral', () => {
+  const base = '2026-10-26T09:38:00.000Z';
+  assert.equal(deferralState(base, base), 'unchanged');
+  assert.equal(deferralState(base, '2026-11-25T09:38:00.000Z'), 'confirmed');
+  assert.equal(deferralState(base, '2027-10-26T09:38:00.000Z'), 'unexpected_change');
 });
 
 test('deletion email does not claim Google Play charges have been cancelled', () => {

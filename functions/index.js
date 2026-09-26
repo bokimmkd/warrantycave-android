@@ -14,6 +14,7 @@ const {GoogleAuth} = require('google-auth-library');
 const vision = require('@google-cloud/vision');
 const {parseReceipt} = require('./receipt_parser');
 const {renderEmail} = require('./transactional_email');
+const {deferralState} = require('./play_deferral');
 const {
   normalizeCode,
   referralCodeForUid,
@@ -530,10 +531,20 @@ async function applyLockedReferralReward(rewardId, rewardRef, reward) {
         baseBillingAt = details.expiry.toISOString();
         await rewardRef.update({baseBillingAt});
       }
-      const targetMs = Date.parse(baseBillingAt) + 30 * DAY_MS;
-      if (details.expiry.getTime() >= targetMs) {
+      if (deferralState(baseBillingAt, details.expiry.toISOString()) === 'confirmed') {
         nextBillingAt = details.expiry.toISOString();
       } else {
+        if (deferralState(baseBillingAt, details.expiry.toISOString()) !== 'unchanged') {
+          // A normal yearly renewal or another change must never be mistaken
+          // for this referral's 30-day deferral.
+          await rewardRef.update({status: 'needs_manual_review',
+            lastObservedBillingAt: details.expiry.toISOString()});
+          await queueEmail(`referral-${rewardId}`, {
+            type: 'referral', to, rewardUntil: reward.rewardUntil,
+            billingPending: true,
+          });
+          return;
+        }
         const deferred = await playRequest(`${path}:defer`, {
           method: 'POST',
           body: {deferralContext: {etag: purchase.etag, deferDuration: '2592000s'}},
@@ -541,7 +552,7 @@ async function applyLockedReferralReward(rewardId, rewardRef, reward) {
         const deferredExpiry = deferred?.itemExpiryTimeDetails?.find((item) =>
           item.productId === details.line.productId)?.expiryTime ||
           (await playRequest(path)).lineItems?.find((item) => item.productId === details.line.productId)?.expiryTime;
-        if (!deferredExpiry || Date.parse(deferredExpiry) < targetMs) {
+        if (!deferredExpiry || deferralState(baseBillingAt, deferredExpiry) !== 'confirmed') {
           throw new Error('Google Play did not confirm a 30-day renewal deferral.');
         }
         nextBillingAt = new Date(deferredExpiry).toISOString();
@@ -549,7 +560,7 @@ async function applyLockedReferralReward(rewardId, rewardRef, reward) {
       // Read back from Play: the user should see the same expiry as the store.
       const fresh = await playRequest(path);
       const freshLine = (fresh.lineItems || []).find((item) => item.productId === details.line.productId);
-      if (!freshLine?.expiryTime || Date.parse(freshLine.expiryTime) < targetMs) {
+      if (!freshLine?.expiryTime || deferralState(baseBillingAt, freshLine.expiryTime) !== 'confirmed') {
         throw new Error('Google Play renewal deferral was not visible on read back.');
       }
       nextBillingAt = freshLine.expiryTime;

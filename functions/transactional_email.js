@@ -59,6 +59,8 @@ function renderEmail(kind, details = {}) {
       `This referral reward is recorded until ${readableDate(details.rewardUntil)}.`,
       details.nextBillingAt
         ? `Your next Google Play charge has also been moved to ${readableDate(details.nextBillingAt)}. Check Google Play for the current billing date.`
+        : details.billingPending
+          ? 'Your Plus reward is active. We are checking the Google Play billing date separately and will only confirm a new charge date after Google Play verifies it.'
         : 'If you do not have an active renewing Google Play subscription, there is no next charge to move. Your Plus reward is still active.',
     ];
     break;

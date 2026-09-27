@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../app_controller.dart';
 import '../theme.dart';
@@ -35,6 +36,11 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   String _message(Object error) {
+    if (error is PlatformException) {
+      final details = error.message?.trim();
+      return 'Google sign-in failed (${error.code})'
+          '${details == null || details.isEmpty ? '.' : ': $details'}';
+    }
     if (error is FirebaseAuthException) {
       return switch (error.code) {
         'email-already-in-use' => context.l10n.text('emailInUse'),

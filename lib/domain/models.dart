@@ -12,8 +12,8 @@ extension PlanTierX on PlanTier {
   };
   int get itemLimit => switch (this) {
     PlanTier.free => 10,
-    PlanTier.basic => 15,
-    PlanTier.plus => 50,
+    PlanTier.basic => 25,
+    PlanTier.plus => 100,
   };
   bool get hasCloud => this != PlanTier.free;
   bool get hasSmartScan => false;
@@ -151,6 +151,7 @@ class WarrantyItem {
     this.productPhoto,
     this.receiptPhotos = const [],
     this.warrantyPhotos = const [],
+    this.isExtendedWarranty = false,
   });
 
   final String id;
@@ -174,6 +175,7 @@ class WarrantyItem {
   final DateTime createdAt;
   final List<String> receiptPhotos;
   final List<String> warrantyPhotos;
+  final bool isExtendedWarranty;
 
   WarrantyStatus status({int thresholdDays = 60, DateTime? now}) {
     final today = dateOnly(now ?? DateTime.now());
@@ -217,6 +219,7 @@ class WarrantyItem {
     'createdAt': createdAt.toIso8601String(),
     'receiptPhotos': receiptPhotos,
     'warrantyPhotos': warrantyPhotos,
+    'isExtendedWarranty': isExtendedWarranty,
   };
 
   factory WarrantyItem.fromJson(Map<String, dynamic> json) => WarrantyItem(
@@ -245,6 +248,7 @@ class WarrantyItem {
     warrantyPhotos: List<String>.from(
       json['warrantyPhotos'] as List? ?? const [],
     ),
+    isExtendedWarranty: json['isExtendedWarranty'] as bool? ?? false,
   );
 }
 
@@ -279,6 +283,9 @@ class AppSettings {
     this.pendingReferralCode = '',
     this.smartScanCredits = 0,
     this.planExpiresAt,
+    this.paidExpiresAt,
+    this.referralPlusUntil,
+    this.nextBillingAt,
   });
 
   final bool onboardingComplete;
@@ -300,6 +307,9 @@ class AppSettings {
   final String pendingReferralCode;
   final int smartScanCredits;
   final DateTime? planExpiresAt;
+  final DateTime? paidExpiresAt;
+  final DateTime? referralPlusUntil;
+  final DateTime? nextBillingAt;
 
   AppSettings copyWith({
     bool? onboardingComplete,
@@ -322,6 +332,10 @@ class AppSettings {
     int? smartScanCredits,
     DateTime? planExpiresAt,
     bool clearPlanExpiry = false,
+    DateTime? paidExpiresAt,
+    DateTime? referralPlusUntil,
+    DateTime? nextBillingAt,
+    bool updateSubscriptionDates = false,
   }) => AppSettings(
     onboardingComplete: onboardingComplete ?? this.onboardingComplete,
     expiringThresholdDays: expiringThresholdDays ?? this.expiringThresholdDays,
@@ -343,6 +357,9 @@ class AppSettings {
     pendingReferralCode: pendingReferralCode ?? this.pendingReferralCode,
     smartScanCredits: smartScanCredits ?? this.smartScanCredits,
     planExpiresAt: clearPlanExpiry ? null : planExpiresAt ?? this.planExpiresAt,
+    paidExpiresAt: updateSubscriptionDates ? paidExpiresAt : paidExpiresAt ?? this.paidExpiresAt,
+    referralPlusUntil: updateSubscriptionDates ? referralPlusUntil : referralPlusUntil ?? this.referralPlusUntil,
+    nextBillingAt: updateSubscriptionDates ? nextBillingAt : nextBillingAt ?? this.nextBillingAt,
   );
 
   Map<String, dynamic> toJson() => {
@@ -365,10 +382,15 @@ class AppSettings {
     'pendingReferralCode': pendingReferralCode,
     'smartScanCredits': smartScanCredits,
     'planExpiresAt': planExpiresAt?.toIso8601String(),
+    'paidExpiresAt': paidExpiresAt?.toIso8601String(),
+    'referralPlusUntil': referralPlusUntil?.toIso8601String(),
+    'nextBillingAt': nextBillingAt?.toIso8601String(),
   };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
-    onboardingComplete: json['onboardingComplete'] as bool? ?? false,
+    // A saved settings object without this field comes from an install that
+    // predates onboarding. Only a fresh install starts with the default false.
+    onboardingComplete: json['onboardingComplete'] as bool? ?? true,
     expiringThresholdDays: json['expiringThresholdDays'] as int? ?? 60,
     reminder60: json['reminder60'] as bool? ?? false,
     reminder30: json['reminder30'] as bool? ?? false,
@@ -392,6 +414,9 @@ class AppSettings {
     planExpiresAt: json['planExpiresAt'] == null
         ? null
         : DateTime.tryParse(json['planExpiresAt'] as String),
+    paidExpiresAt: DateTime.tryParse(json['paidExpiresAt'] as String? ?? ''),
+    referralPlusUntil: DateTime.tryParse(json['referralPlusUntil'] as String? ?? ''),
+    nextBillingAt: DateTime.tryParse(json['nextBillingAt'] as String? ?? ''),
   );
 }
 

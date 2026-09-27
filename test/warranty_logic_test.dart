@@ -73,8 +73,8 @@ void main() {
     expect(PlanTier.free.hasCloud, isFalse);
     expect(PlanTier.free.hasAds, isTrue);
     expect(PlanTier.basic.hasAds, isFalse);
-    expect(PlanTier.basic.itemLimit, 15);
-    expect(PlanTier.plus.itemLimit, 50);
+    expect(PlanTier.basic.itemLimit, 25);
+    expect(PlanTier.plus.itemLimit, 100);
     expect(PlanTier.basic.hasSmartScan, isFalse);
     expect(PlanTier.plus.hasSmartScan, isFalse);
     expect(PlanTier.free.hasBarcodeScanner, isFalse);
@@ -101,6 +101,7 @@ void main() {
       authorizedService: 'Brand Care Center',
       currency: 'EUR',
       purchasePrice: 499.99,
+      isExtendedWarranty: true,
     );
     final restored = WarrantyItem.fromJson(original.toJson());
     expect(restored.productName, original.productName);
@@ -112,6 +113,9 @@ void main() {
     expect(restored.authorizedService, 'Brand Care Center');
     expect(restored.currency, 'EUR');
     expect(restored.purchasePrice, original.purchasePrice);
+    expect(restored.isExtendedWarranty, isTrue);
+    final previousVersionJson = original.toJson()..remove('isExtendedWarranty');
+    expect(WarrantyItem.fromJson(previousVersionJson).isExtendedWarranty, isFalse);
   });
 
   test('settings preserve profile and default currency', () {
@@ -134,6 +138,19 @@ void main() {
     expect(restored.languageCode, 'mk');
     expect(restored.referralCode, 'WCABC12345');
     expect(restored.pendingReferralCode, 'WCINVITE99');
+  });
+
+  test('onboarding runs once for new installs and skips existing installs', () {
+    expect(const AppSettings().onboardingComplete, isFalse);
+    expect(AppSettings.fromJson({'plan': 'free'}).onboardingComplete, isTrue);
+    expect(
+      AppSettings.fromJson({'onboardingComplete': false}).onboardingComplete,
+      isFalse,
+    );
+    expect(
+      AppSettings.fromJson({'onboardingComplete': true}).onboardingComplete,
+      isTrue,
+    );
   });
 
   test('reminders require explicit user opt-in', () {

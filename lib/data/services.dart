@@ -36,7 +36,7 @@ abstract interface class SubscriptionService {
   String? get setupError;
   String priceFor(PlanTier tier);
   Future<void> initialize();
-  Future<bool> purchase(PlanTier tier);
+  Future<bool> purchase(PlanTier tier, {PlanTier currentPlan = PlanTier.free});
   Future<void> restorePurchases();
   Future<void> completePurchase(String purchaseToken);
   bool canAddItem(PlanTier tier, int currentCount);
@@ -280,7 +280,7 @@ class LocalSubscriptionService implements SubscriptionService {
   @override
   Future<void> initialize() async {}
   @override
-  Future<bool> purchase(PlanTier tier) async => false;
+  Future<bool> purchase(PlanTier tier, {PlanTier currentPlan = PlanTier.free}) async => false;
   @override
   Future<void> restorePurchases() async {}
   @override

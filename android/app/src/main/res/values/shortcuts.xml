@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_add">Add Warranty</string>
+    <string name="shortcut_items">My Items</string>
+    <string name="shortcut_reminders">Reminders</string>
+    <string name="shortcut_expiring">Expiring Soon</string>
+</resources>

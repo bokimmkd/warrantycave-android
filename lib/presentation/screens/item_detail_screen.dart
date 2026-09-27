@@ -98,6 +98,13 @@ class ItemDetailScreen extends StatelessWidget {
                       thresholdDays: app.settings.expiringThresholdDays,
                     ),
                   ),
+                  if (item.isExtendedWarranty) ...[
+                    const SizedBox(height: 8),
+                    Chip(
+                      label: Text(context.l10n.text('extendedWarrantyBadge')),
+                      avatar: const Icon(Icons.verified_outlined, size: 18),
+                    ),
+                  ],
                   const SizedBox(height: 10),
                   Text(
                     localizedRemainingLabel(context, item),
@@ -175,7 +182,7 @@ class ItemDetailScreen extends StatelessWidget {
                   label: context.l10n.text('claimPack'),
                   icon: Icons.picture_as_pdf_outlined,
                   expand: false,
-                  onPressed: () => _claimPack(context, item),
+                  onPressed: () => _claimPackAction(context, item),
                 ),
               ),
             ],
@@ -236,7 +243,36 @@ class ItemDetailScreen extends StatelessWidget {
           }),
         ),
       );
-  Future<void> _claimPack(BuildContext context, WarrantyItem item) async {
+  Future<void> _claimPackAction(BuildContext context, WarrantyItem item) async {
+    final action = await AppBottomSheets.show<bool>(
+      context,
+      title: context.l10n.text('claimPack'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.download_outlined),
+            title: Text(context.l10n.text('downloadPdf')),
+            onTap: () => Navigator.pop(context, true),
+          ),
+          ListTile(
+            leading: const Icon(Icons.share_outlined),
+            title: Text(context.l10n.text('sharePdf')),
+            onTap: () => Navigator.pop(context, false),
+          ),
+        ],
+      ),
+    );
+    if (action != null && context.mounted) {
+      await _claimPack(context, item, download: action);
+    }
+  }
+
+  Future<void> _claimPack(
+    BuildContext context,
+    WarrantyItem item, {
+    required bool download,
+  }) async {
     try {
       final regularFont = pw.Font.ttf(
         await rootBundle.load('assets/fonts/DejaVuSans.ttf'),
@@ -364,6 +400,9 @@ class ItemDetailScreen extends StatelessWidget {
                 [context.l10n.text('model'), item.model],
                 [context.l10n.text('serialNumber'), item.serialNumber],
                 [context.l10n.text('warrantyStatus'), status],
+                if (item.isExtendedWarranty)
+                  [context.l10n.text('extendedWarrantyToggle'),
+                   context.l10n.text('extendedWarrantyBadge')],
                 [
                   context.l10n.text('timeRemaining'),
                   localizedRemainingLabel(context, item),
@@ -473,14 +512,25 @@ class ItemDetailScreen extends StatelessWidget {
         '${dir.path}/WarrantyCave_${item.productName.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')}.pdf',
       );
       await file.writeAsBytes(await doc.save());
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          subject: context.l10n.format('claimPackSubject', {
-            'product': item.productName,
-          }),
-        ),
-      );
+      if (download) {
+        final saved = await const MethodChannel('com.warrantycave.app/document_saver')
+            .invokeMethod<bool>('savePdf', {
+              'fileName': file.uri.pathSegments.last,
+              'bytes': await file.readAsBytes(),
+            });
+        if (saved == true && context.mounted) {
+          AppSnackbars.success(context, context.l10n.text('pdfSaved'));
+        }
+      } else {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(file.path)],
+            subject: context.l10n.format('claimPackSubject', {
+              'product': item.productName,
+            }),
+          ),
+        );
+      }
     } catch (e) {
       if (context.mounted)
         AppSnackbars.error(context, context.l10n.text('claimPackFailed'));

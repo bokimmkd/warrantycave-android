@@ -57,7 +57,6 @@ void main() {
     expect(await app.delete(app.items.first), isTrue);
     expect(app.items.length, 25);
     expect(app.canAdd, isFalse);
-    app.dispose();
   });
 
   test('nine locked items leave one editable Free slot', () async {
@@ -75,7 +74,6 @@ void main() {
       throwsA(isA<StateError>()),
     );
     expect(app.items.length, 10);
-    app.dispose();
   });
 
   test('Basic unlocks Basic items but not Plus items and counts both', () async {
@@ -92,7 +90,6 @@ void main() {
     app.settings = const AppSettings(plan: PlanTier.free);
     expect(app.canEditItem(app.items[1]), isFalse);
     expect(app.canEditItem(app.items[0]), isTrue);
-    app.dispose();
   });
 
   test('expired locally cached Plus plan cannot edit or add past Free limit', () async {
@@ -104,7 +101,6 @@ void main() {
     expect(app.effectivePlan, PlanTier.free);
     expect(app.canEditItem(app.items.first), isFalse);
     expect(app.canAdd, isFalse);
-    app.dispose();
   });
 
   test('an edit cannot lower a warranty original plan', () async {
@@ -114,7 +110,6 @@ void main() {
       throwsA(isA<StateError>()),
     );
     expect(app.items.single.createdOnPlan, PlanTier.plus);
-    app.dispose();
   });
 }
 

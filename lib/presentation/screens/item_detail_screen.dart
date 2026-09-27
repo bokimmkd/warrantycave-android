@@ -574,6 +574,11 @@ class _Details extends StatelessWidget {
             : formatMoney(item.purchasePrice!, item.currency),
       ),
       MapEntry(context.l10n.text('warrantyDuration'), item.durationLabel),
+      if (item.isExtendedWarranty)
+        MapEntry(
+          context.l10n.text('extendedWarrantyToggle'),
+          context.l10n.text('extendedWarrantyBadge'),
+        ),
       MapEntry(
         context.l10n.text('expiryDate'),
         DateFormat.yMMMd(

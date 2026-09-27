@@ -88,7 +88,8 @@ ThemeData buildDarkTheme() {
     surface: surface,
     onSurface: onSurface,
   );
-  return buildTheme().copyWith(
+  return ThemeData(
+    useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: scheme,
     scaffoldBackgroundColor: background,
@@ -109,6 +110,7 @@ ThemeData buildDarkTheme() {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: surface,
+      labelStyle: TextStyle(color: scheme.onSurfaceVariant),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: border),
@@ -118,6 +120,14 @@ ThemeData buildDarkTheme() {
         borderSide: const BorderSide(color: border),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primary,
+        foregroundColor: scheme.onPrimary,
+        minimumSize: const Size(0, 52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: surface,

@@ -263,7 +263,7 @@ class WarrantyCard extends StatelessWidget {
                   ].where((e) => e.isNotEmpty).join(' • '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.blueGrey.shade600),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               const SizedBox(height: 5),
               Text(
@@ -272,7 +272,7 @@ class WarrantyCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
-                  color: caveBlue,
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),

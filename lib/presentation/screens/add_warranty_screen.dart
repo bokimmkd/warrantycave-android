@@ -1241,7 +1241,7 @@ class _ProductTypeSheetState extends State<_ProductTypeSheet> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: caveBlue,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),

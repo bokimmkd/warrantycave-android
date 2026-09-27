@@ -534,6 +534,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                     trailing: DropdownButton<int>(
                       value: s.expiringThresholdDays,
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       items: [30, 45, 60, 90]
                           .map(
                             (v) =>
@@ -596,6 +597,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 trailing: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: s.languageCode,
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     items: appLanguages
                         .map(
                           (language) => DropdownMenuItem(
@@ -683,7 +685,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 builder: (context, snapshot) => Text(
                   '${snapshot.data ?? 'WarrantyCave'}\nScan. Store. Relax.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.blueGrey),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             ),
@@ -706,7 +708,7 @@ class _Label extends StatelessWidget {
       style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w800,
-        color: caveBlue,
+        color: Theme.of(context).colorScheme.primary,
       ),
     ),
   );

@@ -46,7 +46,7 @@ jobs:
           flutter build appbundle --release
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.21-build-31-test
+          name: WarrantyCave-1.0.22-build-32-dark-contrast-test
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab

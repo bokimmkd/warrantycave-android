@@ -44,7 +44,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           Text(
             context.l10n.text('unlockCloud'),
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.blueGrey),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
           _PlanCard(
@@ -270,7 +270,7 @@ class _PlanCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    color: caveBlue,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -299,7 +299,13 @@ class _PlanCard extends StatelessWidget {
                   children: [
                     const Icon(Icons.check_circle, size: 17, color: caveTeal),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(e, softWrap: true)),
+                    Expanded(
+                      child: Text(
+                        e,
+                        softWrap: true,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                    ),
                   ],
                 ),
               ),

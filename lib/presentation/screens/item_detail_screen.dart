@@ -90,7 +90,7 @@ class ItemDetailScreen extends StatelessWidget {
                   ),
                   Text(
                     item.productType,
-                    style: TextStyle(color: Colors.blueGrey),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 12),
                   StatusChip(
@@ -110,7 +110,7 @@ class ItemDetailScreen extends StatelessWidget {
                     localizedRemainingLabel(context, item),
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: caveBlue,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ],
@@ -595,7 +595,7 @@ class _Details extends StatelessWidget {
                       Expanded(
                         child: Text(
                           e.key,
-                          style: TextStyle(color: Colors.blueGrey),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ),
                       Expanded(

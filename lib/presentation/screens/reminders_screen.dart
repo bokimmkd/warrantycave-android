@@ -35,8 +35,14 @@ class _RemindersScreenState extends State<RemindersScreen>
               ),
             ),
             const SizedBox(height: 6),
-            Text(context.l10n.text('localAlerts')),
-            Text(context.l10n.text('reminderDefaultsHint')),
+            Text(
+              context.l10n.text('localAlerts'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            Text(
+              context.l10n.text('reminderDefaultsHint'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
             const SizedBox(height: 18),
             Card(
               child: Column(
@@ -95,13 +101,14 @@ class _RemindersScreenState extends State<RemindersScreen>
                 padding: const EdgeInsets.all(18),
                 child: Row(
                   children: [
-                    const Icon(Icons.lock_clock_outlined, color: caveBlue),
+                    Icon(Icons.lock_clock_outlined, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         context.l10n.format('monitored', {
                           'count': app.items.length,
                         }),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       ),
                     ),
                   ],

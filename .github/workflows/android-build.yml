@@ -3,7 +3,7 @@ name: Android final APK and AAB
 on:
   workflow_dispatch:
   push:
-    branches: [main, feature/warrantycave-next-update]
+    branches: [main, feature/warrantycave-next-update, feature/individual-reminders-dark-mode]
 
 concurrency:
   group: android-release-${{ github.ref }}
@@ -46,7 +46,7 @@ jobs:
           flutter build appbundle --release
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.20-build-30-next-update-test
+          name: WarrantyCave-1.0.21-build-31-test
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab

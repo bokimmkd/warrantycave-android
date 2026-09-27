@@ -669,7 +669,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
               child: Text(
                 productType ?? context.l10n.text('chooseProductType'),
                 style: TextStyle(
-                  color: productType == null ? Colors.blueGrey : caveNavy,
+                  color: productType == null ? Colors.blueGrey : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -737,7 +737,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
                     ? context.l10n.text('chooseLocationOptional')
                     : location,
                 style: TextStyle(
-                  color: location.isEmpty ? Colors.blueGrey : caveNavy,
+                  color: location.isEmpty ? Colors.blueGrey : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),

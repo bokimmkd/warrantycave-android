@@ -608,9 +608,9 @@ class AppEmptyStates extends StatelessWidget {
           child: Icon(icon, size: 32, color: AppColors.sky),
         ),
         const SizedBox(height: 14),
-        Text(title, textAlign: TextAlign.center, style: AppTypography.title),
+        Text(title, textAlign: TextAlign.center, style: AppTypography.title.copyWith(color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 6),
-        Text(message, textAlign: TextAlign.center, style: AppTypography.muted),
+        Text(message, textAlign: TextAlign.center, style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         if (actionLabel != null && onAction != null) ...[
           const SizedBox(height: 18),
           PrimaryButton(

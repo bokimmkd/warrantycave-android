@@ -128,7 +128,7 @@ class _Switch extends StatelessWidget {
   Widget build(BuildContext context) => SwitchListTile(
     title: Text(
       title,
-      style: TextStyle(fontWeight: FontWeight.w700, color: caveNavy),
+      style: TextStyle(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
     ),
     subtitle: Text(context.l10n.text('expiryReminder')),
     value: value,

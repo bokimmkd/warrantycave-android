@@ -108,8 +108,14 @@ class AppController extends ChangeNotifier {
     return settings.plan;
   }
 
-  bool get canAdd => subscriptions.canAddItem(effectivePlan, items.length);
+  int get countedItemCount =>
+      items.where((item) => !item.isArchived()).length;
+
+  bool get canAdd =>
+      subscriptions.canAddItem(effectivePlan, countedItemCount);
   bool canEditItem(WarrantyItem item) =>
+      !item.isArchived() &&
+      countedItemCount <= effectivePlan.itemLimit &&
       effectivePlan.index >= item.createdOnPlan.index;
   String billingPrice(PlanTier tier) => subscriptions.priceFor(tier);
   String newId() => _uuid.v4();

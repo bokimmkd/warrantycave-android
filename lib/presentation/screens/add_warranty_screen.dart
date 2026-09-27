@@ -643,7 +643,14 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
         AppSnackbars.error(
           context,
           e is StateError && e.message == 'plan_edit_locked'
-              ? context.l10n.text('editLockedPlan')
+              ? context.l10n.text(
+                  (widget.existing?.isArchived() ?? false)
+                      ? 'archivedEditMessage'
+                      : context.read<AppController>().countedItemCount >
+                              context.read<AppController>().effectivePlan.itemLimit
+                          ? 'overLimitEditMessage'
+                          : 'editLockedPlan',
+                )
               : context.l10n.text('saveFailed'),
         );
       }

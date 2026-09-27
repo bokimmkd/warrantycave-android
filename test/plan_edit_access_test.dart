@@ -4,12 +4,12 @@ import 'package:warranty_cave/data/services.dart';
 import 'package:warranty_cave/domain/models.dart';
 import 'package:warranty_cave/presentation/app_controller.dart';
 
-WarrantyItem warranty(int number, PlanTier origin) => WarrantyItem(
+WarrantyItem warranty(int number, PlanTier origin, {DateTime? expiry}) => WarrantyItem(
   id: 'item-$number',
   productType: 'Phone',
   productName: 'Phone $number',
   purchaseDate: DateTime(2026, 1, 1),
-  expiryDate: DateTime(2027, 1, 1),
+  expiryDate: expiry ?? DateTime.now().add(const Duration(days: 120)),
   durationLabel: '1 year',
   createdAt: DateTime(2026, 1, 1),
   createdOnPlan: origin,
@@ -34,6 +34,18 @@ Future<AppController> controllerWith(
 }
 
 void main() {
+  test('expiry day and two following days count, then archive does not', () {
+    final today = dateOnly(DateTime.now());
+    for (final age in [0, 1, 2]) {
+      final item = warranty(1, PlanTier.free,
+          expiry: today.subtract(Duration(days: age)));
+      expect(item.isArchived(now: today), isFalse);
+    }
+    final archived = warranty(2, PlanTier.free,
+        expiry: today.subtract(const Duration(days: 3)));
+    expect(archived.isArchived(now: today), isTrue);
+  });
+
   test('origin survives local and cloud JSON; old records stay editable', () {
     final plus = warranty(1, PlanTier.plus);
     expect(WarrantyItem.fromJson(plus.toJson()).createdOnPlan, PlanTier.plus);
@@ -70,6 +82,54 @@ void main() {
     expect(app.items.length, 26);
     expect(await app.delete(app.items.first), isTrue);
     expect(app.items.length, 25);
+    expect(app.canAdd, isFalse);
+  });
+
+  test('Basic freezes all 26 active warranties, even legacy Free origins', () async {
+    final app = await controllerWith(
+      List.generate(26, (i) => warranty(i, PlanTier.free)),
+      PlanTier.basic,
+    );
+    expect(app.countedItemCount, 26);
+    expect(app.canAdd, isFalse);
+    expect(app.items.every((item) => !app.canEditItem(item)), isTrue);
+    await expectLater(
+      app.upsert(app.items.first), throwsA(isA<StateError>()),
+    );
+    expect(await app.delete(app.items.last), isTrue);
+    expect(app.countedItemCount, 25);
+    expect(app.canEditItem(app.items.first), isTrue);
+    expect(app.canAdd, isFalse);
+  });
+
+  test('archived warranty frees a slot without deleting its Claim Pack data', () async {
+    final today = dateOnly(DateTime.now());
+    final inGrace = warranty(25, PlanTier.free,
+        expiry: today.subtract(const Duration(days: 2)));
+    final beforeArchive = await controllerWith(
+      [...List.generate(25, (i) => warranty(i, PlanTier.free)), inGrace],
+      PlanTier.basic,
+    );
+    expect(beforeArchive.countedItemCount, 26);
+    expect(beforeArchive.canEditItem(beforeArchive.items.first), isFalse);
+
+    final archive = warranty(25, PlanTier.free,
+        expiry: today.subtract(const Duration(days: 3)));
+    final app = await controllerWith(
+      [...List.generate(25, (i) => warranty(i, PlanTier.free)), archive],
+      PlanTier.basic,
+    );
+    expect(app.items.length, 26);
+    expect(app.countedItemCount, 25);
+    expect(app.canAdd, isFalse);
+    expect(app.canEditItem(archive), isFalse);
+    expect(app.canEditItem(app.items.first), isTrue);
+    await expectLater(app.upsert(archive), throwsA(isA<StateError>()));
+    expect(await app.delete(app.items.first), isTrue);
+    expect(app.countedItemCount, 24);
+    expect(app.canAdd, isTrue);
+    await app.upsert(warranty(26, PlanTier.basic));
+    expect(app.countedItemCount, 25);
     expect(app.canAdd, isFalse);
   });
 

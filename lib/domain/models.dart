@@ -179,7 +179,8 @@ class WarrantyItem {
   final List<String> warrantyPhotos;
   final bool isExtendedWarranty;
   /// The plan that allowed this warranty to be created. Older warranties
-  /// default to Free so an update never retroactively locks user data.
+  /// default to Free when their original plan cannot be reconstructed; the
+  /// current plan limit and archive rules still apply to them.
   final PlanTier createdOnPlan;
   /// Null inherits the user's global reminders; an empty list disables them
   /// for this item. Existing saved warranties continue using global settings.
@@ -203,6 +204,11 @@ class WarrantyItem {
 
   int remainingDays({DateTime? now}) =>
       dateOnly(expiryDate).difference(dateOnly(now ?? DateTime.now())).inDays;
+
+  /// Expired warranties remain in the plan for two full calendar days after
+  /// expiry so a mistaken date can still be corrected. On day three they
+  /// become read-only archive entries and stop occupying a plan slot.
+  bool isArchived({DateTime? now}) => remainingDays(now: now) < -2;
 
   String remainingLabel({DateTime? now}) {
     final days = remainingDays(now: now);

@@ -43,10 +43,26 @@ class ItemDetailScreen extends StatelessWidget {
           IconButton(
             onPressed: () async {
               if (!canEdit) {
+                if (item.isArchived()) {
+                  await AppDialogs.message(
+                    context,
+                    title: context.l10n.text('archivedEditTitle'),
+                    message: context.l10n.text('archivedEditMessage'),
+                    buttonLabel: context.l10n.text('ok'),
+                    icon: Icons.lock_outline_rounded,
+                  );
+                  return;
+                }
+                final overLimit =
+                    app.countedItemCount > app.effectivePlan.itemLimit;
                 final viewPlans = await AppDialogs.confirm(
                   context,
-                  title: context.l10n.text('editLockedTitle'),
-                  message: context.l10n.text('editLockedPlan'),
+                  title: context.l10n.text(
+                    overLimit ? 'overLimitEditTitle' : 'editLockedTitle',
+                  ),
+                  message: context.l10n.text(
+                    overLimit ? 'overLimitEditMessage' : 'editLockedPlan',
+                  ),
                   confirmLabel: context.l10n.text('viewPlans'),
                   cancelLabel: context.l10n.text('cancel'),
                   icon: Icons.lock_outline_rounded,

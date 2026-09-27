@@ -414,7 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   foregroundColor: Color(0xFFD99A00),
                 ),
                 title: Text(
-                  context.l10n.format('planName', {'plan': s.plan.label}),
+                  context.l10n.format('planName', {'plan': app.effectivePlan.label}),
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -425,10 +425,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(context.l10n.format('planUsage', {
-                      'count': app.items.length,
-                      'limit': s.plan.itemLimit,
+                      'count': app.countedItemCount,
+                      'limit': app.effectivePlan.itemLimit,
                       'storage': context.l10n.text(
-                        s.plan.hasCloud ? 'cloudSync' : 'localStorage',
+                        app.effectivePlan.hasCloud ? 'cloudSync' : 'localStorage',
                       ),
                     })),
                     if (s.planExpiresAt != null &&

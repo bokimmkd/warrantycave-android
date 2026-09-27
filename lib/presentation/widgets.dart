@@ -128,11 +128,11 @@ class BrandMark extends StatelessWidget {
       ),
       const SizedBox(width: 10),
       Text.rich(
-        const TextSpan(
+        TextSpan(
           children: [
             TextSpan(
               text: 'Warranty',
-              style: TextStyle(color: caveNavy),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             TextSpan(
               text: 'Cave',
@@ -161,7 +161,7 @@ class SectionTitle extends StatelessWidget {
           title,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w800,
-            color: caveNavy,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -241,9 +241,9 @@ class WarrantyCard extends StatelessWidget {
                       item.productName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: caveNavy,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                       ),
                     ),
@@ -263,16 +263,16 @@ class WarrantyCard extends StatelessWidget {
                   ].where((e) => e.isNotEmpty).join(' • '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.blueGrey.shade600),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               const SizedBox(height: 5),
               Text(
                 '${DateFormat.yMMMd(context.l10n.locale.languageCode).format(item.expiryDate)} • ${localizedRemainingLabel(context, item)}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: caveBlue,
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),

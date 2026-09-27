@@ -54,6 +54,23 @@ class ItemDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton.filledTonal(
+                tooltip: context.l10n.text('share'),
+                icon: const Icon(Icons.share_outlined),
+                onPressed: () => _shareText(context, item),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                tooltip: context.l10n.text('claimPack'),
+                icon: const Icon(Icons.picture_as_pdf_outlined),
+                onPressed: () => _claimPackAction(context, item),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -82,15 +99,15 @@ class ItemDetailScreen extends StatelessWidget {
                   Text(
                     item.productName,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
-                      color: caveNavy,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Text(
                     item.productType,
-                    style: const TextStyle(color: Colors.blueGrey),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 12),
                   StatusChip(
@@ -108,9 +125,9 @@ class ItemDetailScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     localizedRemainingLabel(context, item),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: caveBlue,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ],
@@ -142,7 +159,7 @@ class ItemDetailScreen extends StatelessWidget {
                       context.l10n.text('notes'),
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: caveNavy,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -167,27 +184,6 @@ class ItemDetailScreen extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 22),
-          Row(
-            children: [
-              Expanded(
-                child: OutlineButton(
-                  label: context.l10n.text('share'),
-                  icon: Icons.share_outlined,
-                  onPressed: () => _shareText(context, item),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: PrimaryButton(
-                  label: context.l10n.text('claimPack'),
-                  icon: Icons.picture_as_pdf_outlined,
-                  expand: false,
-                  onPressed: () => _claimPackAction(context, item),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
           DangerButton(
             label: context.l10n.text('deleteWarrantyLabel'),
             onPressed: () => _delete(context, app, item),
@@ -595,16 +591,16 @@ class _Details extends StatelessWidget {
                       Expanded(
                         child: Text(
                           e.key,
-                          style: const TextStyle(color: Colors.blueGrey),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ),
                       Expanded(
                         child: Text(
                           e.value,
                           textAlign: TextAlign.end,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: caveNavy,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -669,10 +665,10 @@ class _PhotoGallery extends StatelessWidget {
     children: [
       Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w800,
-          color: caveNavy,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       const SizedBox(height: 10),

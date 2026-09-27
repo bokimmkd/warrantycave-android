@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen>
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: caveNavy,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             Text(
@@ -196,15 +196,15 @@ class _Metric extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 '$count',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 23,
                   fontWeight: FontWeight.w900,
-                  color: caveNavy,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               Text(
                 label,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF647B8E)),
+                style: TextStyle(fontSize: 11, color: Color(0xFF647B8E)),
               ),
             ],
           ),

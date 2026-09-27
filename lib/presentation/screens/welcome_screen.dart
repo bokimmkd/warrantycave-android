@@ -6,7 +6,8 @@ import '../theme.dart';
 import '../widgets.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({super.key});
+  const WelcomeScreen({super.key, this.preview = false});
+  final bool preview;
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -22,7 +23,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     super.dispose();
   }
 
-  void _finish() => context.read<AppController>().completeOnboarding();
+  void _finish() {
+    if (widget.preview) {
+      Navigator.pop(context);
+    } else {
+      context.read<AppController>().completeOnboarding();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

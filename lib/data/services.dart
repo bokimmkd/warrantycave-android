@@ -210,17 +210,12 @@ class LocalNotificationService implements NotificationService {
     await initialize();
     await cancelFor(item.id);
     if (!settings.notificationConsentGranted) return;
-    final reminders = <int, bool>{
-      60: settings.reminder60,
-      30: settings.reminder30,
-      7: settings.reminder7,
-      0: settings.reminderExpiry,
-    };
+    final reminders = item.effectiveReminderDays(settings);
     var slot = 0;
-    for (final entry in reminders.entries) {
+    for (final days in const [60, 30, 7, 0]) {
       final date = dateOnly(
         item.expiryDate,
-      ).subtract(Duration(days: entry.key));
+      ).subtract(Duration(days: days));
       final scheduled = tz.TZDateTime(
         tz.local,
         date.year,
@@ -228,12 +223,12 @@ class LocalNotificationService implements NotificationService {
         date.day,
         9,
       );
-      if (entry.value && scheduled.isAfter(tz.TZDateTime.now(tz.local))) {
+      if (reminders.contains(days) && scheduled.isAfter(tz.TZDateTime.now(tz.local))) {
         await _plugin.zonedSchedule(
           _notificationId(item.id, slot),
-          entry.key == 0
+          days == 0
               ? '${item.productName} warranty expires today'
-              : '${item.productName} warranty expires in ${entry.key} days',
+              : '${item.productName} warranty expires in $days days',
           'Open WarrantyCave to review your documents.',
           scheduled,
           const NotificationDetails(

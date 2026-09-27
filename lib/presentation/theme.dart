@@ -73,3 +73,71 @@ ThemeData buildTheme() {
     ),
   );
 }
+
+ThemeData buildDarkTheme() {
+  const background = Color(0xFF0D1926);
+  const surface = Color(0xFF17283A);
+  const onSurface = Color(0xFFEAF3FA);
+  const primary = Color(0xFF8FCAFF);
+  const border = Color(0xFF3B5267);
+  final scheme = ColorScheme.fromSeed(
+    seedColor: primary,
+    brightness: Brightness.dark,
+    primary: primary,
+    secondary: const Color(0xFF5EDBCC),
+    surface: surface,
+    onSurface: onSurface,
+  );
+  return ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: background,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: background,
+      foregroundColor: onSurface,
+      centerTitle: false,
+    ),
+    cardTheme: CardThemeData(
+      color: surface,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: border),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: surface,
+      labelStyle: TextStyle(color: scheme.onSurfaceVariant),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: border),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primary,
+        foregroundColor: scheme.onPrimary,
+        minimumSize: const Size(0, 52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: surface,
+      indicatorColor: primary.withValues(alpha: .22),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
+        fontSize: 11,
+        fontWeight: states.contains(WidgetState.selected)
+            ? FontWeight.w700 : FontWeight.w500,
+        color: states.contains(WidgetState.selected) ? primary : onSurface,
+      )),
+    ),
+  );
+}

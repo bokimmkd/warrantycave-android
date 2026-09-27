@@ -1730,6 +1730,48 @@ class AppLocalizations {
   // Less frequently used screen copy is kept by key here so every entry is
   // visibly complete for all supported languages.
   static const _extended = <String, Map<String, String>>{
+    'appearance': {
+      'en': 'Appearance', 'mk': 'Изглед', 'de': 'Darstellung',
+      'es': 'Apariencia', 'fr': 'Apparence', 'it': 'Aspetto',
+      'tr': 'Görünüm', 'el': 'Εμφάνιση',
+    },
+    'darkMode': {
+      'en': 'Dark mode', 'mk': 'Темен режим', 'de': 'Dunkelmodus',
+      'es': 'Modo oscuro', 'fr': 'Mode sombre', 'it': 'Modalità scura',
+      'tr': 'Koyu mod', 'el': 'Σκοτεινή λειτουργία',
+    },
+    'itemReminders': {
+      'en': 'Reminders for this warranty', 'mk': 'Потсетници за оваа гаранција',
+      'de': 'Erinnerungen für diese Garantie', 'es': 'Recordatorios de esta garantía',
+      'fr': 'Rappels pour cette garantie', 'it': 'Promemoria per questa garanzia',
+      'tr': 'Bu garanti için hatırlatıcılar', 'el': 'Υπενθυμίσεις για αυτή την εγγύηση',
+    },
+    'useDefaultReminders': {
+      'en': 'Use default reminders', 'mk': 'Користи ги општите потсетници',
+      'de': 'Standarderinnerungen verwenden', 'es': 'Usar recordatorios predeterminados',
+      'fr': 'Utiliser les rappels par défaut', 'it': 'Usa promemoria predefiniti',
+      'tr': 'Varsayılan hatırlatıcıları kullan', 'el': 'Χρήση προεπιλεγμένων υπενθυμίσεων',
+    },
+    'reminderDefaultsHint': {
+      'en': 'These defaults apply unless you customize reminders when editing a warranty.',
+      'mk': 'Овие потсетници важат освен ако не изберете посебни при уредување гаранција.',
+      'de': 'Diese Einstellungen gelten, solange Sie Erinnerungen für eine Garantie nicht anpassen.',
+      'es': 'Se aplican salvo que personalices los recordatorios de una garantía.',
+      'fr': 'Ils s’appliquent sauf si vous personnalisez les rappels d’une garantie.',
+      'it': 'Si applicano salvo modifica dei promemoria di una garanzia.',
+      'tr': 'Bir garanti için özel hatırlatıcı seçmezseniz bunlar geçerlidir.',
+      'el': 'Ισχύουν εκτός αν προσαρμόσετε τις υπενθυμίσεις μιας εγγύησης.',
+    },
+    'itemReminderPermissionHint': {
+      'en': 'Enable notifications on the Reminders tab to receive these alerts.',
+      'mk': 'Вклучете известувања во Потсетници за да ги добивате овие пораки.',
+    },
+    'viewIntroductionAgain': {
+      'en': 'View introduction again', 'mk': 'Погледни го воведот повторно',
+      'de': 'Einführung erneut ansehen', 'es': 'Volver a ver la introducción',
+      'fr': 'Revoir l’introduction', 'it': 'Rivedi l’introduzione',
+      'tr': 'Tanıtımı tekrar görüntüle', 'el': 'Δείτε ξανά την εισαγωγή',
+    },
     'noAds': {
       'en': 'No ads', 'mk': 'Без реклами', 'de': 'Ohne Werbung',
       'es': 'Sin anuncios', 'fr': 'Sans publicité', 'it': 'Senza pubblicità',

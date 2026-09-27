@@ -127,7 +127,7 @@ class _MainShellState extends State<MainShell> {
             Text(
               context.l10n.text('freeLimitReached'),
               textAlign: TextAlign.center,
-              style: AppTypography.muted,
+              style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 18),
             PrimaryButton(
@@ -174,7 +174,7 @@ class _MainShellState extends State<MainShell> {
               const SizedBox(height: 12),
               Text(
                 context.l10n.text('openingCave'),
-                style: AppTypography.muted,
+                style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ),

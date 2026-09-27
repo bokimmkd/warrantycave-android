@@ -31,11 +31,18 @@ class _RemindersScreenState extends State<RemindersScreen>
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: caveNavy,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 6),
-            Text(context.l10n.text('localAlerts')),
+            Text(
+              context.l10n.text('localAlerts'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            Text(
+              context.l10n.text('reminderDefaultsHint'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
             const SizedBox(height: 18),
             Card(
               child: Column(
@@ -94,13 +101,14 @@ class _RemindersScreenState extends State<RemindersScreen>
                 padding: const EdgeInsets.all(18),
                 child: Row(
                   children: [
-                    const Icon(Icons.lock_clock_outlined, color: caveBlue),
+                    Icon(Icons.lock_clock_outlined, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         context.l10n.format('monitored', {
                           'count': app.items.length,
                         }),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       ),
                     ),
                   ],
@@ -127,7 +135,7 @@ class _Switch extends StatelessWidget {
   Widget build(BuildContext context) => SwitchListTile(
     title: Text(
       title,
-      style: const TextStyle(fontWeight: FontWeight.w700, color: caveNavy),
+      style: TextStyle(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
     ),
     subtitle: Text(context.l10n.text('expiryReminder')),
     value: value,

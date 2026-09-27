@@ -37,14 +37,14 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
-              color: caveNavy,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             context.l10n.text('unlockCloud'),
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.blueGrey),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
           _PlanCard(
@@ -102,7 +102,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           Text(
             context.l10n.text('securePurchase'),
             textAlign: TextAlign.center,
-            style: AppTypography.muted,
+            style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 14),
           PrimaryButton(
@@ -209,7 +209,7 @@ class _PlanCard extends StatelessWidget {
     borderRadius: BorderRadius.circular(20),
     child: Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: selected
@@ -258,19 +258,19 @@ class _PlanCard extends StatelessWidget {
                       PlanTier.basic => 'basic',
                       PlanTier.plus => 'plus',
                     }),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
-                      color: caveNavy,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
                 Text(
                   price,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    color: caveBlue,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -299,7 +299,13 @@ class _PlanCard extends StatelessWidget {
                   children: [
                     const Icon(Icons.check_circle, size: 17, color: caveTeal),
                     const SizedBox(width: 8),
-                    Text(e),
+                    Expanded(
+                      child: Text(
+                        e,
+                        softWrap: true,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                    ),
                   ],
                 ),
               ),

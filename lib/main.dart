@@ -43,10 +43,15 @@ class WarrantyCaveApp extends StatelessWidget {
     final languageCode = context.select<AppController, String>(
       (app) => app.settings.languageCode,
     );
+    final darkMode = context.select<AppController, bool>(
+      (app) => app.settings.darkMode,
+    );
     return MaterialApp(
       title: 'WarrantyCave',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
+      darkTheme: buildDarkTheme(),
+      themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       locale: Locale(languageCode),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [

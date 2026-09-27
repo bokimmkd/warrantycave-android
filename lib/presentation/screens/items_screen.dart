@@ -94,7 +94,9 @@ class _ItemsScreenState extends State<ItemsScreen>
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String?>(
+              key: ValueKey(draftType),
               initialValue: draftType,
+              isExpanded: true,
               decoration: AppInputFields.decoration(
                 context: context,
                 label: context.l10n.text('productType'),
@@ -117,18 +119,27 @@ class _ItemsScreenState extends State<ItemsScreen>
               ),
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [null, ...locations]
-                  .map(
-                    (value) => ChoiceChip(
-                      label: Text(value ?? context.l10n.text('allLocations')),
-                      selected: draftLocation == value,
-                      onSelected: (_) => update(() => draftLocation = value),
-                    ),
-                  )
-                  .toList(),
+            DropdownButtonFormField<String?>(
+              key: ValueKey(draftLocation),
+              initialValue: draftLocation,
+              isExpanded: true,
+              decoration: AppInputFields.decoration(
+                context: context,
+                label: context.l10n.text('location'),
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: null,
+                  child: Text(context.l10n.text('allLocations')),
+                ),
+                ...locations.map(
+                  (value) => DropdownMenuItem(
+                    value: value,
+                    child: Text(value, overflow: TextOverflow.ellipsis),
+                  ),
+                ),
+              ],
+              onChanged: (value) => update(() => draftLocation = value),
             ),
             const SizedBox(height: 20),
             Row(
@@ -246,11 +257,13 @@ class _ItemsScreenState extends State<ItemsScreen>
     }
     final types = app.items.map((e) => e.productType).toSet().toList()..sort();
     final locations =
-        app.items
-            .map((e) => e.location)
-            .where((value) => value.isNotEmpty)
-            .toSet()
-            .toList()
+        <String>{
+          'Home',
+          'Vacation home',
+          'Garage',
+          'Office',
+          ...app.items.map((e) => e.location).where((value) => value.isNotEmpty),
+        }.toList()
           ..sort();
     return SafeArea(
       child: RefreshIndicator(

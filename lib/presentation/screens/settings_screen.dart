@@ -96,26 +96,24 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ),
             const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                context.l10n.text('defaultCurrency').toUpperCase(),
-                style: AppTypography.label.copyWith(color: Theme.of(context).colorScheme.primary),
+            DropdownButtonFormField<String>(
+              key: ValueKey(currency),
+              initialValue: currency,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: context.l10n.text('defaultCurrency'),
               ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: supportedCurrencies
+              items: {...supportedCurrencies, currency}
                   .map(
-                    (value) => ChoiceChip(
-                      label: Text(value),
-                      selected: currency == value,
-                      onSelected: (_) => update(() => currency = value),
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(value),
                     ),
                   )
                   .toList(),
+              onChanged: (value) {
+                if (value != null) update(() => currency = value);
+              },
             ),
             const SizedBox(height: 20),
             PrimaryButton(

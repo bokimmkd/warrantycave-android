@@ -3,7 +3,7 @@ name: Android final APK and AAB
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/warrantycave-next-update]
 
 concurrency:
   group: android-release-${{ github.ref }}

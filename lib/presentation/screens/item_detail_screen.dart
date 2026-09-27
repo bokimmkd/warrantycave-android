@@ -54,6 +54,23 @@ class ItemDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton.filledTonal(
+                tooltip: context.l10n.text('share'),
+                icon: const Icon(Icons.share_outlined),
+                onPressed: () => _shareText(context, item),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                tooltip: context.l10n.text('claimPack'),
+                icon: const Icon(Icons.picture_as_pdf_outlined),
+                onPressed: () => _claimPackAction(context, item),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -167,27 +184,6 @@ class ItemDetailScreen extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 22),
-          Row(
-            children: [
-              Expanded(
-                child: OutlineButton(
-                  label: context.l10n.text('share'),
-                  icon: Icons.share_outlined,
-                  onPressed: () => _shareText(context, item),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: PrimaryButton(
-                  label: context.l10n.text('claimPack'),
-                  icon: Icons.picture_as_pdf_outlined,
-                  expand: false,
-                  onPressed: () => _claimPackAction(context, item),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
           DangerButton(
             label: context.l10n.text('deleteWarrantyLabel'),
             onPressed: () => _delete(context, app, item),
@@ -574,11 +570,6 @@ class _Details extends StatelessWidget {
             : formatMoney(item.purchasePrice!, item.currency),
       ),
       MapEntry(context.l10n.text('warrantyDuration'), item.durationLabel),
-      if (item.isExtendedWarranty)
-        MapEntry(
-          context.l10n.text('extendedWarrantyToggle'),
-          context.l10n.text('extendedWarrantyBadge'),
-        ),
       MapEntry(
         context.l10n.text('expiryDate'),
         DateFormat.yMMMd(

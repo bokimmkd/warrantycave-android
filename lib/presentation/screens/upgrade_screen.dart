@@ -100,6 +100,14 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           ),
           const SizedBox(height: 12),
           Text(
+            context.l10n.text('planExpiryEditNotice'),
+            textAlign: TextAlign.center,
+            style: AppTypography.muted.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
             context.l10n.text('securePurchase'),
             textAlign: TextAlign.center,
             style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),

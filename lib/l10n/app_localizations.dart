@@ -1730,6 +1730,32 @@ class AppLocalizations {
   // Less frequently used screen copy is kept by key here so every entry is
   // visibly complete for all supported languages.
   static const _extended = <String, Map<String, String>>{
+    'editLockedTitle': {
+      'en': 'Editing requires a plan', 'mk': 'За уредување треба пакет',
+      'de': 'Zum Bearbeiten ist ein Plan nötig', 'es': 'Necesitas un plan para editar',
+      'fr': 'Un forfait est requis pour modifier', 'it': 'Serve un piano per modificare',
+      'tr': 'Düzenlemek için plan gerekli', 'el': 'Απαιτείται πρόγραμμα για επεξεργασία',
+    },
+    'editLockedPlan': {
+      'en': 'This warranty needs the plan it was added with, or a higher plan, to be edited. You can still view it, download its Claim Pack, or delete it.',
+      'mk': 'За уредување на оваа гаранција треба пакетот со кој е додадена или повисок пакет. И понатаму можеш да ја видиш, да го преземеш Claim Pack или да ја избришеш.',
+      'de': 'Zum Bearbeiten ist der Plan nötig, mit dem diese Garantie hinzugefügt wurde, oder ein höherer. Ansehen, Claim Pack herunterladen und Löschen sind weiter möglich.',
+      'es': 'Para editar esta garantía necesitas el plan con que la añadiste u otro superior. Aún puedes verla, descargar su Claim Pack o eliminarla.',
+      'fr': 'Pour modifier cette garantie, il faut le forfait utilisé lors de son ajout ou un forfait supérieur. Vous pouvez toujours la consulter, télécharger son Claim Pack ou la supprimer.',
+      'it': 'Per modificare questa garanzia serve il piano usato per aggiungerla o uno superiore. Puoi ancora vederla, scaricare il Claim Pack o eliminarla.',
+      'tr': 'Bu garantiyi düzenlemek için eklendiği plan veya daha üstü gerekir. Garantiyi görüntüleyebilir, Claim Pack indirebilir veya silebilirsiniz.',
+      'el': 'Για επεξεργασία απαιτείται το πρόγραμμα με το οποίο προστέθηκε η εγγύηση ή ανώτερο. Μπορείτε ακόμη να τη δείτε, να κατεβάσετε το Claim Pack ή να τη διαγράψετε.',
+    },
+    'planExpiryEditNotice': {
+      'en': 'After your plan ends, warranties added on it remain viewable, downloadable, and deletable. Editing them requires the same or a higher active plan. Every saved warranty counts toward your current item limit.',
+      'mk': 'По истекот на пакетот, додадените гаранции остануваат достапни за гледање, преземање и бришење. За уредување треба истиот или повисок активен пакет. Сите зачувани гаранции се бројат во тековниот лимит.',
+      'de': 'Nach Ablauf bleiben Garantien sichtbar, herunterladbar und löschbar. Zum Bearbeiten ist derselbe oder ein höherer aktiver Plan nötig. Alle Garantien zählen zum aktuellen Limit.',
+      'es': 'Al terminar el plan, las garantías siguen visibles y se pueden descargar o eliminar. Para editarlas necesitas el mismo plan activo o uno superior. Todas cuentan para el límite actual.',
+      'fr': 'Après la fin du forfait, les garanties restent consultables, téléchargeables et supprimables. Pour les modifier, il faut le même forfait actif ou un supérieur. Toutes comptent dans la limite actuelle.',
+      'it': 'Al termine del piano, le garanzie restano visibili, scaricabili ed eliminabili. Per modificarle serve lo stesso piano attivo o uno superiore. Tutte contano nel limite attuale.',
+      'tr': 'Plan bitince garantiler görüntülenebilir, indirilebilir ve silinebilir. Düzenleme için aynı veya daha yüksek aktif plan gerekir. Tüm garantiler geçerli sınıra dahildir.',
+      'el': 'Μετά τη λήξη του προγράμματος, οι εγγυήσεις παραμένουν ορατές, διαθέσιμες για λήψη και διαγραφή. Για επεξεργασία απαιτείται το ίδιο ή ανώτερο ενεργό πρόγραμμα. Όλες προσμετρώνται στο τρέχον όριο.',
+    },
     'appearance': {
       'en': 'Appearance', 'mk': 'Изглед', 'de': 'Darstellung',
       'es': 'Apariencia', 'fr': 'Apparence', 'it': 'Aspetto',

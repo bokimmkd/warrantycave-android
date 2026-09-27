@@ -97,7 +97,20 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  bool get canAdd => subscriptions.canAddItem(settings.plan, items.length);
+  PlanTier get effectivePlan {
+    if (_isPlusTester) return PlanTier.plus;
+    final expiresAt = settings.planExpiresAt;
+    if (settings.plan != PlanTier.free &&
+        expiresAt != null &&
+        !expiresAt.isAfter(DateTime.now())) {
+      return PlanTier.free;
+    }
+    return settings.plan;
+  }
+
+  bool get canAdd => subscriptions.canAddItem(effectivePlan, items.length);
+  bool canEditItem(WarrantyItem item) =>
+      effectivePlan.index >= item.createdOnPlan.index;
   String billingPrice(PlanTier tier) => subscriptions.priceFor(tier);
   String newId() => _uuid.v4();
 
@@ -212,9 +225,16 @@ class AppController extends ChangeNotifier {
     final removedPhotos = <String>[];
     if (index < 0) {
       if (!canAdd) throw StateError('plan_limit');
+      if (item.createdOnPlan != effectivePlan) {
+        throw StateError('plan_changed');
+      }
       items = [...items, item];
     } else {
       final previous = items[index];
+      if (!canEditItem(previous)) throw StateError('plan_edit_locked');
+      if (item.createdOnPlan != previous.createdOnPlan) {
+        throw StateError('plan_origin_immutable');
+      }
       removedPhotos.addAll(
         [
           if (previous.productPhoto != null) previous.productPhoto!,

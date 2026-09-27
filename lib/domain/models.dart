@@ -153,6 +153,7 @@ class WarrantyItem {
     this.warrantyPhotos = const [],
     this.isExtendedWarranty = false,
     this.reminderDays,
+    this.createdOnPlan = PlanTier.free,
   });
 
   final String id;
@@ -177,6 +178,9 @@ class WarrantyItem {
   final List<String> receiptPhotos;
   final List<String> warrantyPhotos;
   final bool isExtendedWarranty;
+  /// The plan that allowed this warranty to be created. Older warranties
+  /// default to Free so an update never retroactively locks user data.
+  final PlanTier createdOnPlan;
   /// Null inherits the user's global reminders; an empty list disables them
   /// for this item. Existing saved warranties continue using global settings.
   final List<int>? reminderDays;
@@ -231,6 +235,7 @@ class WarrantyItem {
     'receiptPhotos': receiptPhotos,
     'warrantyPhotos': warrantyPhotos,
     'isExtendedWarranty': isExtendedWarranty,
+    'createdOnPlan': createdOnPlan.name,
     if (reminderDays != null) 'reminderDays': reminderDays,
   };
 
@@ -261,6 +266,9 @@ class WarrantyItem {
       json['warrantyPhotos'] as List? ?? const [],
     ),
     isExtendedWarranty: json['isExtendedWarranty'] as bool? ?? false,
+    createdOnPlan: PlanTier.values.where(
+      (tier) => tier.name == json['createdOnPlan'],
+    ).firstOrNull ?? PlanTier.free,
     reminderDays: json['reminderDays'] == null
         ? null
         : (json['reminderDays'] as List)

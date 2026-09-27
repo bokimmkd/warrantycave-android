@@ -610,6 +610,8 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
       durationLabel: duration,
       isExtendedWarranty: isExtendedWarranty,
       reminderDays: reminderDays,
+      createdOnPlan: widget.existing?.createdOnPlan ??
+          context.read<AppController>().effectivePlan,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
       receiptPhotos: receipts,
       warrantyPhotos: warranties,
@@ -637,7 +639,14 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
           );
       }
     } catch (e) {
-      if (mounted) AppSnackbars.error(context, context.l10n.text('saveFailed'));
+      if (mounted) {
+        AppSnackbars.error(
+          context,
+          e is StateError && e.message == 'plan_edit_locked'
+              ? context.l10n.text('editLockedPlan')
+              : context.l10n.text('saveFailed'),
+        );
+      }
     } finally {
       if (mounted) setState(() => saving = false);
     }

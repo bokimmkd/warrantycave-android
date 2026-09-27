@@ -16,6 +16,7 @@ import '../app_controller.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'add_warranty_screen.dart';
+import 'upgrade_screen.dart';
 
 class ItemDetailScreen extends StatelessWidget {
   const ItemDetailScreen({
@@ -34,20 +35,46 @@ class ItemDetailScreen extends StatelessWidget {
         body: Center(child: Text(context.l10n.text('warrantyMissing'))),
       );
     final item = matches.first;
+    final canEdit = app.canEditItem(item);
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.text('warrantyDetails')),
         actions: [
           IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    AddWarrantyScreen(existing: item, onSelectTab: onSelectTab),
-              ),
-            ),
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: context.l10n.text('edit'),
+            onPressed: () async {
+              if (!canEdit) {
+                final viewPlans = await AppDialogs.confirm(
+                  context,
+                  title: context.l10n.text('editLockedTitle'),
+                  message: context.l10n.text('editLockedPlan'),
+                  confirmLabel: context.l10n.text('viewPlans'),
+                  cancelLabel: context.l10n.text('cancel'),
+                  icon: Icons.lock_outline_rounded,
+                );
+                if (viewPlans && context.mounted) {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => UpgradeScreen(
+                        onSelectTab: (tab) => onSelectTab?.call(tab),
+                      ),
+                    ),
+                  );
+                }
+                return;
+              }
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AddWarrantyScreen(
+                    existing: item,
+                    onSelectTab: onSelectTab,
+                  ),
+                ),
+              );
+            },
+            icon: Icon(canEdit ? Icons.edit_outlined : Icons.lock_outline_rounded),
+            tooltip: context.l10n.text(canEdit ? 'edit' : 'editLockedTitle'),
           ),
         ],
       ),

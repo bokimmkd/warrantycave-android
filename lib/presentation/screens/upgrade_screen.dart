@@ -22,6 +22,8 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     final app = context.watch<AppController>();
     selected ??= app.settings.plan;
     final chosen = selected!;
+    final claimPackWithDownload =
+        '${context.l10n.text('claimPacks')} · ${context.l10n.text('downloadPdf')}';
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.text('upgradePlan'))),
       body: ListView(
@@ -53,6 +55,8 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               context.l10n.text('localStorage'),
               context.l10n.text('manualEntry'),
               context.l10n.text('localReminders'),
+              context.l10n.text('extendedWarrantyToggle'),
+              claimPackWithDownload,
               context.l10n.text('includesAds'),
             ],
             selected: chosen == PlanTier.free,
@@ -68,7 +72,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               context.l10n.text('cloudSync'),
               context.l10n.text('barcodeScanner'),
               context.l10n.text('allReminders'),
-              context.l10n.text('claimPacks'),
+              context.l10n.text('extendedWarrantyToggle'),
+              claimPackWithDownload,
+              context.l10n.text('noAds'),
             ],
             recommended: true,
             selected: chosen == PlanTier.basic,
@@ -84,7 +90,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               context.l10n.text('cloudSync'),
               context.l10n.text('barcodeScanner'),
               context.l10n.text('allReminders'),
-              context.l10n.text('claimPacks'),
+              context.l10n.text('extendedWarrantyToggle'),
+              claimPackWithDownload,
+              context.l10n.text('noAds'),
             ],
             selected: chosen == PlanTier.plus,
             current: app.settings.plan == PlanTier.plus,

@@ -1730,6 +1730,11 @@ class AppLocalizations {
   // Less frequently used screen copy is kept by key here so every entry is
   // visibly complete for all supported languages.
   static const _extended = <String, Map<String, String>>{
+    'noAds': {
+      'en': 'No ads', 'mk': 'Без реклами', 'de': 'Ohne Werbung',
+      'es': 'Sin anuncios', 'fr': 'Sans publicité', 'it': 'Senza pubblicità',
+      'tr': 'Reklamsız', 'el': 'Χωρίς διαφημίσεις',
+    },
     'introTitle1': {
       'en': 'Welcome to WarrantyCave', 'mk': 'Добредојдовте во WarrantyCave',
       'de': 'Willkommen bei WarrantyCave', 'es': 'Bienvenido a WarrantyCave',

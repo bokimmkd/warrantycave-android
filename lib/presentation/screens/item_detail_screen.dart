@@ -16,6 +16,7 @@ import '../app_controller.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'add_warranty_screen.dart';
+import 'upgrade_screen.dart';
 
 class ItemDetailScreen extends StatelessWidget {
   const ItemDetailScreen({
@@ -34,20 +35,73 @@ class ItemDetailScreen extends StatelessWidget {
         body: Center(child: Text(context.l10n.text('warrantyMissing'))),
       );
     final item = matches.first;
+    final canEdit = app.canEditItem(item);
+    final archived = item.isArchived();
+    final overLimit = app.countedItemCount > app.effectivePlan.itemLimit;
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.text('warrantyDetails')),
         actions: [
           IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    AddWarrantyScreen(existing: item, onSelectTab: onSelectTab),
-              ),
+            onPressed: () async {
+              if (!canEdit) {
+                if (archived) {
+                  await AppDialogs.message(
+                    context,
+                    title: context.l10n.text('archivedEditTitle'),
+                    message: context.l10n.text('archivedEditMessage'),
+                    buttonLabel: context.l10n.text('ok'),
+                    icon: Icons.lock_outline_rounded,
+                  );
+                  return;
+                }
+                final viewPlans = await AppDialogs.confirm(
+                  context,
+                  title: context.l10n.text(
+                    overLimit ? 'overLimitEditTitle' : 'editLockedTitle',
+                  ),
+                  message: context.l10n.text(
+                    overLimit ? 'overLimitEditMessage' : 'editLockedPlan',
+                  ),
+                  confirmLabel: context.l10n.text('viewPlans'),
+                  cancelLabel: context.l10n.text('cancel'),
+                  icon: Icons.lock_outline_rounded,
+                );
+                if (viewPlans && context.mounted) {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => UpgradeScreen(
+                        onSelectTab: (tab) => onSelectTab?.call(tab),
+                      ),
+                    ),
+                  );
+                }
+                return;
+              }
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AddWarrantyScreen(
+                    existing: item,
+                    onSelectTab: onSelectTab,
+                  ),
+                ),
+              );
+            },
+            icon: Icon(
+              Icons.edit_outlined,
+              color: canEdit ? null : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: context.l10n.text('edit'),
+            tooltip: context.l10n.text(
+              canEdit
+                  ? 'edit'
+                  : archived
+                      ? 'archivedEditTitle'
+                      : overLimit
+                          ? 'overLimitEditTitle'
+                          : 'editLockedTitle',
+            ),
           ),
         ],
       ),

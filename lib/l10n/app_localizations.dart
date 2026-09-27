@@ -1730,6 +1730,68 @@ class AppLocalizations {
   // Less frequently used screen copy is kept by key here so every entry is
   // visibly complete for all supported languages.
   static const _extended = <String, Map<String, String>>{
+    'ok': {
+      'en': 'OK', 'mk': 'Во ред', 'de': 'OK', 'es': 'Aceptar',
+      'fr': 'OK', 'it': 'OK', 'tr': 'Tamam', 'el': 'Εντάξει',
+    },
+    'archivedEditTitle': {
+      'en': 'Warranty archived', 'mk': 'Гаранцијата е архивирана',
+      'de': 'Garantie archiviert', 'es': 'Garantía archivada',
+      'fr': 'Garantie archivée', 'it': 'Garanzia archiviata',
+      'tr': 'Garanti arşivlendi', 'el': 'Η εγγύηση αρχειοθετήθηκε',
+    },
+    'archivedEditMessage': {
+      'en': 'Two days after expiry, this warranty becomes read-only and no longer counts toward your plan. You can still view it, download its Claim Pack, or delete it.',
+      'mk': 'Два дена по истекот, гаранцијата повеќе не може да се уредува и не се брои во пакетот. Можеш да ја гледаш, да го преземеш Claim Pack или да ја избришеш.',
+      'de': 'Zwei Tage nach Ablauf ist die Garantie schreibgeschützt und zählt nicht mehr zum Tarif. Ansehen, Claim Pack herunterladen oder Löschen bleibt möglich.',
+      'es': 'Dos días después del vencimiento, la garantía pasa a solo lectura y deja de contar para el plan. Puedes verla, descargar el Claim Pack o eliminarla.',
+      'fr': 'Deux jours après expiration, la garantie devient non modifiable et ne compte plus dans le forfait. Vous pouvez la consulter, télécharger le Claim Pack ou la supprimer.',
+      'it': 'Due giorni dopo la scadenza, la garanzia è di sola lettura e non conta più nel piano. Puoi vederla, scaricare il Claim Pack o eliminarla.',
+      'tr': 'Bitişten iki gün sonra garanti salt okunur olur ve plan sınırına dahil edilmez. Görüntüleyebilir, Claim Pack indirebilir veya silebilirsiniz.',
+      'el': 'Δύο ημέρες μετά τη λήξη, η εγγύηση γίνεται μόνο για ανάγνωση και δεν μετρά στο όριο. Μπορείτε να τη δείτε, να κατεβάσετε το Claim Pack ή να τη διαγράψετε.',
+    },
+    'overLimitEditTitle': {
+      'en': 'Plan limit exceeded', 'mk': 'Надминат лимит на пакетот',
+      'de': 'Tariflimit überschritten', 'es': 'Límite del plan superado',
+      'fr': 'Limite du forfait dépassée', 'it': 'Limite del piano superato',
+      'tr': 'Plan sınırı aşıldı', 'el': 'Υπέρβαση ορίου προγράμματος',
+    },
+    'overLimitEditMessage': {
+      'en': 'Editing is paused while the number of warranties exceeds your plan limit. Upgrade, delete enough warranties, or wait for expired warranties to leave the limit two days after expiry. You can still view, download Claim Packs, and delete.',
+      'mk': 'Уредувањето е запрено додека бројот на гаранции го надминува лимитот. Надгради пакет, избриши гаранции или почекај истечените да престанат да се бројат два дена по истекот. Преглед, Claim Pack и бришење остануваат достапни.',
+      'de': 'Bearbeiten ist gesperrt, solange die Anzahl das Tariflimit überschreitet. Tarif erhöhen, Garantien löschen oder zwei Tage nach Ablauf warten. Ansehen, Claim Pack und Löschen bleiben möglich.',
+      'es': 'La edición se pausa mientras superes el límite del plan. Mejora el plan, elimina garantías o espera dos días tras su vencimiento. Consulta, Claim Pack y eliminación siguen disponibles.',
+      'fr': 'La modification est suspendue tant que le nombre dépasse la limite du forfait. Changez de forfait, supprimez des garanties ou attendez deux jours après leur expiration. Consultation, Claim Pack et suppression restent possibles.',
+      'it': 'Le modifiche sono sospese finché superi il limite del piano. Aggiorna il piano, elimina garanzie o attendi due giorni dopo la scadenza. Visualizzazione, Claim Pack ed eliminazione restano disponibili.',
+      'tr': 'Garanti sayısı plan sınırını aştığında düzenleme durur. Planı yükseltin, garanti silin veya bitişten iki gün sonrasını bekleyin. Görüntüleme, Claim Pack ve silme kullanılabilir.',
+      'el': 'Η επεξεργασία σταματά όσο ο αριθμός υπερβαίνει το όριο. Αναβαθμίστε, διαγράψτε εγγυήσεις ή περιμένετε δύο ημέρες μετά τη λήξη. Προβολή, Claim Pack και διαγραφή παραμένουν διαθέσιμα.',
+    },
+    'editLockedTitle': {
+      'en': 'Editing requires a plan', 'mk': 'За уредување треба пакет',
+      'de': 'Zum Bearbeiten ist ein Plan nötig', 'es': 'Necesitas un plan para editar',
+      'fr': 'Un forfait est requis pour modifier', 'it': 'Serve un piano per modificare',
+      'tr': 'Düzenlemek için plan gerekli', 'el': 'Απαιτείται πρόγραμμα για επεξεργασία',
+    },
+    'editLockedPlan': {
+      'en': 'This warranty needs the plan it was added with, or a higher plan, to be edited. You can still view it, download its Claim Pack, or delete it.',
+      'mk': 'За уредување на оваа гаранција треба пакетот со кој е додадена или повисок пакет. И понатаму можеш да ја видиш, да го преземеш Claim Pack или да ја избришеш.',
+      'de': 'Zum Bearbeiten ist der Plan nötig, mit dem diese Garantie hinzugefügt wurde, oder ein höherer. Ansehen, Claim Pack herunterladen und Löschen sind weiter möglich.',
+      'es': 'Para editar esta garantía necesitas el plan con que la añadiste u otro superior. Aún puedes verla, descargar su Claim Pack o eliminarla.',
+      'fr': 'Pour modifier cette garantie, il faut le forfait utilisé lors de son ajout ou un forfait supérieur. Vous pouvez toujours la consulter, télécharger son Claim Pack ou la supprimer.',
+      'it': 'Per modificare questa garanzia serve il piano usato per aggiungerla o uno superiore. Puoi ancora vederla, scaricare il Claim Pack o eliminarla.',
+      'tr': 'Bu garantiyi düzenlemek için eklendiği plan veya daha üstü gerekir. Garantiyi görüntüleyebilir, Claim Pack indirebilir veya silebilirsiniz.',
+      'el': 'Για επεξεργασία απαιτείται το πρόγραμμα με το οποίο προστέθηκε η εγγύηση ή ανώτερο. Μπορείτε ακόμη να τη δείτε, να κατεβάσετε το Claim Pack ή να τη διαγράψετε.',
+    },
+    'planExpiryEditNotice': {
+      'en': 'If a downgrade puts you over the limit, editing pauses until your counted warranties fit the plan. Expired warranties become read-only and leave the limit two days after expiry. View, Claim Pack, and delete remain available.',
+      'mk': 'Ако по намалување на пакетот го надминеш лимитот, уредувањето запира додека гаранциите не се вклопат во него. Два дена по истекот, гаранцијата станува само за преглед и не се брои. Claim Pack и бришење остануваат достапни.',
+      'de': 'Bei Überschreitung des Tariflimits ist Bearbeiten gesperrt. Zwei Tage nach Ablauf sind Garantien schreibgeschützt und zählen nicht mehr. Ansehen, Claim Pack und Löschen bleiben möglich.',
+      'es': 'Si superas el límite al cambiar de plan, la edición se pausa. Dos días tras el vencimiento, las garantías son de solo lectura y dejan de contar. Consulta, Claim Pack y eliminación siguen disponibles.',
+      'fr': 'Si le nouveau forfait est dépassé, la modification est suspendue. Deux jours après expiration, les garanties sont en lecture seule et ne comptent plus. Consultation, Claim Pack et suppression restent possibles.',
+      'it': 'Se superi il limite dopo un cambio di piano, le modifiche si fermano. Due giorni dopo la scadenza, le garanzie sono di sola lettura e non contano più. Visualizzazione, Claim Pack ed eliminazione restano disponibili.',
+      'tr': 'Plan düşürülünce sınır aşılırsa düzenleme durur. Bitişten iki gün sonra garantiler salt okunur olur ve sayılmaz. Görüntüleme, Claim Pack ve silme kullanılabilir.',
+      'el': 'Αν ξεπεράσετε το όριο μετά από υποβάθμιση, η επεξεργασία σταματά. Δύο ημέρες μετά τη λήξη, οι εγγυήσεις γίνονται μόνο για ανάγνωση και δεν μετρούν. Προβολή, Claim Pack και διαγραφή παραμένουν διαθέσιμα.',
+    },
     'appearance': {
       'en': 'Appearance', 'mk': 'Изглед', 'de': 'Darstellung',
       'es': 'Apariencia', 'fr': 'Apparence', 'it': 'Aspetto',

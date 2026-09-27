@@ -97,7 +97,26 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  bool get canAdd => subscriptions.canAddItem(settings.plan, items.length);
+  PlanTier get effectivePlan {
+    if (_isPlusTester) return PlanTier.plus;
+    final expiresAt = settings.planExpiresAt;
+    if (settings.plan != PlanTier.free &&
+        expiresAt != null &&
+        !expiresAt.isAfter(DateTime.now())) {
+      return PlanTier.free;
+    }
+    return settings.plan;
+  }
+
+  int get countedItemCount =>
+      items.where((item) => !item.isArchived()).length;
+
+  bool get canAdd =>
+      subscriptions.canAddItem(effectivePlan, countedItemCount);
+  bool canEditItem(WarrantyItem item) =>
+      !item.isArchived() &&
+      countedItemCount <= effectivePlan.itemLimit &&
+      effectivePlan.index >= item.createdOnPlan.index;
   String billingPrice(PlanTier tier) => subscriptions.priceFor(tier);
   String newId() => _uuid.v4();
 
@@ -212,9 +231,16 @@ class AppController extends ChangeNotifier {
     final removedPhotos = <String>[];
     if (index < 0) {
       if (!canAdd) throw StateError('plan_limit');
+      if (item.createdOnPlan != effectivePlan) {
+        throw StateError('plan_changed');
+      }
       items = [...items, item];
     } else {
       final previous = items[index];
+      if (!canEditItem(previous)) throw StateError('plan_edit_locked');
+      if (item.createdOnPlan != previous.createdOnPlan) {
+        throw StateError('plan_origin_immutable');
+      }
       removedPhotos.addAll(
         [
           if (previous.productPhoto != null) previous.productPhoto!,
@@ -243,7 +269,7 @@ class AppController extends ChangeNotifier {
     if (signedIn &&
         emailVerified &&
         cloud != null &&
-        settings.plan.hasCloud) {
+        effectivePlan.hasCloud) {
       cloudError = null;
       cloudSyncing = true;
       notifyListeners();
@@ -259,6 +285,14 @@ class AppController extends ChangeNotifier {
       }
     }
     items = items.where((entry) => entry.id != item.id).toList();
+    if (signedIn &&
+        settings.cloudOwnerUid == user!.uid &&
+        !effectivePlan.hasCloud &&
+        !settings.pendingCloudDeletionIds.contains(item.id)) {
+      settings = settings.copyWith(
+        pendingCloudDeletionIds: [...settings.pendingCloudDeletionIds, item.id],
+      );
+    }
     await notifications.cancelFor(item.id);
     for (final path in [
       if (item.productPhoto != null) item.productPhoto!,
@@ -434,6 +468,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
     try {
       settings = settings.copyWith(email: user?.email ?? settings.email);
+      await _flushPendingCloudDeletions();
       final result = await cloud!.bootstrap(user!.uid, items, settings);
       items = result.items;
       settings = result.settings.copyWith(
@@ -462,6 +497,7 @@ class AppController extends ChangeNotifier {
     cloudError = null;
     notifyListeners();
     try {
+      await _flushPendingCloudDeletions();
       final entitlement = await cloud!.getEntitlements();
       settings = settings.copyWith(
         plan: _isPlusTester ? PlanTier.plus : entitlement.plan,
@@ -527,6 +563,23 @@ class AppController extends ChangeNotifier {
     } finally {
       smartScanBusy = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _flushPendingCloudDeletions() async {
+    if (cloud == null ||
+        !signedIn ||
+        settings.cloudOwnerUid != user!.uid) return;
+    for (final id in List<String>.of(settings.pendingCloudDeletionIds)) {
+      // Keep each ID on disk until its cloud deletion succeeds. A failed
+      // deletion aborts refresh so a stale record is never downloaded again.
+      await cloud!.deleteItem(user!.uid, id);
+      settings = settings.copyWith(
+        pendingCloudDeletionIds: settings.pendingCloudDeletionIds
+            .where((pending) => pending != id)
+            .toList(),
+      );
+      await storage.save(items, settings);
     }
   }
 

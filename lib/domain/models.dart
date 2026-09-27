@@ -153,6 +153,7 @@ class WarrantyItem {
     this.warrantyPhotos = const [],
     this.isExtendedWarranty = false,
     this.reminderDays,
+    this.createdOnPlan = PlanTier.free,
   });
 
   final String id;
@@ -177,6 +178,10 @@ class WarrantyItem {
   final List<String> receiptPhotos;
   final List<String> warrantyPhotos;
   final bool isExtendedWarranty;
+  /// The plan that allowed this warranty to be created. Older warranties
+  /// default to Free when their original plan cannot be reconstructed; the
+  /// current plan limit and archive rules still apply to them.
+  final PlanTier createdOnPlan;
   /// Null inherits the user's global reminders; an empty list disables them
   /// for this item. Existing saved warranties continue using global settings.
   final List<int>? reminderDays;
@@ -199,6 +204,11 @@ class WarrantyItem {
 
   int remainingDays({DateTime? now}) =>
       dateOnly(expiryDate).difference(dateOnly(now ?? DateTime.now())).inDays;
+
+  /// Expired warranties remain in the plan for two full calendar days after
+  /// expiry so a mistaken date can still be corrected. On day three they
+  /// become read-only archive entries and stop occupying a plan slot.
+  bool isArchived({DateTime? now}) => remainingDays(now: now) < -2;
 
   String remainingLabel({DateTime? now}) {
     final days = remainingDays(now: now);
@@ -231,6 +241,7 @@ class WarrantyItem {
     'receiptPhotos': receiptPhotos,
     'warrantyPhotos': warrantyPhotos,
     'isExtendedWarranty': isExtendedWarranty,
+    'createdOnPlan': createdOnPlan.name,
     if (reminderDays != null) 'reminderDays': reminderDays,
   };
 
@@ -261,6 +272,9 @@ class WarrantyItem {
       json['warrantyPhotos'] as List? ?? const [],
     ),
     isExtendedWarranty: json['isExtendedWarranty'] as bool? ?? false,
+    createdOnPlan: PlanTier.values.where(
+      (tier) => tier.name == json['createdOnPlan'],
+    ).firstOrNull ?? PlanTier.free,
     reminderDays: json['reminderDays'] == null
         ? null
         : (json['reminderDays'] as List)
@@ -306,6 +320,7 @@ class AppSettings {
     this.paidExpiresAt,
     this.referralPlusUntil,
     this.nextBillingAt,
+    this.pendingCloudDeletionIds = const [],
   });
 
   final bool onboardingComplete;
@@ -331,6 +346,9 @@ class AppSettings {
   final DateTime? paidExpiresAt;
   final DateTime? referralPlusUntil;
   final DateTime? nextBillingAt;
+  /// Local deletions made while cloud sync is unavailable. Apply these before
+  /// downloading cloud records again so a deleted warranty cannot reappear.
+  final List<String> pendingCloudDeletionIds;
 
   AppSettings copyWith({
     bool? onboardingComplete,
@@ -358,6 +376,7 @@ class AppSettings {
     DateTime? referralPlusUntil,
     DateTime? nextBillingAt,
     bool updateSubscriptionDates = false,
+    List<String>? pendingCloudDeletionIds,
   }) => AppSettings(
     onboardingComplete: onboardingComplete ?? this.onboardingComplete,
     expiringThresholdDays: expiringThresholdDays ?? this.expiringThresholdDays,
@@ -383,6 +402,7 @@ class AppSettings {
     paidExpiresAt: updateSubscriptionDates ? paidExpiresAt : paidExpiresAt ?? this.paidExpiresAt,
     referralPlusUntil: updateSubscriptionDates ? referralPlusUntil : referralPlusUntil ?? this.referralPlusUntil,
     nextBillingAt: updateSubscriptionDates ? nextBillingAt : nextBillingAt ?? this.nextBillingAt,
+    pendingCloudDeletionIds: pendingCloudDeletionIds ?? this.pendingCloudDeletionIds,
   );
 
   Map<String, dynamic> toJson() => {
@@ -409,6 +429,7 @@ class AppSettings {
     'paidExpiresAt': paidExpiresAt?.toIso8601String(),
     'referralPlusUntil': referralPlusUntil?.toIso8601String(),
     'nextBillingAt': nextBillingAt?.toIso8601String(),
+    'pendingCloudDeletionIds': pendingCloudDeletionIds,
   };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
@@ -442,6 +463,9 @@ class AppSettings {
     paidExpiresAt: DateTime.tryParse(json['paidExpiresAt'] as String? ?? ''),
     referralPlusUntil: DateTime.tryParse(json['referralPlusUntil'] as String? ?? ''),
     nextBillingAt: DateTime.tryParse(json['nextBillingAt'] as String? ?? ''),
+    pendingCloudDeletionIds: List<String>.from(
+      json['pendingCloudDeletionIds'] as List? ?? const [],
+    ),
   );
 }
 

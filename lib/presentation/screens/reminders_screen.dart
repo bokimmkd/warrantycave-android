@@ -106,7 +106,7 @@ class _RemindersScreenState extends State<RemindersScreen>
                     Expanded(
                       child: Text(
                         context.l10n.format('monitored', {
-                          'count': app.items.length,
+                          'count': app.countedItemCount,
                         }),
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       ),

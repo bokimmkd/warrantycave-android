@@ -36,6 +36,8 @@ class ItemDetailScreen extends StatelessWidget {
       );
     final item = matches.first;
     final canEdit = app.canEditItem(item);
+    final archived = item.isArchived();
+    final overLimit = app.countedItemCount > app.effectivePlan.itemLimit;
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.text('warrantyDetails')),
@@ -43,7 +45,7 @@ class ItemDetailScreen extends StatelessWidget {
           IconButton(
             onPressed: () async {
               if (!canEdit) {
-                if (item.isArchived()) {
+                if (archived) {
                   await AppDialogs.message(
                     context,
                     title: context.l10n.text('archivedEditTitle'),
@@ -53,8 +55,6 @@ class ItemDetailScreen extends StatelessWidget {
                   );
                   return;
                 }
-                final overLimit =
-                    app.countedItemCount > app.effectivePlan.itemLimit;
                 final viewPlans = await AppDialogs.confirm(
                   context,
                   title: context.l10n.text(
@@ -89,8 +89,19 @@ class ItemDetailScreen extends StatelessWidget {
                 ),
               );
             },
-            icon: Icon(canEdit ? Icons.edit_outlined : Icons.lock_outline_rounded),
-            tooltip: context.l10n.text(canEdit ? 'edit' : 'editLockedTitle'),
+            icon: Icon(
+              Icons.edit_outlined,
+              color: canEdit ? null : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            tooltip: context.l10n.text(
+              canEdit
+                  ? 'edit'
+                  : archived
+                      ? 'archivedEditTitle'
+                      : overLimit
+                          ? 'overLimitEditTitle'
+                          : 'editLockedTitle',
+            ),
           ),
         ],
       ),

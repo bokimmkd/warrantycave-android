@@ -25,4 +25,5 @@ jobs:
           base64 --decode assets/fonts/DejaVuSans-Bold.ttf.b64 > assets/fonts/DejaVuSans-Bold.ttf
       - run: flutter pub get
       - run: flutter test
+      - run: flutter build apk --debug
       - run: cd functions && npm ci && npm test && node --check index.js

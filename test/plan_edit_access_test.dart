@@ -42,6 +42,20 @@ void main() {
     expect(WarrantyItem.fromJson(legacy).createdOnPlan, PlanTier.free);
   });
 
+  test('pending cloud deletions survive app restart', () {
+    final settings = AppSettings(
+      cloudOwnerUid: 'original-owner',
+      pendingCloudDeletionIds: const ['deleted-while-free'],
+    );
+    final restored = AppSettings.fromJson(settings.toJson());
+    expect(restored.cloudOwnerUid, 'original-owner');
+    expect(restored.pendingCloudDeletionIds, ['deleted-while-free']);
+    expect(
+      restored.copyWith(pendingCloudDeletionIds: []).pendingCloudDeletionIds,
+      isEmpty,
+    );
+  });
+
   test('26 Plus items remain counted and locked after expiry', () async {
     final app = await controllerWith(
       List.generate(26, (i) => warranty(i, PlanTier.plus)),

@@ -263,7 +263,7 @@ class AppController extends ChangeNotifier {
     if (signedIn &&
         emailVerified &&
         cloud != null &&
-        settings.plan.hasCloud) {
+        effectivePlan.hasCloud) {
       cloudError = null;
       cloudSyncing = true;
       notifyListeners();
@@ -279,6 +279,14 @@ class AppController extends ChangeNotifier {
       }
     }
     items = items.where((entry) => entry.id != item.id).toList();
+    if (signedIn &&
+        settings.cloudOwnerUid == user!.uid &&
+        !effectivePlan.hasCloud &&
+        !settings.pendingCloudDeletionIds.contains(item.id)) {
+      settings = settings.copyWith(
+        pendingCloudDeletionIds: [...settings.pendingCloudDeletionIds, item.id],
+      );
+    }
     await notifications.cancelFor(item.id);
     for (final path in [
       if (item.productPhoto != null) item.productPhoto!,
@@ -454,6 +462,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
     try {
       settings = settings.copyWith(email: user?.email ?? settings.email);
+      await _flushPendingCloudDeletions();
       final result = await cloud!.bootstrap(user!.uid, items, settings);
       items = result.items;
       settings = result.settings.copyWith(
@@ -482,6 +491,7 @@ class AppController extends ChangeNotifier {
     cloudError = null;
     notifyListeners();
     try {
+      await _flushPendingCloudDeletions();
       final entitlement = await cloud!.getEntitlements();
       settings = settings.copyWith(
         plan: _isPlusTester ? PlanTier.plus : entitlement.plan,
@@ -547,6 +557,23 @@ class AppController extends ChangeNotifier {
     } finally {
       smartScanBusy = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _flushPendingCloudDeletions() async {
+    if (cloud == null ||
+        !signedIn ||
+        settings.cloudOwnerUid != user!.uid) return;
+    for (final id in List<String>.of(settings.pendingCloudDeletionIds)) {
+      // Keep each ID on disk until its cloud deletion succeeds. A failed
+      // deletion aborts refresh so a stale record is never downloaded again.
+      await cloud!.deleteItem(user!.uid, id);
+      settings = settings.copyWith(
+        pendingCloudDeletionIds: settings.pendingCloudDeletionIds
+            .where((pending) => pending != id)
+            .toList(),
+      );
+      await storage.save(items, settings);
     }
   }
 

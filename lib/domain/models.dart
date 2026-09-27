@@ -314,6 +314,7 @@ class AppSettings {
     this.paidExpiresAt,
     this.referralPlusUntil,
     this.nextBillingAt,
+    this.pendingCloudDeletionIds = const [],
   });
 
   final bool onboardingComplete;
@@ -339,6 +340,9 @@ class AppSettings {
   final DateTime? paidExpiresAt;
   final DateTime? referralPlusUntil;
   final DateTime? nextBillingAt;
+  /// Local deletions made while cloud sync is unavailable. Apply these before
+  /// downloading cloud records again so a deleted warranty cannot reappear.
+  final List<String> pendingCloudDeletionIds;
 
   AppSettings copyWith({
     bool? onboardingComplete,
@@ -366,6 +370,7 @@ class AppSettings {
     DateTime? referralPlusUntil,
     DateTime? nextBillingAt,
     bool updateSubscriptionDates = false,
+    List<String>? pendingCloudDeletionIds,
   }) => AppSettings(
     onboardingComplete: onboardingComplete ?? this.onboardingComplete,
     expiringThresholdDays: expiringThresholdDays ?? this.expiringThresholdDays,
@@ -391,6 +396,7 @@ class AppSettings {
     paidExpiresAt: updateSubscriptionDates ? paidExpiresAt : paidExpiresAt ?? this.paidExpiresAt,
     referralPlusUntil: updateSubscriptionDates ? referralPlusUntil : referralPlusUntil ?? this.referralPlusUntil,
     nextBillingAt: updateSubscriptionDates ? nextBillingAt : nextBillingAt ?? this.nextBillingAt,
+    pendingCloudDeletionIds: pendingCloudDeletionIds ?? this.pendingCloudDeletionIds,
   );
 
   Map<String, dynamic> toJson() => {
@@ -417,6 +423,7 @@ class AppSettings {
     'paidExpiresAt': paidExpiresAt?.toIso8601String(),
     'referralPlusUntil': referralPlusUntil?.toIso8601String(),
     'nextBillingAt': nextBillingAt?.toIso8601String(),
+    'pendingCloudDeletionIds': pendingCloudDeletionIds,
   };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
@@ -450,6 +457,9 @@ class AppSettings {
     paidExpiresAt: DateTime.tryParse(json['paidExpiresAt'] as String? ?? ''),
     referralPlusUntil: DateTime.tryParse(json['referralPlusUntil'] as String? ?? ''),
     nextBillingAt: DateTime.tryParse(json['nextBillingAt'] as String? ?? ''),
+    pendingCloudDeletionIds: List<String>.from(
+      json['pendingCloudDeletionIds'] as List? ?? const [],
+    ),
   );
 }
 

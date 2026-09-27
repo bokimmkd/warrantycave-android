@@ -5,77 +5,103 @@ import '../app_controller.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  final PageController _pages = PageController();
+  int _page = 0;
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
+  void _finish() => context.read<AppController>().completeOnboarding();
+
+  @override
+  Widget build(BuildContext context) {
+    final slides = <({String title, String copy, IconData icon})>[
+      (title: context.l10n.text('introTitle1'), copy: context.l10n.text('introCopy1'), icon: Icons.inventory_2_outlined),
+      (title: context.l10n.text('introTitle2'), copy: context.l10n.text('introCopy2'), icon: Icons.receipt_long_outlined),
+      (title: context.l10n.text('introTitle3'), copy: context.l10n.text('introCopy3'), icon: Icons.notifications_active_outlined),
+      (title: context.l10n.text('introTitle4'), copy: context.l10n.text('introCopy4'), icon: Icons.picture_as_pdf_outlined),
+    ];
+    return Scaffold(
     body: Stack(
       children: [
         const Positioned.fill(child: _CaveBackdrop()),
         SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 34, 24, 24),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
             child: Column(
               children: [
-                const Spacer(flex: 2),
-                Container(
-                  width: 112,
-                  height: 112,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [skyBlue, caveBlue, caveNavy],
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _finish,
+                    child: Text(context.l10n.text('introSkip')),
+                  ),
+                ),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pages,
+                    itemCount: slides.length,
+                    onPageChanged: (value) => setState(() => _page = value),
+                    itemBuilder: (context, index) {
+                      final slide = slides[index];
+                      return SingleChildScrollView(
+                        child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 112,
+                            height: 112,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(colors: [skyBlue, caveBlue, caveNavy]),
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            child: Icon(slide.icon, size: 55, color: Colors.white),
+                          ),
+                          const SizedBox(height: 24),
+                          const BrandMark(),
+                          const SizedBox(height: 30),
+                          Text(slide.title, textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: caveNavy)),
+                          const SizedBox(height: 14),
+                          Text(slide.copy, textAlign: TextAlign.center,
+                            style: const TextStyle(color: Color(0xFF526E84), height: 1.45, fontSize: 15)),
+                        ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(slides.length, (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: _page == index ? 20 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: _page == index ? caveBlue : const Color(0xFFB9D2E5),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x330F4C81),
-                        blurRadius: 28,
-                        offset: Offset(0, 12),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.receipt_long_rounded,
-                    size: 55,
-                    color: Colors.white,
-                  ),
+                  )),
                 ),
                 const SizedBox(height: 24),
-                const BrandMark(),
-                const SizedBox(height: 8),
-                const Text(
-                  'S C A N  •  S T O R E  •  R E L A X',
-                  style: TextStyle(
-                    color: caveBlue,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 26),
-                Text(
-                  context.l10n.text('welcomeCopy'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF526E84),
-                    height: 1.45,
-                    fontSize: 15,
-                  ),
-                ),
-                const Spacer(flex: 3),
                 PrimaryButton(
-                  label: context.l10n.text('getStarted'),
+                  label: context.l10n.text(_page == slides.length - 1 ? 'getStarted' : 'introNext'),
                   icon: Icons.arrow_forward_rounded,
-                  onPressed: () =>
-                      context.read<AppController>().completeOnboarding(),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  context.l10n.text('peaceStarts'),
-                  style: AppTypography.muted,
+                  onPressed: () => _page == slides.length - 1
+                    ? _finish()
+                    : _pages.nextPage(duration: const Duration(milliseconds: 240), curve: Curves.easeOut),
                 ),
               ],
             ),
@@ -84,6 +110,7 @@ class WelcomeScreen extends StatelessWidget {
       ],
     ),
   );
+  }
 }
 
 class _CaveBackdrop extends StatelessWidget {

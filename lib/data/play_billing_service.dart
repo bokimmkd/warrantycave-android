@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 
 import '../domain/models.dart';
 import 'services.dart';
@@ -86,18 +87,46 @@ class GooglePlaySubscriptionService implements SubscriptionService {
   }
 
   @override
-  Future<bool> purchase(PlanTier tier) async {
+  Future<bool> purchase(PlanTier tier, {PlanTier currentPlan = PlanTier.free}) async {
     await initialize();
     final product = _products[tier];
     if (!_available || product == null) return false;
+    PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
+    if (Platform.isAndroid) {
+      ChangeSubscriptionParam? change;
+      if (currentPlan != PlanTier.free && currentPlan != tier) {
+        final response = await _store
+            .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>()
+            .queryPastPurchases();
+        if (response.error != null) throw StateError(response.error!.message);
+        final old = response.pastPurchases
+            .whereType<GooglePlayPurchaseDetails>()
+            .where((purchase) =>
+                PlayBillingProducts.tierFor(purchase.productID) == currentPlan &&
+                (purchase.status == PurchaseStatus.purchased ||
+                 purchase.status == PurchaseStatus.restored))
+            .firstOrNull;
+        if (old == null) {
+          throw StateError('Restore the current Google Play subscription before changing plans.');
+        }
+        change = ChangeSubscriptionParam(
+          oldPurchaseDetails: old,
+          replacementMode: ReplacementMode.withTimeProration,
+        );
+      }
+      purchaseParam = GooglePlayPurchaseParam(
+        productDetails: product,
+        changeSubscriptionParam: change,
+      );
+    }
     final launched = await _store.buyNonConsumable(
-      purchaseParam: PurchaseParam(productDetails: product),
+      purchaseParam: purchaseParam,
     );
     if (launched) {
       // Some Play Store versions occasionally fail to replay the purchase on
       // purchaseStream after returning to the app. Querying owned purchases is
       // a safe recovery path and gives us the token in time to acknowledge it.
-      unawaited(_recoverAndroidPurchasesAfterCheckout());
+      unawaited(_recoverAndroidPurchasesAfterCheckout(product.id));
     }
     return launched;
   }
@@ -121,13 +150,13 @@ class GooglePlaySubscriptionService implements SubscriptionService {
     await _store.restorePurchases().timeout(const Duration(seconds: 15));
   }
 
-  Future<void> _recoverAndroidPurchasesAfterCheckout() async {
+  Future<void> _recoverAndroidPurchasesAfterCheckout(String productId) async {
     if (!Platform.isAndroid) return;
     // Give the Play purchase sheet time to close and persist the transaction.
     await Future<void>.delayed(const Duration(seconds: 2));
     for (var attempt = 0; attempt < 3; attempt++) {
       try {
-        final found = await _queryAndroidPurchases();
+        final found = await _queryAndroidPurchases(productId: productId);
         if (found) return;
       } catch (_) {
         // The normal purchase stream can still complete the transaction. A
@@ -137,7 +166,7 @@ class GooglePlaySubscriptionService implements SubscriptionService {
     }
   }
 
-  Future<bool> _queryAndroidPurchases() async {
+  Future<bool> _queryAndroidPurchases({String? productId}) async {
     final android = _store
         .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
     final response = await android.queryPastPurchases();
@@ -147,7 +176,8 @@ class GooglePlaySubscriptionService implements SubscriptionService {
     final purchases = response.pastPurchases
         .where(
           (purchase) =>
-              PlayBillingProducts.ids.contains(purchase.productID),
+              PlayBillingProducts.ids.contains(purchase.productID) &&
+              (productId == null || purchase.productID == productId),
         )
         .toList(growable: false);
     if (purchases.isNotEmpty) await _handlePurchases(purchases);

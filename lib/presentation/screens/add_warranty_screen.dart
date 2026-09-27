@@ -47,6 +47,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
   String duration = '1 year';
   int durationMonths = 12;
   bool expiryManuallyEdited = false;
+  bool isExtendedWarranty = false;
   bool saving = false;
   List<String> receipts = [], warranties = [];
   static const durations = {
@@ -74,6 +75,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
     expiryManuallyEdited =
         e != null &&
         addMonthsClamped(purchaseDate, durationMonths) != expiryDate;
+    isExtendedWarranty = e?.isExtendedWarranty ?? false;
     receipts = [...?e?.receiptPhotos];
     warranties = [...?e?.warrantyPhotos];
     productPhoto = e?.productPhoto;
@@ -604,6 +606,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
       purchaseDate: purchaseDate,
       expiryDate: expiryDate,
       durationLabel: duration,
+      isExtendedWarranty: isExtendedWarranty,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
       receiptPhotos: receipts,
       warrantyPhotos: warranties,
@@ -842,6 +845,13 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
             helper: expiryManuallyEdited
                 ? null
                 : context.l10n.text('expiryCalculated'),
+          ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: Text(context.l10n.text('extendedWarrantyToggle')),
+            subtitle: Text(context.l10n.text('extendedWarrantyHint')),
+            value: isExtendedWarranty,
+            onChanged: (value) => setState(() => isExtendedWarranty = value),
           ),
           const SizedBox(height: 22),
           _FormHeading(context.l10n.text('purchaseDetails')),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../domain/models.dart';
 import '../data/ad_service.dart';
@@ -22,11 +23,49 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
+  static const _shortcuts = MethodChannel('com.warrantycave.app/shortcuts');
+  String? _pendingShortcut;
   int index = 0;
   WarrantyStatus? itemStatusFilter;
   @override
   void initState() {
     super.initState();
+    _shortcuts.setMethodCallHandler((call) async {
+      if (call.method == 'openShortcut' && mounted) {
+        setState(() => _pendingShortcut = call.arguments as String?);
+      }
+    });
+    _loadInitialShortcut();
+  }
+
+  Future<void> _loadInitialShortcut() async {
+    try {
+      final shortcut = await _shortcuts.invokeMethod<String>('getInitialShortcut');
+      if (mounted && shortcut != null) setState(() => _pendingShortcut = shortcut);
+    } on MissingPluginException {
+      // Other platforms do not expose Android launcher shortcuts.
+    }
+  }
+
+  @override
+  void dispose() {
+    _shortcuts.setMethodCallHandler(null);
+    super.dispose();
+  }
+
+  void _applyShortcut() {
+    if (!mounted || _pendingShortcut == null) return;
+    final shortcut = _pendingShortcut;
+    _pendingShortcut = null;
+    if (shortcut == 'add') {
+      _openAdd();
+    } else if (shortcut == 'items') {
+      _openItems();
+    } else if (shortcut == 'reminders') {
+      setState(() => index = 3);
+    } else if (shortcut == 'expiring') {
+      _openItems(WarrantyStatus.expiringSoon);
+    }
   }
 
   void _openItems([WarrantyStatus? status]) => setState(() {
@@ -146,6 +185,9 @@ class _MainShellState extends State<MainShell> {
     }
     if (app.accountEnabled && (!app.signedIn || !app.emailVerified)) {
       return const AuthScreen();
+    }
+    if (_pendingShortcut != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _applyShortcut());
     }
     final pages = [
       HomeScreen(

@@ -64,7 +64,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             tier: PlanTier.basic,
             price: app.billingPrice(PlanTier.basic),
             features: [
-              context.l10n.text('upTo15'),
+              context.l10n.text('upTo25'),
               context.l10n.text('cloudSync'),
               context.l10n.text('barcodeScanner'),
               context.l10n.text('allReminders'),
@@ -80,7 +80,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             tier: PlanTier.plus,
             price: app.billingPrice(PlanTier.plus),
             features: [
-              context.l10n.text('upTo50'),
+              context.l10n.text('upTo100'),
               context.l10n.text('cloudSync'),
               context.l10n.text('barcodeScanner'),
               context.l10n.text('allReminders'),

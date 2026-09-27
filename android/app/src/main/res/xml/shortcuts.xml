@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="add_warranty" android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_add"
+        android:shortcutLongLabel="@string/shortcut_add">
+        <intent android:action="com.warrantycave.app.ADD_WARRANTY"
+            android:targetPackage="com.warrantycave.app"
+            android:targetClass="com.warrantycave.app.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="my_items" android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_items"
+        android:shortcutLongLabel="@string/shortcut_items">
+        <intent android:action="com.warrantycave.app.MY_ITEMS"
+            android:targetPackage="com.warrantycave.app"
+            android:targetClass="com.warrantycave.app.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="reminders" android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_reminders"
+        android:shortcutLongLabel="@string/shortcut_reminders">
+        <intent android:action="com.warrantycave.app.REMINDERS"
+            android:targetPackage="com.warrantycave.app"
+            android:targetClass="com.warrantycave.app.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="expiring_soon" android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_expiring"
+        android:shortcutLongLabel="@string/shortcut_expiring">
+        <intent android:action="com.warrantycave.app.EXPIRING_SOON"
+            android:targetPackage="com.warrantycave.app"
+            android:targetClass="com.warrantycave.app.MainActivity" />
+    </shortcut>
+</shortcuts>

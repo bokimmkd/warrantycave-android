@@ -9,6 +9,7 @@ import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
 import 'upgrade_screen.dart';
+import 'welcome_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({required this.onSelectTab, super.key});
@@ -99,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               alignment: Alignment.centerLeft,
               child: Text(
                 context.l10n.text('defaultCurrency').toUpperCase(),
-                style: AppTypography.label,
+                style: AppTypography.label.copyWith(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             const SizedBox(height: 8),
@@ -303,7 +304,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: caveNavy,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 14),
@@ -325,9 +326,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                           s.firstName,
                           s.lastName,
                         ].where((e) => e.isNotEmpty).join(' '),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: caveNavy,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 subtitle: Text(
@@ -406,7 +407,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             ],
             const SizedBox(height: 12),
             Card(
-              color: const Color(0xFFF0F2F5),
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
               surfaceTintColor: Colors.transparent,
               child: ListTile(
                 leading: const _SettingsIconBadge(
@@ -416,9 +417,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 title: Text(
                   context.l10n.format('planName', {'plan': s.plan.label}),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: caveNavy,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 subtitle: Column(
@@ -573,6 +574,16 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ),
             const SizedBox(height: 14),
+            _Label(context.l10n.text('appearance')),
+            Card(
+              child: SwitchListTile.adaptive(
+                secondary: const Icon(Icons.dark_mode_outlined),
+                title: Text(context.l10n.text('darkMode')),
+                value: s.darkMode,
+                onChanged: (enabled) => app.updateSettings(s.copyWith(darkMode: enabled)),
+              ),
+            ),
+            const SizedBox(height: 14),
             _Label(context.l10n.text('language')),
             Card(
               child: ListTile(
@@ -599,6 +610,18 @@ class _SettingsScreenState extends State<SettingsScreen>
                       }
                     },
                   ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.slideshow_outlined),
+                title: Text(context.l10n.text('viewIntroductionAgain')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WelcomeScreen(preview: true)),
                 ),
               ),
             ),
@@ -660,7 +683,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 builder: (context, snapshot) => Text(
                   '${snapshot.data ?? 'WarrantyCave'}\nScan. Store. Relax.',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.blueGrey),
+                  style: TextStyle(color: Colors.blueGrey),
                 ),
               ),
             ),
@@ -680,7 +703,7 @@ class _Label extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
     child: Text(
       text.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w800,
         color: caveBlue,

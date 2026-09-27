@@ -133,10 +133,10 @@ class _AuthScreenState extends State<AuthScreen> {
                   ? context.l10n.text('createProfile')
                   : context.l10n.text('welcomeBack'),
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: caveNavy,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
@@ -145,7 +145,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ? context.l10n.text('profileCopy')
                   : context.l10n.text('signInCopy'),
               textAlign: TextAlign.center,
-              style: AppTypography.muted,
+              style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 26),
             if (createMode) ...[
@@ -298,14 +298,14 @@ class _VerificationViewState extends State<_VerificationView> {
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
-                  color: caveNavy,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 'We sent a verification link to ${app.accountEmail}. Open it, then come back here.',
                 textAlign: TextAlign.center,
-                style: AppTypography.muted,
+                style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 26),
               PrimaryButton(

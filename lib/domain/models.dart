@@ -152,6 +152,7 @@ class WarrantyItem {
     this.receiptPhotos = const [],
     this.warrantyPhotos = const [],
     this.isExtendedWarranty = false,
+    this.reminderDays,
   });
 
   final String id;
@@ -176,6 +177,16 @@ class WarrantyItem {
   final List<String> receiptPhotos;
   final List<String> warrantyPhotos;
   final bool isExtendedWarranty;
+  /// Null inherits the user's global reminders; an empty list disables them
+  /// for this item. Existing saved warranties continue using global settings.
+  final List<int>? reminderDays;
+
+  List<int> effectiveReminderDays(AppSettings settings) => reminderDays ?? [
+    if (settings.reminder60) 60,
+    if (settings.reminder30) 30,
+    if (settings.reminder7) 7,
+    if (settings.reminderExpiry) 0,
+  ];
 
   WarrantyStatus status({int thresholdDays = 60, DateTime? now}) {
     final today = dateOnly(now ?? DateTime.now());
@@ -220,6 +231,7 @@ class WarrantyItem {
     'receiptPhotos': receiptPhotos,
     'warrantyPhotos': warrantyPhotos,
     'isExtendedWarranty': isExtendedWarranty,
+    if (reminderDays != null) 'reminderDays': reminderDays,
   };
 
   factory WarrantyItem.fromJson(Map<String, dynamic> json) => WarrantyItem(
@@ -249,6 +261,13 @@ class WarrantyItem {
       json['warrantyPhotos'] as List? ?? const [],
     ),
     isExtendedWarranty: json['isExtendedWarranty'] as bool? ?? false,
+    reminderDays: json['reminderDays'] == null
+        ? null
+        : (json['reminderDays'] as List)
+            .whereType<num>()
+            .map((day) => day.toInt())
+            .where((day) => const [60, 30, 7, 0].contains(day))
+            .toList(),
   );
 }
 
@@ -270,6 +289,7 @@ class AppSettings {
     this.reminder30 = false,
     this.reminder7 = false,
     this.reminderExpiry = false,
+    this.darkMode = false,
     this.notificationConsentGranted = false,
     this.plan = PlanTier.free,
     this.firstName = '',
@@ -294,6 +314,7 @@ class AppSettings {
   final bool reminder30;
   final bool reminder7;
   final bool reminderExpiry;
+  final bool darkMode;
   final bool notificationConsentGranted;
   final PlanTier plan;
   final String firstName;
@@ -318,6 +339,7 @@ class AppSettings {
     bool? reminder30,
     bool? reminder7,
     bool? reminderExpiry,
+    bool? darkMode,
     bool? notificationConsentGranted,
     PlanTier? plan,
     String? firstName,
@@ -343,6 +365,7 @@ class AppSettings {
     reminder30: reminder30 ?? this.reminder30,
     reminder7: reminder7 ?? this.reminder7,
     reminderExpiry: reminderExpiry ?? this.reminderExpiry,
+    darkMode: darkMode ?? this.darkMode,
     notificationConsentGranted:
         notificationConsentGranted ?? this.notificationConsentGranted,
     plan: plan ?? this.plan,
@@ -369,6 +392,7 @@ class AppSettings {
     'reminder30': reminder30,
     'reminder7': reminder7,
     'reminderExpiry': reminderExpiry,
+    'darkMode': darkMode,
     'notificationConsentGranted': notificationConsentGranted,
     'plan': plan.name,
     'firstName': firstName,
@@ -396,6 +420,7 @@ class AppSettings {
     reminder30: json['reminder30'] as bool? ?? false,
     reminder7: json['reminder7'] as bool? ?? false,
     reminderExpiry: json['reminderExpiry'] as bool? ?? false,
+    darkMode: json['darkMode'] as bool? ?? false,
     notificationConsentGranted:
         json['notificationConsentGranted'] as bool? ?? false,
     plan:

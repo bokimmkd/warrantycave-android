@@ -82,15 +82,15 @@ class ItemDetailScreen extends StatelessWidget {
                   Text(
                     item.productName,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
-                      color: caveNavy,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Text(
                     item.productType,
-                    style: const TextStyle(color: Colors.blueGrey),
+                    style: TextStyle(color: Colors.blueGrey),
                   ),
                   const SizedBox(height: 12),
                   StatusChip(
@@ -108,7 +108,7 @@ class ItemDetailScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     localizedRemainingLabel(context, item),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: caveBlue,
                     ),
@@ -142,7 +142,7 @@ class ItemDetailScreen extends StatelessWidget {
                       context.l10n.text('notes'),
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: caveNavy,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -595,16 +595,16 @@ class _Details extends StatelessWidget {
                       Expanded(
                         child: Text(
                           e.key,
-                          style: const TextStyle(color: Colors.blueGrey),
+                          style: TextStyle(color: Colors.blueGrey),
                         ),
                       ),
                       Expanded(
                         child: Text(
                           e.value,
                           textAlign: TextAlign.end,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: caveNavy,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -669,10 +669,10 @@ class _PhotoGallery extends StatelessWidget {
     children: [
       Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w800,
-          color: caveNavy,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       const SizedBox(height: 10),

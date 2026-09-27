@@ -61,7 +61,7 @@ class _ItemsScreenState extends State<ItemsScreen>
               alignment: Alignment.centerLeft,
               child: Text(
                 context.l10n.text('status').toUpperCase(),
-                style: AppTypography.label,
+                style: AppTypography.label.copyWith(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             const SizedBox(height: 8),
@@ -89,13 +89,14 @@ class _ItemsScreenState extends State<ItemsScreen>
               alignment: Alignment.centerLeft,
               child: Text(
                 context.l10n.text('productType').toUpperCase(),
-                style: AppTypography.label,
+                style: AppTypography.label.copyWith(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String?>(
               initialValue: draftType,
               decoration: AppInputFields.decoration(
+                context: context,
                 label: context.l10n.text('productType'),
               ),
               items: [
@@ -112,7 +113,7 @@ class _ItemsScreenState extends State<ItemsScreen>
               alignment: Alignment.centerLeft,
               child: Text(
                 context.l10n.text('location').toUpperCase(),
-                style: AppTypography.label,
+                style: AppTypography.label.copyWith(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             const SizedBox(height: 8),
@@ -277,7 +278,7 @@ class _ItemsScreenState extends State<ItemsScreen>
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
-                      color: caveNavy,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -285,6 +286,7 @@ class _ItemsScreenState extends State<ItemsScreen>
                     controller: searchController,
                     onChanged: (v) => setState(() => query = v),
                     decoration: AppInputFields.decoration(
+                      context: context,
                       label: context.l10n.text('search'),
                       hint: context.l10n.text('searchHint'),
                       prefixIcon: const Icon(Icons.search),

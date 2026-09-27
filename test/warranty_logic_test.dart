@@ -102,6 +102,7 @@ void main() {
       currency: 'EUR',
       purchasePrice: 499.99,
       isExtendedWarranty: true,
+      reminderDays: const [60, 7],
     );
     final restored = WarrantyItem.fromJson(original.toJson());
     expect(restored.productName, original.productName);
@@ -114,8 +115,16 @@ void main() {
     expect(restored.currency, 'EUR');
     expect(restored.purchasePrice, original.purchasePrice);
     expect(restored.isExtendedWarranty, isTrue);
+    expect(restored.reminderDays, [60, 7]);
+    expect(restored.effectiveReminderDays(const AppSettings(reminder30: true)), [60, 7]);
     final previousVersionJson = original.toJson()..remove('isExtendedWarranty');
     expect(WarrantyItem.fromJson(previousVersionJson).isExtendedWarranty, isFalse);
+    previousVersionJson.remove('reminderDays');
+    final migrated = WarrantyItem.fromJson(previousVersionJson);
+    expect(migrated.reminderDays, isNull);
+    expect(migrated.effectiveReminderDays(const AppSettings(reminder30: true)), [30]);
+    final muted = WarrantyItem.fromJson({...original.toJson(), 'reminderDays': <int>[]});
+    expect(muted.effectiveReminderDays(const AppSettings(reminder30: true)), isEmpty);
   });
 
   test('settings preserve profile and default currency', () {
@@ -128,6 +137,7 @@ void main() {
       languageCode: 'mk',
       referralCode: 'WCABC12345',
       pendingReferralCode: 'WCINVITE99',
+      darkMode: true,
     );
     final restored = AppSettings.fromJson(original.toJson());
     expect(restored.firstName, 'Alex');
@@ -138,6 +148,8 @@ void main() {
     expect(restored.languageCode, 'mk');
     expect(restored.referralCode, 'WCABC12345');
     expect(restored.pendingReferralCode, 'WCINVITE99');
+    expect(restored.darkMode, isTrue);
+    expect(const AppSettings().darkMode, isFalse);
   });
 
   test('onboarding runs once for new installs and skips existing installs', () {

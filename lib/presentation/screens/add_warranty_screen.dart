@@ -48,6 +48,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
   int durationMonths = 12;
   bool expiryManuallyEdited = false;
   bool isExtendedWarranty = false;
+  List<int>? reminderDays;
   bool saving = false;
   List<String> receipts = [], warranties = [];
   static const durations = {
@@ -76,6 +77,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
         e != null &&
         addMonthsClamped(purchaseDate, durationMonths) != expiryDate;
     isExtendedWarranty = e?.isExtendedWarranty ?? false;
+    reminderDays = e?.reminderDays == null ? null : [...e!.reminderDays!];
     receipts = [...?e?.receiptPhotos];
     warranties = [...?e?.warrantyPhotos];
     productPhoto = e?.productPhoto;
@@ -159,7 +161,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
             Text(
               context.l10n.text('scannerPaid'),
               textAlign: TextAlign.center,
-              style: AppTypography.muted,
+              style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 18),
             PrimaryButton(
@@ -377,11 +379,11 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.medium),
             ),
-            tileColor: Colors.white,
+            tileColor: Theme.of(context).colorScheme.surface,
             leading: const Icon(Icons.camera_alt_outlined, color: caveBlue),
             title: Text(
               context.l10n.text('takePhoto'),
-              style: AppTypography.subtitle,
+              style: AppTypography.subtitle.copyWith(color: Theme.of(context).colorScheme.onSurface),
             ),
             onTap: () => Navigator.pop(context, ImageSource.camera),
           ),
@@ -390,11 +392,11 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.medium),
             ),
-            tileColor: Colors.white,
+            tileColor: Theme.of(context).colorScheme.surface,
             leading: const Icon(Icons.photo_library_outlined, color: caveBlue),
             title: Text(
               context.l10n.text('chooseGallery'),
-              style: AppTypography.subtitle,
+              style: AppTypography.subtitle.copyWith(color: Theme.of(context).colorScheme.onSurface),
             ),
             onTap: () => Navigator.pop(context, ImageSource.gallery),
           ),
@@ -440,7 +442,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
               leading: const Icon(Icons.camera_alt_outlined, color: caveBlue),
               title: Text(
                 context.l10n.text('takePhoto'),
-                style: AppTypography.subtitle,
+                style: AppTypography.subtitle.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
@@ -451,7 +453,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
               ),
               title: Text(
                 context.l10n.text('chooseGallery'),
-                style: AppTypography.subtitle,
+                style: AppTypography.subtitle.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
@@ -607,6 +609,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
       expiryDate: expiryDate,
       durationLabel: duration,
       isExtendedWarranty: isExtendedWarranty,
+      reminderDays: reminderDays,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
       receiptPhotos: receipts,
       warrantyPhotos: warranties,
@@ -770,13 +773,13 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
                     children: [
                       Text(
                         context.l10n.text('productPhoto'),
-                        style: AppTypography.subtitle,
+                        style: AppTypography.subtitle.copyWith(color: Theme.of(context).colorScheme.onSurface),
                       ),
                       Text(
                         productPhoto == null
                             ? context.l10n.text('takeOrChoosePhoto')
                             : context.l10n.text('tapChangePhoto'),
-                        style: AppTypography.muted,
+                        style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -826,8 +829,8 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
                         duration,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: caveNavy,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -853,6 +856,40 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
             value: isExtendedWarranty,
             onChanged: (value) => setState(() => isExtendedWarranty = value),
           ),
+          const SizedBox(height: 12),
+          _FormHeading(context.l10n.text('itemReminders')),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: Text(context.l10n.text('useDefaultReminders')),
+            value: reminderDays == null,
+            onChanged: (value) {
+              final settings = context.read<AppController>().settings;
+              setState(() => reminderDays = value ? null : [
+                if (settings.reminder60) 60,
+                if (settings.reminder30) 30,
+                if (settings.reminder7) 7,
+                if (settings.reminderExpiry) 0,
+              ]);
+            },
+          ),
+          if (reminderDays != null)
+            for (final entry in const [(60, 'days60'), (30, 'days30'),
+                                      (7, 'days7'), (0, 'expiryDay')])
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(context.l10n.text(entry.$2)),
+                value: reminderDays!.contains(entry.$1),
+                onChanged: (checked) => setState(() {
+                  if (checked ?? false) {
+                    if (!reminderDays!.contains(entry.$1)) reminderDays!.add(entry.$1);
+                  } else {
+                    reminderDays!.remove(entry.$1);
+                  }
+                }),
+              ),
+          if (reminderDays != null && reminderDays!.isNotEmpty &&
+              !context.watch<AppController>().settings.notificationConsentGranted)
+            Text(context.l10n.text('itemReminderPermissionHint')),
           const SizedBox(height: 22),
           _FormHeading(context.l10n.text('purchaseDetails')),
           TextFormField(
@@ -963,6 +1000,7 @@ Future<int?> _customMonths(BuildContext context) async {
           autofocus: true,
           keyboardType: TextInputType.number,
           decoration: AppInputFields.decoration(
+            context: context,
             label: context.l10n.text('numberMonths'),
           ),
         ),
@@ -1005,10 +1043,10 @@ class _FormHeading extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 10),
     child: Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w800,
-        color: caveNavy,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     ),
   );
@@ -1042,7 +1080,7 @@ class _DateField extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          color: caveNavy,
+          color: Theme.of(context).colorScheme.onSurface,
           fontSize: compact ? 15 : null,
           fontWeight: FontWeight.w600,
         ),
@@ -1072,10 +1110,10 @@ class _PhotoSection extends StatelessWidget {
     children: [
       Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w800,
-          color: caveNavy,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       const SizedBox(height: 10),
@@ -1088,7 +1126,7 @@ class _PhotoSection extends StatelessWidget {
                 Text(
                   emptyText,
                   textAlign: TextAlign.center,
-                  style: AppTypography.muted,
+                  style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 8),
                 TextButton.icon(
@@ -1180,7 +1218,7 @@ class _ProductTypeSheetState extends State<_ProductTypeSheet> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
-                  color: caveNavy,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 14),
@@ -1200,7 +1238,7 @@ class _ProductTypeSheetState extends State<_ProductTypeSheet> {
                         padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
                         child: Text(
                           category.toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                             color: caveBlue,
@@ -1233,6 +1271,7 @@ class _ProductTypeSheetState extends State<_ProductTypeSheet> {
                                             autofocus: true,
                                             decoration:
                                                 AppInputFields.decoration(
+                                                  context: context,
                                                   label: context.l10n.text(
                                                     'typeName',
                                                   ),

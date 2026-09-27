@@ -95,9 +95,9 @@ class AppCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: color,
+      color: color == AppColors.surface ? Theme.of(context).colorScheme.surface : color,
       borderRadius: BorderRadius.circular(AppRadius.large),
-      border: Border.all(color: AppColors.border.withValues(alpha: .8)),
+      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       boxShadow: AppShadows.card,
     ),
     child: Material(
@@ -114,6 +114,7 @@ class AppCards extends StatelessWidget {
 
 abstract final class AppInputFields {
   static InputDecoration decoration({
+    required BuildContext context,
     required String label,
     String? hint,
     Widget? prefixIcon,
@@ -126,15 +127,15 @@ abstract final class AppInputFields {
     suffixIcon: suffixIcon,
     helperText: helper,
     filled: true,
-    fillColor: AppColors.surface,
-    labelStyle: const TextStyle(color: AppColors.textMuted),
-    floatingLabelStyle: const TextStyle(
-      color: AppColors.caveBlue,
+    fillColor: Theme.of(context).colorScheme.surface,
+    labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    floatingLabelStyle: TextStyle(
+      color: Theme.of(context).colorScheme.primary,
       fontWeight: FontWeight.w700,
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppRadius.medium),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -225,8 +226,8 @@ class SecondaryButton extends StatelessWidget {
       icon: Icon(icon ?? Icons.arrow_forward_rounded),
       label: Text(label, style: AppTypography.button),
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.softBlue,
-        foregroundColor: AppColors.navy,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -254,8 +255,8 @@ class OutlineButton extends StatelessWidget {
       icon: Icon(icon ?? Icons.arrow_forward_rounded),
       label: Text(label, style: AppTypography.button),
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.caveBlue,
-        side: const BorderSide(color: AppColors.border, width: 1.4),
+        foregroundColor: Theme.of(context).colorScheme.primary,
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 1.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
@@ -433,13 +434,13 @@ abstract final class AppDialogs {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: AppTypography.title,
+              style: AppTypography.title.copyWith(color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTypography.muted,
+              style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 22),
             PrimaryButton(
@@ -490,13 +491,13 @@ abstract final class AppDialogs {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: AppTypography.title,
+                  style: AppTypography.title.copyWith(color: Theme.of(context).colorScheme.onSurface),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: AppTypography.muted,
+                  style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 22),
                 Row(
@@ -551,9 +552,9 @@ abstract final class AppBottomSheets {
           20,
           20 + MediaQuery.viewInsetsOf(sheetContext).bottom,
         ),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: Theme.of(sheetContext).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppRadius.sheet),
           ),
         ),
@@ -569,7 +570,7 @@ abstract final class AppBottomSheets {
               ),
             ),
             const SizedBox(height: 16),
-            Text(title, style: AppTypography.title),
+            Text(title, style: AppTypography.title.copyWith(color: Theme.of(sheetContext).colorScheme.onSurface)),
             const SizedBox(height: 14),
             child,
           ],

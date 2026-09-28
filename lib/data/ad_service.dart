@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -16,13 +18,42 @@ abstract final class AdService {
       _initialization ??= _initializeOnce();
 
   static Future<void> _initializeOnce() async {
-    await MobileAds.instance.initialize();
     final consent = ConsentInformation.instance;
-    consent.requestConsentInfoUpdate(ConsentRequestParameters(), () async {
-      if (await consent.isConsentFormAvailable()) {
-        await ConsentForm.loadAndShowConsentFormIfRequired((_) {});
-      }
-    }, (_) {});
+    final consentResolved = Completer<void>();
+    consent.requestConsentInfoUpdate(
+      ConsentRequestParameters(),
+      () {
+        ConsentForm.loadAndShowConsentFormIfRequired((_) {
+          if (!consentResolved.isCompleted) consentResolved.complete();
+        });
+      },
+      (_) {
+        // UMP may still allow ads using consent from a previous session.
+        if (!consentResolved.isCompleted) consentResolved.complete();
+      },
+    );
+    await consentResolved.future;
+    if (await consent.canRequestAds()) {
+      await MobileAds.instance.initialize();
+    }
+  }
+
+  static Future<bool> canLoadAds() async {
+    await initialize();
+    return ConsentInformation.instance.canRequestAds();
+  }
+
+  static Future<bool> privacyOptionsRequired() async {
+    await initialize();
+    return await ConsentInformation.instance
+            .getPrivacyOptionsRequirementStatus() ==
+        PrivacyOptionsRequirementStatus.required;
+  }
+
+  static Future<void> showPrivacyOptions() async {
+    final done = Completer<void>();
+    ConsentForm.showPrivacyOptionsForm((_) => done.complete());
+    await done.future;
   }
 
   static BannerAd banner({
@@ -60,8 +91,7 @@ class _FreeBannerAdState extends State<FreeBannerAd> {
   }
 
   Future<void> _load() async {
-    await AdService.initialize();
-    if (!mounted) return;
+    if (!await AdService.canLoadAds() || !mounted) return;
     final banner = AdService.banner(
       onLoaded: () {
         if (mounted) setState(() => loaded = true);

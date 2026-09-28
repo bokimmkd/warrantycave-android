@@ -1730,6 +1730,15 @@ class AppLocalizations {
   // Less frequently used screen copy is kept by key here so every entry is
   // visibly complete for all supported languages.
   static const _extended = <String, Map<String, String>>{
+    'adPrivacyOptions': {
+      'en': 'Ad privacy choices', 'mk': 'Избор за приватност на реклами',
+      'de': 'Datenschutzeinstellungen für Werbung',
+      'es': 'Opciones de privacidad de anuncios',
+      'fr': 'Choix de confidentialité des annonces',
+      'it': 'Scelte sulla privacy degli annunci',
+      'tr': 'Reklam gizliliği seçenekleri',
+      'el': 'Επιλογές απορρήτου διαφημίσεων',
+    },
     'ok': {
       'en': 'OK', 'mk': 'Во ред', 'de': 'OK', 'es': 'Aceptar',
       'fr': 'OK', 'it': 'OK', 'tr': 'Tamam', 'el': 'Εντάξει',

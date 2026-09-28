@@ -206,7 +206,7 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (app.settings.plan.hasAds) const Center(child: FreeBannerAd()),
+          if (app.effectivePlan.hasAds) const Center(child: FreeBannerAd()),
           AppBottomNavigation(
             selectedIndex: index == 2 ? 0 : index,
             onSelected: _selectMainTab,

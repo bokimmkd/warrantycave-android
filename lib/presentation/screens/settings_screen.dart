@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/models.dart';
+import '../../data/ad_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
@@ -21,6 +22,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen>
     with AutomaticKeepAliveClientMixin {
   late final Future<String> _installedVersion = _loadInstalledVersion();
+  late Future<bool> _adPrivacyOptionsRequired = AdService.privacyOptionsRequired();
 
   @override
   bool get wantKeepAlive => true;
@@ -639,6 +641,26 @@ class _SettingsScreenState extends State<SettingsScreen>
                     title: Text(context.l10n.text('privacyPolicy')),
                     trailing: const Icon(Icons.open_in_new, size: 18),
                     onTap: () => open('https://warrantycave.com/privacy'),
+                  ),
+                  FutureBuilder<bool>(
+                    future: _adPrivacyOptionsRequired,
+                    builder: (context, snapshot) {
+                      if (snapshot.data != true) return const SizedBox.shrink();
+                      return ListTile(
+                        leading: const Icon(Icons.tune_rounded),
+                        title: Text(context.l10n.text('adPrivacyOptions')),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () async {
+                          await AdService.showPrivacyOptions();
+                          if (mounted) {
+                            setState(() {
+                              _adPrivacyOptionsRequired =
+                                  AdService.privacyOptionsRequired();
+                            });
+                          }
+                        },
+                      );
+                    },
                   ),
                   ListTile(
                     leading: const _SettingsIconBadge(

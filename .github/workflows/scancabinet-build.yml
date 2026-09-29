@@ -1,0 +1,30 @@
+name: Build ScanCabinet 0.1.2 test APK
+on:
+  push:
+    branches:
+      - build/scancabinet-0.1.2
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Expand isolated ScanCabinet source
+        run: |
+          cat scancabinet-build/part* > /tmp/scancabinet-source.zip
+          unzip -q /tmp/scancabinet-source.zip -d /tmp
+          chmod +x /tmp/scancabinet-android/gradlew
+      - name: Build test APK
+        working-directory: /tmp/scancabinet-android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScanCabinet-0.1.2-test-APK
+          path: /tmp/scancabinet-android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

@@ -14,12 +14,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - name: Expand isolated ScanCabinet source
         run: |
           cat scancabinet-build/part* > /tmp/scancabinet-source.zip
           unzip -q /tmp/scancabinet-source.zip -d /tmp
           chmod +x /tmp/scancabinet-android/gradlew
+          test -f "$ANDROID_HOME/platforms/android-35/android.jar"
       - name: Build test APK
         working-directory: /tmp/scancabinet-android
         run: ./gradlew assembleDebug --no-daemon

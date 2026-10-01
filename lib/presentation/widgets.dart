@@ -171,8 +171,9 @@ class SectionTitle extends StatelessWidget {
 }
 
 class StatusChip extends StatelessWidget {
-  const StatusChip(this.status, {super.key});
+  const StatusChip(this.status, {super.key, this.compact = false});
   final WarrantyStatus status;
+  final bool compact;
   @override
   Widget build(BuildContext context) {
     final (label, color, icon) = switch (status) {
@@ -192,7 +193,19 @@ class StatusChip extends StatelessWidget {
         Icons.cancel_outlined,
       ),
     };
-    return AppStatusChip(label: label, color: color, icon: icon);
+    if (!compact) return AppStatusChip(label: label, color: color, icon: icon);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(color: color.withValues(alpha: .11),
+        borderRadius: BorderRadius.circular(20)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 12, color: color),
+        const SizedBox(width: 3),
+        Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).colorScheme.onSurface : color)),
+      ]),
+    );
   }
 }
 
@@ -209,78 +222,46 @@ class WarrantyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppCards(
     onTap: onTap,
-    padding: const EdgeInsets.all(14),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    child: LayoutBuilder(builder: (context, constraints) {
+      final accessible = constraints.maxWidth < 270 ||
+          MediaQuery.textScalerOf(context).scale(14) > 18;
+      final title = Text(item.productName,
+        maxLines: accessible ? 2 : 1, overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14,
+          color: Theme.of(context).colorScheme.onSurface));
+      final chip = StatusChip(item.status(thresholdDays: threshold), compact: true);
+      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
-          width: 62,
-          height: 62,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE9F4FC),
-            borderRadius: BorderRadius.circular(14),
-          ),
+          width: 44, height: 44,
+          decoration: BoxDecoration(color: const Color(0xFFE9F4FC),
+            borderRadius: BorderRadius.circular(10)),
           clipBehavior: Clip.antiAlias,
-          child:
-              item.productPhoto != null &&
-                  (isCloudPhoto(item.productPhoto!) ||
-                      File(item.productPhoto!).existsSync())
+          child: item.productPhoto != null &&
+              (isCloudPhoto(item.productPhoto!) || File(item.productPhoto!).existsSync())
               ? StoredPhoto(item.productPhoto!)
-              : Icon(iconForType(item.productType), color: caveBlue),
+              : Icon(iconForType(item.productType), color: caveBlue, size: 23),
         ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.productName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  StatusChip(item.status(thresholdDays: threshold)),
-                ],
-              ),
-              if ([
-                item.brand,
-                item.model,
-              ].where((e) => e.isNotEmpty).isNotEmpty)
-                Text(
-                  [
-                    item.brand,
-                    item.model,
-                  ].where((e) => e.isNotEmpty).join(' • '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-              const SizedBox(height: 5),
-              Text(
-                '${DateFormat.yMMMd(context.l10n.locale.languageCode).format(item.expiryDate)} • ${localizedRemainingLabel(context, item)}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
+        const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (accessible) ...[title, const SizedBox(height: 2), chip]
+            else Row(children: [Expanded(child: title), const SizedBox(width: 6), chip]),
+            if ([item.brand, item.model].any((e) => e.isNotEmpty))
+              Text([item.brand, item.model].where((e) => e.isNotEmpty).join(' • '),
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            const SizedBox(height: 2),
+            Text(
+              '${DateFormat.yMMMd(context.l10n.locale.languageCode).format(item.expiryDate)} • ${localizedRemainingLabel(context, item)}',
+              style: TextStyle(fontSize: 11.5,
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600),
+            ),
+          ])),
+      ]);
+    }),
   );
 }
 
@@ -299,3 +280,4 @@ String localizedRemainingLabel(
   }
   return context.l10n.format('daysRemaining', {'days': days});
 }
+

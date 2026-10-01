@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import '../compact_header.dart';
 import 'item_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,6 +27,20 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with AutomaticKeepAliveClientMixin {
   String query = '';
+  bool searchOpen = false;
+  final searchController = TextEditingController();
+
+  void closeSearch() {
+    FocusScope.of(context).unfocus();
+    searchController.clear();
+    setState(() { query = ''; searchOpen = false; });
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
   @override
   bool get wantKeepAlive => true;
   @override
@@ -60,29 +75,38 @@ class _HomeScreenState extends State<HomeScreen>
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
           children: [
-            const BrandMark(compact: true),
-            const SizedBox(height: 28),
-            Text(
-              context.l10n.text('goodToSeeYou'),
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            CaveHeader(
+              title: 'WarrantyCave',
+              brand: true,
+              subtitle: context.l10n.text('homeCaveSubtitle'),
+              actions: [
+                IconButton(
+                  tooltip: context.l10n.text('searchWarranties'),
+                  onPressed: () => searchOpen ? closeSearch()
+                      : setState(() => searchOpen = true),
+                  icon: Icon(searchOpen ? Icons.search_off : Icons.search),
+                ),
+                TextButton.icon(
+                  onPressed: widget.onAdd,
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  icon: const Icon(Icons.add_circle_outline, size: 21),
+                  label: Text(context.l10n.text('add')),
+                ),
+              ],
             ),
-            Text(
-              context.l10n.text('warrantiesSafe'),
-              style: TextStyle(color: Color(0xFF5D7489)),
-            ),
-            const SizedBox(height: 20),
-            TextField(
+            const SizedBox(height: 8),
+            Text(context.l10n.text('goodToSeeYou'),
+              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800,
+                color: Theme.of(context).colorScheme.onSurface)),
+            if (searchOpen) CompactSearchField(
+              controller: searchController,
               onChanged: (v) => setState(() => query = v),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: context.l10n.text('searchWarranties'),
-              ),
+              onClose: closeSearch,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, c) => Row(
                 children: [
@@ -114,13 +138,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 18),
-            PrimaryButton(
-              label: context.l10n.text('addWarranty'),
-              onPressed: widget.onAdd,
-              icon: Icons.add,
-            ),
-            const SizedBox(height: 26),
+            const SizedBox(height: 12),
             SectionTitle(
               query.isEmpty
                   ? context.l10n.text('recentlyAdded')
@@ -134,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen>
             if (filtered.isEmpty)
               _Empty(onAdd: widget.onAdd)
             else
-              ...filtered.take(4).map((item) => _itemCard(context, app, item)),
+              ...filtered.take(6).map((item) => _itemCard(context, app, item)),
             if (expiring.isNotEmpty) ...[
               const SizedBox(height: 14),
               SectionTitle(context.l10n.text('expiringSoon')),
@@ -189,22 +207,25 @@ class _Metric extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
           child: Column(
             children: [
-              Icon(icon, color: color),
-              const SizedBox(height: 8),
-              Text(
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(icon, color: color, size: 19),
+                const SizedBox(width: 6),
+                Flexible(child: Text(
                 '$count',
                 style: TextStyle(
-                  fontSize: 23,
+                  fontSize: 21,
                   fontWeight: FontWeight.w900,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
-              ),
+              )),
+              ]),
+              const SizedBox(height: 2),
               Text(
                 label,
-                style: TextStyle(fontSize: 11, color: Color(0xFF647B8E)),
+                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -225,3 +246,4 @@ class _Empty extends StatelessWidget {
     onAction: onAdd,
   );
 }
+

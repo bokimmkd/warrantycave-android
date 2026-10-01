@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
+import '../compact_header.dart';
 
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
@@ -26,24 +27,22 @@ class _RemindersScreenState extends State<RemindersScreen>
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(20),
           children: [
-            Text(
-              context.l10n.text('reminders'),
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            CaveHeader(
+              title: context.l10n.text('reminders'),
+              subtitle: context.l10n.text('remindersCaveSubtitle'),
+              actions: [IconButton(
+                tooltip: context.l10n.text('reminderInfo'),
+                icon: const Icon(Icons.info_outline),
+                onPressed: () => AppBottomSheets.show<void>(context,
+                  title: context.l10n.text('reminders'),
+                  child: Text('${context.l10n.text('localAlerts')}\n\n${context.l10n.text('reminderDefaultsHint')}')),
+              )],
             ),
+            const SizedBox(height: 12),
+            Text(context.l10n.text('expiryReminder'),
+              style: TextStyle(fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurfaceVariant)),
             const SizedBox(height: 6),
-            Text(
-              context.l10n.text('localAlerts'),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-            Text(
-              context.l10n.text('reminderDefaultsHint'),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 18),
             Card(
               child: Column(
                 children: [
@@ -74,7 +73,7 @@ class _RemindersScreenState extends State<RemindersScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             PrimaryButton(
               label: context.l10n.text('enableNotifications'),
               icon: Icons.notifications_active_outlined,
@@ -95,10 +94,10 @@ class _RemindersScreenState extends State<RemindersScreen>
                 }
               },
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     Icon(Icons.lock_clock_outlined, color: Theme.of(context).colorScheme.primary),
@@ -137,8 +136,10 @@ class _Switch extends StatelessWidget {
       title,
       style: TextStyle(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
     ),
-    subtitle: Text(context.l10n.text('expiryReminder')),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+    visualDensity: VisualDensity.compact,
     value: value,
     onChanged: onChanged,
   );
 }
+

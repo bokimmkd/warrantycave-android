@@ -63,7 +63,14 @@ Future<AppController> _render(WidgetTester tester, int page, {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
+    // Preview tests run without Android's native UMP implementation.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/google_mobile_ads/ump'),
+          (_) async => null,
+        );
     final fonts = FontLoader('Roboto')
       ..addFont(rootBundle.load('assets/fonts/DejaVuSans.ttf'));
     await fonts.load();

@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import '../compact_header.dart';
 import 'item_detail_screen.dart';
 
 enum ItemSort {
@@ -26,6 +27,13 @@ class ItemsScreen extends StatefulWidget {
 class _ItemsScreenState extends State<ItemsScreen>
     with AutomaticKeepAliveClientMixin {
   String query = '';
+  bool searchOpen = false;
+
+  void closeSearch() {
+    FocusScope.of(context).unfocus();
+    searchController.clear();
+    setState(() { query = ''; searchOpen = false; });
+  }
   late WarrantyStatus? status = widget.initialStatus;
   String? type;
   String? location;
@@ -271,12 +279,12 @@ class _ItemsScreenState extends State<ItemsScreen>
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 14),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    switch (status) {
+                  CaveHeader(
+                    title: switch (status) {
                       WarrantyStatus.active => context.l10n.text(
                         'activeWarranties',
                       ),
@@ -288,34 +296,20 @@ class _ItemsScreenState extends State<ItemsScreen>
                       ),
                       null => context.l10n.text('myItems'),
                     },
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                    subtitle: context.l10n.text('itemsCaveSubtitle'),
+                    actions: [IconButton(
+                      tooltip: context.l10n.text('searchWarranties'),
+                      onPressed: () => searchOpen ? closeSearch()
+                          : setState(() => searchOpen = true),
+                      icon: Icon(searchOpen ? Icons.search_off : Icons.search),
+                    )],
                   ),
-                  const SizedBox(height: 14),
-                  TextField(
+                  if (searchOpen) CompactSearchField(
                     controller: searchController,
                     onChanged: (v) => setState(() => query = v),
-                    decoration: AppInputFields.decoration(
-                      context: context,
-                      label: context.l10n.text('search'),
-                      hint: context.l10n.text('searchHint'),
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: query.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: context.l10n.text('clearSearch'),
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                searchController.clear();
-                                setState(() => query = '');
-                              },
-                            ),
-                    ),
+                    onClose: closeSearch,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   if (status != null) ...[
                     Align(
                       alignment: Alignment.centerLeft,
@@ -338,20 +332,28 @@ class _ItemsScreenState extends State<ItemsScreen>
                   Row(
                     children: [
                       Expanded(
-                        child: SecondaryButton(
-                          label:
+                        child: FilledButton.tonalIcon(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                          ),
+                          label: Text(
                               status == null && type == null && location == null
                               ? context.l10n.text('filters')
-                              : context.l10n.text('filtersActive'),
-                          icon: Icons.tune,
+                              : context.l10n.text('filtersActive')), 
+                          icon: const Icon(Icons.tune, size: 19),
                           onPressed: () => showFilters(types, locations),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: SecondaryButton(
-                          label: context.l10n.text('sort'),
-                          icon: Icons.swap_vert,
+                        child: FilledButton.tonalIcon(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                          ),
+                          label: Text(context.l10n.text('sort')), 
+                          icon: const Icon(Icons.swap_vert, size: 19),
                           onPressed: showSort,
                         ),
                       ),
@@ -383,7 +385,7 @@ class _ItemsScreenState extends State<ItemsScreen>
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                       itemCount: data.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final item = data[index];
                         return WarrantyCard(
@@ -408,3 +410,4 @@ class _ItemsScreenState extends State<ItemsScreen>
     );
   }
 }
+

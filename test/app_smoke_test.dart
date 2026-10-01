@@ -27,7 +27,7 @@ void main() {
     expect(find.text('WarrantyCave'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Items'), findsOneWidget);
-    expect(find.text('Add'), findsOneWidget);
+    expect(find.text('Add'), findsNWidgets(2));
     expect(find.text('Reminders'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -68,3 +68,4 @@ class _NoopNotifications implements NotificationService {
   @override
   Future<void> scheduleFor(WarrantyItem item, AppSettings settings) async {}
 }
+

@@ -206,7 +206,11 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (app.effectivePlan.hasAds) const Center(child: FreeBannerAd()),
+          // Scaffold reserves this space outside the scrollable body. Hide it
+          // while typing so the keyboard cannot crowd the content or ad.
+          if (app.effectivePlan.hasAds && MediaQuery.viewInsetsOf(context).bottom == 0)
+            const SafeArea(top: false, bottom: false,
+              child: Center(child: FreeBannerAd())),
           AppBottomNavigation(
             selectedIndex: index == 2 ? 0 : index,
             onSelected: _selectMainTab,
@@ -216,3 +220,4 @@ class _MainShellState extends State<MainShell> {
     );
   }
 }
+

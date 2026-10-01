@@ -9,6 +9,7 @@ import '../../data/ad_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
+import '../compact_header.dart';
 import 'upgrade_screen.dart';
 import 'welcome_screen.dart';
 
@@ -287,10 +288,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     return SafeArea(
       child: ListTileTheme(
         data: const ListTileThemeData(
-          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          minLeadingWidth: 40,
-          horizontalTitleGap: 12,
-          minVerticalPadding: 6,
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+          minLeadingWidth: 34,
+          horizontalTitleGap: 10,
+          minVerticalPadding: 4,
           dense: true,
         ),
         child: RefreshIndicator(
@@ -299,15 +300,11 @@ class _SettingsScreenState extends State<SettingsScreen>
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
           children: [
-            Text(
-              context.l10n.text('settings'),
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            CaveHeader(
+              title: context.l10n.text('settings'),
+              subtitle: context.l10n.text('settingsCaveSubtitle'),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             _Label(context.l10n.text('account')),
             Card(
               child: ListTile(
@@ -504,7 +501,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                       'code': s.referralCode,
                     }),
                   ),
-                  isThreeLine: true,
                   trailing: IconButton(
                     tooltip: context.l10n.text('shareReferral'),
                     icon: const Icon(Icons.share_outlined),
@@ -747,13 +743,13 @@ class _SettingsIconBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    width: 40,
-    height: 40,
+    width: 34,
+    height: 34,
     decoration: BoxDecoration(
       color: backgroundColor,
       borderRadius: BorderRadius.circular(13),
     ),
     alignment: Alignment.center,
-    child: Icon(icon, color: foregroundColor, size: 22),
+    child: Icon(icon, color: foregroundColor, size: 20),
   );
 }

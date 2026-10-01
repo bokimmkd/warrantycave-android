@@ -3,7 +3,7 @@ name: Android final APK and AAB
 on:
   workflow_dispatch:
   push:
-    branches: [main, feature/warrantycave-next-update, feature/individual-reminders-dark-mode, feature/plan-item-edit-access, feature/admob-release-readiness]
+    branches: [main, feature/warrantycave-next-update, feature/individual-reminders-dark-mode, feature/plan-item-edit-access, feature/admob-release-readiness, feature/compact-ui-polish]
 
 concurrency:
   group: android-release-${{ github.ref }}
@@ -31,10 +31,19 @@ jobs:
           base64 --decode assets/fonts/DejaVuSans-Bold.ttf.b64 > assets/fonts/DejaVuSans-Bold.ttf
       - name: Dependencies
         run: flutter pub get
+      - name: Analyze changed UI
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib/presentation/compact_header.dart lib/presentation/widgets.dart lib/presentation/main_shell.dart lib/presentation/screens/home_screen.dart lib/presentation/screens/items_screen.dart lib/presentation/screens/reminders_screen.dart lib/presentation/screens/settings_screen.dart
       - name: Tests
         run: |
           flutter test
           cd functions && npm ci && npm test
+      - name: Capture compact UI previews
+        run: CAPTURE_UI=true flutter test --update-goldens test/compact_ui_test.dart
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WarrantyCave-build-37-UI-previews
+          path: test/captures/*.png
+          if-no-files-found: error
       - name: Build final APK and AAB
         env:
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/upload-keystore.jks
@@ -46,9 +55,10 @@ jobs:
           flutter build appbundle --release
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.26-build-36-AdMob-readiness-test
+          name: WarrantyCave-1.0.27-build-37-compact-ui
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 30
+

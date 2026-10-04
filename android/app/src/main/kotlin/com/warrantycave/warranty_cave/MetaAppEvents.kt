@@ -3,20 +3,38 @@ package com.warrantycave.app
 import android.app.Activity
 import android.content.Context
 import android.os.SystemClock
+import android.util.AtomicFile
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsConstants
 import com.facebook.appevents.AppEventsLogger
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.io.FileOutputStream
 
 /** Only install/activation measurement. No login, billing or warranty payloads. */
 internal object MetaAppEvents {
-    private const val PREFS = "warrantycave_meta_measurement"
     private const val CONSENT = "explicit_install_measurement_consent_v1"
     private val session = MetaActivationSession()
     private var activatedSdk = false
 
-    private fun consent(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        .getBoolean(CONSENT, false)
+    // Android backup/device transfer must not opt another installation into measurement.
+    private fun consent(context: Context): Boolean = runCatching {
+        File(context.noBackupFilesDir, CONSENT).readText() == "true"
+    }.getOrDefault(false)
+
+    private fun saveConsent(context: Context, enabled: Boolean): Boolean {
+        val file = AtomicFile(File(context.noBackupFilesDir, CONSENT))
+        var output: FileOutputStream? = null
+        return try {
+            output = file.startWrite()
+            output.write(enabled.toString().toByteArray(Charsets.UTF_8))
+            file.finishWrite(output)
+            true
+        } catch (_: Exception) {
+            file.failWrite(output)
+            false
+        }
+    }
 
     fun attach(activity: Activity, channel: MethodChannel) {
         channel.setMethodCallHandler { call, result ->
@@ -28,8 +46,7 @@ internal object MetaAppEvents {
                         result.error("invalid_consent", "Missing consent choice", null)
                     } else {
                         // Persist before doing any SDK work so a later launch respects the choice.
-                        val saved = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                            .edit().putBoolean(CONSENT, enabled).commit()
+                        val saved = saveConsent(activity, enabled)
                         if (!saved) {
                             result.error("consent_not_saved", "Please try again", null)
                         } else try {

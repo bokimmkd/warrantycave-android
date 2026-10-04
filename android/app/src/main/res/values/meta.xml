@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="facebook_app_id" translatable="false">1141988704922118</string>
+    <!-- Public Android SDK client token, never the Meta app secret. -->
+    <string name="facebook_client_token" translatable="false">de327a0a9a3ab25c4d965a1e318cff53</string>
+</resources>

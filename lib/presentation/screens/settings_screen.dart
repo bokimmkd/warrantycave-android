@@ -10,6 +10,8 @@ import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
 import '../compact_header.dart';
+import '../account_actions.dart';
+import '../meta_measurement_choice.dart';
 import 'upgrade_screen.dart';
 import 'welcome_screen.dart';
 
@@ -377,26 +379,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                       ),
                     ),
                     const Divider(height: 1),
-                    ListTile(
-                      leading: const _SettingsIconBadge(
-                        icon: Icons.logout_rounded,
-                        backgroundColor: Color(0xFFF0F2F5),
-                        foregroundColor: Color(0xFF536273),
-                      ),
-                      title: Text(context.l10n.text('signOut')),
-                      onTap: () => logout(app),
-                    ),
-                    ListTile(
-                      leading: const _SettingsIconBadge(
-                        icon: Icons.delete_forever_rounded,
-                        backgroundColor: Color(0xFFFFE8EC),
-                        foregroundColor: Colors.redAccent,
-                      ),
-                      title: Text(
-                        context.l10n.text('deleteAccount'),
-                        style: TextStyle(color: Colors.redAccent),
-                      ),
-                      onTap: () => deleteAccount(app),
+                    AccountActions(
+                      onSignOut: () => logout(app),
+                      onDelete: () => deleteAccount(app),
                     ),
                   ],
                 ),
@@ -638,6 +623,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     trailing: const Icon(Icons.open_in_new, size: 18),
                     onTap: () => open('https://warrantycave.com/privacy'),
                   ),
+                  const MetaMeasurementChoice(),
                   FutureBuilder<bool>(
                     future: _adPrivacyOptionsRequired,
                     builder: (context, snapshot) {

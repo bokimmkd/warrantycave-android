@@ -40,7 +40,7 @@ internal object MetaAppEvents {
                                 if (FacebookSdk.isInitialized()) {
                                     FacebookSdk.setAdvertiserIDCollectionEnabled(false)
                                     FacebookSdk.setAutoLogAppEventsEnabled(false)
-                                    AppEventsLogger.setLimitEventUsage(activity, true)
+                                    FacebookSdk.setLimitEventAndDataUsage(activity, true)
                                 }
                             }
                             result.success(null)
@@ -65,7 +65,7 @@ internal object MetaAppEvents {
             FacebookSdk.fullyInitialize()
             FacebookSdk.setAutoLogAppEventsEnabled(false)
             FacebookSdk.setAdvertiserIDCollectionEnabled(true)
-            AppEventsLogger.setLimitEventUsage(activity, false)
+            FacebookSdk.setLimitEventAndDataUsage(activity, false)
             AppEventsLogger.setFlushBehavior(AppEventsLogger.FlushBehavior.EXPLICIT_ONLY)
             if (!activatedSdk) {
                 // The SDK install publisher deduplicates by its stored install timestamp.

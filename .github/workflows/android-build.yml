@@ -1,9 +1,9 @@
-name: Android final APK and AAB
+name: Android release APK and AAB
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, feature/warrantycave-next-update, feature/individual-reminders-dark-mode, feature/plan-item-edit-access, feature/admob-release-readiness, feature/compact-ui-polish]
+    branches: [main, feature/warrantycave-next-update, feature/individual-reminders-dark-mode, feature/plan-item-edit-access, feature/admob-release-readiness, feature/compact-ui-polish, feature/play-updates-adaptive-banner]
 
 concurrency:
   group: android-release-${{ github.ref }}
@@ -32,7 +32,7 @@ jobs:
       - name: Dependencies
         run: flutter pub get
       - name: Analyze changed UI
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib/presentation/compact_header.dart lib/presentation/widgets.dart lib/presentation/main_shell.dart lib/presentation/screens/home_screen.dart lib/presentation/screens/items_screen.dart lib/presentation/screens/reminders_screen.dart lib/presentation/screens/settings_screen.dart
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib/data/play_updates.dart lib/data/ad_service.dart lib/presentation/play_update_widgets.dart lib/presentation/compact_header.dart lib/presentation/widgets.dart lib/presentation/main_shell.dart lib/presentation/screens/home_screen.dart lib/presentation/screens/items_screen.dart lib/presentation/screens/reminders_screen.dart lib/presentation/screens/settings_screen.dart
       - name: Tests
         run: |
           flutter test
@@ -41,7 +41,7 @@ jobs:
         run: CAPTURE_UI=true flutter test --update-goldens test/compact_ui_test.dart
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-build-37-UI-previews
+          name: WarrantyCave-build-38-UI-previews
           path: test/captures/*.png
           if-no-files-found: error
       - name: Build final APK and AAB
@@ -51,14 +51,20 @@ jobs:
           ANDROID_KEY_ALIAS: warrantycave-upload
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
+          flutter build apk --debug
+          cd android && ./gradlew :app:testDebugUnitTest && cd ..
           flutter build apk --release
           flutter build appbundle --release
+          keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab > build/app/outputs/bundle/release/signing-certificate.txt
+          grep -q "5D:B2:2B:66:1B:0B:1D:40:15:4F:4C:9D:F6:E3:20:8A:DC:B8:D1:99:AB:F0:FC:13:9A:4F:D4:20:65:2D:02:31" build/app/outputs/bundle/release/signing-certificate.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.27-build-37-compact-ui
+          name: WarrantyCave-1.0.28-build-38-play-updates
           path: |
+            build/app/outputs/flutter-apk/app-debug.apk
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/bundle/release/signing-certificate.txt
           if-no-files-found: error
           retention-days: 30
 

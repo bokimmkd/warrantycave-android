@@ -88,18 +88,6 @@ class _FreeBannerAdState extends State<FreeBannerAd> {
   Orientation? _orientation;
   int _generation = 0;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final media = MediaQuery.of(context);
-    final width = (media.size.width - media.padding.horizontal).floor();
-    if (width > 0 && (width != _width || media.orientation != _orientation)) {
-      _width = width; _orientation = media.orientation;
-      ad?.dispose(); ad = null; loaded = false;
-      unawaited(_load(width, ++_generation));
-    }
-  }
-
   Future<void> _load(int width, int generation) async {
     if (!await AdService.canLoadAds() || !mounted || generation != _generation) return;
     final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width);
@@ -116,10 +104,23 @@ class _FreeBannerAdState extends State<FreeBannerAd> {
   void dispose() { _generation++; ad?.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, constraints) {
+    final width = constraints.maxWidth.floor();
+    final orientation = MediaQuery.orientationOf(context);
+    if (width > 0 && (width != _width || orientation != _orientation)) {
+      _width = width; _orientation = orientation;
+      final generation = ++_generation;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || generation != _generation) return;
+        ad?.dispose(); ad = null;
+        setState(() => loaded = false);
+        unawaited(_load(width, generation));
+      });
+      return const SizedBox.shrink();
+    }
     if (!loaded || ad == null) return const SizedBox.shrink();
     return ColoredBox(color: Theme.of(context).colorScheme.surface,
       child: SizedBox(width: ad!.size.width.toDouble(), height: ad!.size.height.toDouble(),
         child: AdWidget(ad: ad!)));
-  }
+  });
 }

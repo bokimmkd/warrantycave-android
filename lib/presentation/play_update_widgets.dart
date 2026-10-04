@@ -5,19 +5,20 @@ import '../l10n/app_localizations.dart';
 import 'theme.dart';
 
 class PlayUpdateHost extends StatefulWidget {
-  const PlayUpdateHost({super.key, required this.child});
+  const PlayUpdateHost({super.key, required this.child, this.updates});
   final Widget child;
+  final PlayUpdates? updates;
   @override
   State<PlayUpdateHost> createState() => _PlayUpdateHostState();
 }
 
 class _PlayUpdateHostState extends State<PlayUpdateHost> {
-  final updates = PlayUpdates();
+  late final PlayUpdates updates;
   DialogRoute<void>? _dialog;
   String? _shown;
   bool _scheduled = false;
   @override
-  void initState() { super.initState(); updates.addListener(_changed); unawaited(updates.initialize()); }
+  void initState() { super.initState(); updates = widget.updates ?? PlayUpdates(); updates.addListener(_changed); unawaited(updates.initialize()); }
   void _changed() {
     if (!mounted) return;
     setState(() {});
@@ -61,7 +62,7 @@ class _PlayUpdateHostState extends State<PlayUpdateHost> {
     unawaited(Navigator.of(context).push(dialog));
   }
   @override
-  void dispose() { _close(); updates.removeListener(_changed); updates.dispose(); super.dispose(); }
+  void dispose() { _close(); updates.removeListener(_changed); if (widget.updates == null) updates.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) => Column(children: [
     if (updates.state.showProgress) SafeArea(bottom: false, child: Padding(

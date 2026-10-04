@@ -55,6 +55,8 @@ jobs:
           cd android && ./gradlew :app:testDebugUnitTest && cd ..
           flutter build apk --release
           flutter build appbundle --release
+          keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab > build/app/outputs/bundle/release/signing-certificate.txt
+          grep -q "5D:B2:2B:66:1B:0B:1D:40:15:4F:4C:9D:F6:E3:20:8A:DC:B8:D1:99:AB:F0:FC:13:9A:4F:D4:20:65:2D:02:31" build/app/outputs/bundle/release/signing-certificate.txt
       - uses: actions/upload-artifact@v4
         with:
           name: WarrantyCave-1.0.28-build-38-play-updates
@@ -62,6 +64,7 @@ jobs:
             build/app/outputs/flutter-apk/app-debug.apk
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/bundle/release/signing-certificate.txt
           if-no-files-found: error
           retention-days: 30
 

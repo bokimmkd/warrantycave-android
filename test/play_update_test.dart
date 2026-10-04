@@ -24,6 +24,28 @@ void main() {
     expect(updates.state.offer, isNull); await future;
     updates.dispose();
   });
+  testWidgets('Play handoff closes popup, download preserves form, ready Later closes only offer', (tester) async {
+    final updates = _FakeUpdates();
+    await tester.pumpWidget(MaterialApp(theme: buildTheme(),
+      localizationsDelegates: const [AppLocalizations.delegate, GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      home: Scaffold(body: PlayUpdateHost(updates: updates,
+        child: const TextField(key: Key('kept-input'))))));
+    await tester.enterText(find.byKey(const Key('kept-input')), 'My warranty');
+    updates.publish(const PlayUpdateState(version: 38, offer: 'available'));
+    await tester.pumpAndSettle(); expect(find.text('Update WarrantyCave'), findsOneWidget);
+    await tester.tap(find.text('Update')); await tester.pumpAndSettle();
+    expect(updates.actions, ['update']); expect(find.byType(AlertDialog), findsNothing);
+    updates.publish(const PlayUpdateState(version: 38, stage: 'downloading', bytes: 100, total: 100));
+    await tester.pump(); expect(find.text('100%'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing); expect(find.text('My warranty'), findsOneWidget);
+    updates.publish(const PlayUpdateState(version: 38, stage: 'ready', offer: 'ready'));
+    await tester.pumpAndSettle(); expect(find.text('Restart to update'), findsOneWidget);
+    await tester.tap(find.text('Later')); await tester.pumpAndSettle();
+    expect(updates.actions, ['update', 'later']); expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('My warranty'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox()); updates.dispose();
+  });
   for (final language in appLanguages) {
     for (final dark in [false, true]) {
       testWidgets('compact update progress ${language.code} dark=$dark preserves input', (tester) async {
@@ -43,5 +65,17 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  }
+}
+
+class _FakeUpdates extends PlayUpdates {
+  final actions = <String>[];
+  @override
+  Future<void> initialize() async {}
+  void publish(PlayUpdateState next) { state = next; notifyListeners(); }
+  @override
+  Future<void> action(String name) async {
+    actions.add(name);
+    publish(PlayUpdateState(version: state.version, stage: state.stage));
   }
 }

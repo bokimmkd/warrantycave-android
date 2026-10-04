@@ -15,6 +15,7 @@ import 'screens/upgrade_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'theme.dart';
 import 'widgets.dart';
+import 'play_update_widgets.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -202,7 +203,7 @@ class _MainShellState extends State<MainShell> {
       SettingsScreen(onSelectTab: _returnToTab),
     ];
     return Scaffold(
-      body: IndexedStack(index: index == 2 ? 0 : index, children: pages),
+      body: PlayUpdateHost(child: IndexedStack(index: index == 2 ? 0 : index, children: pages)),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

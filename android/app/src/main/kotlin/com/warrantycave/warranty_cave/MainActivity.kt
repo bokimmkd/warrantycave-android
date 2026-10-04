@@ -7,6 +7,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
+    private var playUpdates: PlayUpdates? = null
     private val shortcutChannelName = "com.warrantycave.app/shortcuts"
     private var shortcutChannel: MethodChannel? = null
     private val saveRequestCode = 4209
@@ -15,6 +16,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        playUpdates = PlayUpdates(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/play_updates"))
         shortcutChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, shortcutChannelName)
         shortcutChannel?.setMethodCallHandler { call, result ->
             if (call.method == "getInitialShortcut") result.success(shortcutFrom(intent))
@@ -56,8 +58,13 @@ class MainActivity : FlutterActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        playUpdates?.newIntent(intent)
         shortcutFrom(intent)?.let { shortcutChannel?.invokeMethod("openShortcut", it) }
     }
+
+    override fun onResume() { super.onResume(); playUpdates?.resume() }
+    override fun onPause() { playUpdates?.pause(); super.onPause() }
+    override fun onDestroy() { playUpdates?.destroy(isChangingConfigurations); super.onDestroy() }
 
     private fun shortcutFrom(intent: Intent?): String? = when (intent?.action) {
         "com.warrantycave.app.ADD_WARRANTY" -> "add"
@@ -70,6 +77,7 @@ class MainActivity : FlutterActivity() {
     @Deprecated("Uses the Android document picker result API")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PlayUpdates.REQUEST) { playUpdates?.result(resultCode); return }
         if (requestCode != saveRequestCode) return
         val result = pendingResult ?: return
         val bytes = pendingPdf

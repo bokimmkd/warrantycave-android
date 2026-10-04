@@ -57,11 +57,12 @@ abstract final class AdService {
   }
 
   static BannerAd banner({
+    required AdSize size,
     required VoidCallback onLoaded,
     required VoidCallback onFailed,
   }) => BannerAd(
     adUnitId: _bannerId,
-    size: AdSize.banner,
+    size: size,
     request: const AdRequest(),
     listener: BannerAdListener(
       onAdLoaded: (_) => onLoaded(),
@@ -83,47 +84,42 @@ class FreeBannerAd extends StatefulWidget {
 class _FreeBannerAdState extends State<FreeBannerAd> {
   BannerAd? ad;
   bool loaded = false;
+  int _width = 0;
+  Orientation? _orientation;
+  int _generation = 0;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final media = MediaQuery.of(context);
+    final width = (media.size.width - media.padding.horizontal).floor();
+    if (width > 0 && (width != _width || media.orientation != _orientation)) {
+      _width = width; _orientation = media.orientation;
+      ad?.dispose(); ad = null; loaded = false;
+      unawaited(_load(width, ++_generation));
+    }
   }
 
-  Future<void> _load() async {
-    if (!await AdService.canLoadAds() || !mounted) return;
-    final banner = AdService.banner(
-      onLoaded: () {
-        if (mounted) setState(() => loaded = true);
-      },
-      onFailed: () {
-        if (mounted) setState(() => loaded = false);
-      },
+  Future<void> _load(int width, int generation) async {
+    if (!await AdService.canLoadAds() || !mounted || generation != _generation) return;
+    final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width);
+    if (size == null || !mounted || generation != _generation) return;
+    final banner = AdService.banner(size: size,
+      onLoaded: () { if (mounted && generation == _generation) setState(() => loaded = true); },
+      onFailed: () { if (mounted && generation == _generation) setState(() { loaded = false; ad = null; }); },
     );
     ad = banner;
-    banner.load();
+    await banner.load();
   }
 
   @override
-  void dispose() {
-    ad?.dispose();
-    super.dispose();
-  }
+  void dispose() { _generation++; ad?.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     if (!loaded || ad == null) return const SizedBox.shrink();
-    return ColoredBox(
-      color: Colors.white,
-      child: SafeArea(
-        top: false,
-        bottom: false,
-        child: SizedBox(
-          width: ad!.size.width.toDouble(),
-          height: ad!.size.height.toDouble(),
-          child: AdWidget(ad: ad!),
-        ),
-      ),
-    );
+    return ColoredBox(color: Theme.of(context).colorScheme.surface,
+      child: SizedBox(width: ad!.size.width.toDouble(), height: ad!.size.height.toDouble(),
+        child: AdWidget(ad: ad!)));
   }
 }

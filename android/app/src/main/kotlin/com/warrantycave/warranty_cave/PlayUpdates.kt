@@ -136,8 +136,9 @@ internal class PlayUpdates(private val activity: Activity, private val channel: 
     private fun restart() {
         if (!state.beginInstall()) return
         query++; queryStarted = 0; revision++; emit()
+        val installingVersion = state.version
         manager.completeUpdate().addOnFailureListener {
-            state.failInstall(); current?.emit()
+            if (state.version == installingVersion && state.stage == "installing") { state.failInstall(); current?.emit() }
         }
     }
     private fun openStore() {

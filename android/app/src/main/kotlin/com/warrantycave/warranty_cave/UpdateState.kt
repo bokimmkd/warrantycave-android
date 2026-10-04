@@ -21,6 +21,8 @@ internal class UpdateState {
             return
         }
         if (v < version) return
+        if (v == version && stage == "installing" && status == "stopped") { failInstall(); return }
+        if (v == version && stage == "ready" && installFailed && status == "stopped") return
         if (v == version && stage in listOf("ready", "installing") && status in listOf("idle", "waiting", "downloading", "ready")) return
         if (v == version && stage in listOf("waiting", "downloading") && status == "idle") return
         version = v; stage = status; bytes = downloaded; total = size

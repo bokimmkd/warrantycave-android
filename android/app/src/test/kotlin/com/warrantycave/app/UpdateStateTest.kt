@@ -28,6 +28,11 @@ class UpdateStateTest {
         s.failInstall(); assertTrue(s.installFailed); assertEquals("ready", s.offer())
         assertTrue(s.beginInstall()); assertFalse(s.installFailed)
     }
+    @Test fun failedPlayInstallObservationRestoresReadyInsteadOfStore() {
+        val s = available(); s.observe(38, "ready"); s.beginInstall()
+        s.observe(38, "stopped"); assertEquals("ready", s.offer()); assertTrue(s.installFailed)
+        s.observe(38, "stopped"); assertEquals("ready", s.offer())
+    }
     @Test fun installedAndOldCallbacksCannotOfferAgain() {
         val s = available(); s.observe(38, "installed"); s.observe(38, "ready"); assertNull(s.offer())
         s.installed = 38; s.observe(38, "idle"); assertEquals(0, s.version)

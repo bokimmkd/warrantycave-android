@@ -41,7 +41,7 @@ jobs:
         run: CAPTURE_UI=true flutter test --update-goldens test/compact_ui_test.dart
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-build-39-UI-previews
+          name: WarrantyCave-build-40-UI-previews
           path: test/captures/*.png
           if-no-files-found: error
       - name: Build final APK and AAB
@@ -59,7 +59,7 @@ jobs:
           grep -q "5D:B2:2B:66:1B:0B:1D:40:15:4F:4C:9D:F6:E3:20:8A:DC:B8:D1:99:AB:F0:FC:13:9A:4F:D4:20:65:2D:02:31" build/app/outputs/bundle/release/signing-certificate.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.29-build-39-meta-compact-settings
+          name: WarrantyCave-1.0.30-build-40-meta-compact-settings
           path: |
             build/app/outputs/flutter-apk/app-debug.apk
             build/app/outputs/flutter-apk/app-release.apk

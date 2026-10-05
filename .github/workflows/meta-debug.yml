@@ -37,7 +37,7 @@ jobs:
           python3 scripts/check_meta_manifest.py
       - uses: actions/upload-artifact@v4
         with:
-          name: WarrantyCave-1.0.29-build39-meta-debug
+          name: WarrantyCave-1.0.30-build40-meta-debug
           path: |
             build/app/outputs/flutter-apk/app-debug.apk
             build/app/outputs/flutter-apk/debug-signing-certificate.txt

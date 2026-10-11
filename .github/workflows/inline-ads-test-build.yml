@@ -55,3 +55,37 @@ jobs:
           path: build/test-delivery/*
           if-no-files-found: error
           retention-days: 30
+
+  native-ads:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.5
+          cache: true
+      - name: Prepare fonts and dependencies
+        run: |
+          base64 --decode assets/fonts/DejaVuSans.ttf.b64 > assets/fonts/DejaVuSans.ttf
+          base64 --decode assets/fonts/DejaVuSans-Bold.ttf.b64 > assets/fonts/DejaVuSans-Bold.ttf
+          flutter pub get
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            flutter test integration_test/items_ads_test.dart --dart-define=ADMOB_TEST_ADS=true --reporter expanded
+            adb shell cmd connectivity airplane-mode enable
+            adb shell svc wifi disable
+            adb shell svc data disable
+            flutter test integration_test/items_ads_test.dart --dart-define=ADMOB_TEST_ADS=true --dart-define=ADS_OFFLINE_TEST=true --reporter expanded

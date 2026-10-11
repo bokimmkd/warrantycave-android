@@ -163,6 +163,53 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('loaded ad insertion preserves a visible warranty while scrolled', (tester) async {
+    tester.view.physicalSize = const Size(390, 500); tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize); addTearDown(tester.view.resetDevicePixelRatio);
+    final factory = _Factory(); final ids = [for (var i = 0; i < 16; i++) '$i'];
+    await tester.pumpWidget(_list(factory, ids)); await tester.pumpAndSettle();
+    final list = tester.widget<ListView>(find.byType(ListView));
+    list.controller!.jumpTo(410); await tester.pumpAndSettle();
+    final row = find.byKey(const ValueKey('item:7'));
+    final before = tester.getTopLeft(row).dy;
+    factory.banners.first.succeed(); await tester.pumpAndSettle();
+    expect(tester.getTopLeft(row).dy, closeTo(before, 0.5));
+    expect(factory.banners.length, 4);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('actual status filters and all sort choices keep placement after displayed groups', (tester) async {
+    tester.view.physicalSize = const Size(390, 1900); tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize); addTearDown(tester.view.resetDevicePixelRatio);
+    final factory = _Factory();
+    final app = AppController(storage: _Storage(), photos: _Photos(),
+      notifications: _Notifications(), subscriptions: LocalSubscriptionService());
+    await app.initialize();
+    await tester.pumpWidget(_screen(app, factory)); await tester.pumpAndSettle();
+    await _finish(tester, factory);
+    await tester.tap(find.text('Filters')); await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Expired')); await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply')); await tester.pumpAndSettle();
+    expect(find.text('Advertisement'), findsNothing); // two matching warranties
+    await tester.tap(find.text('Filters active')); await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Active')); await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply')); await tester.pumpAndSettle();
+    expect(find.text('Advertisement'), findsNWidgets(2)); // eight matching warranties
+    for (final label in ['Recently added', 'Purchase date: newest',
+        'Purchase date: oldest', 'Product name', 'Expiry soonest']) {
+      await tester.tap(find.text('Sort')); await tester.pumpAndSettle();
+      await tester.tap(find.text(label)); await tester.pumpAndSettle();
+      expect(find.text('Advertisement'), findsNWidgets(2));
+      final rows = tester.widgetList<Padding>(find.descendant(
+        of: find.byType(ItemsAdList), matching: find.byType(Padding)))
+        .where((widget) => widget.key is ValueKey<String>)
+        .map((widget) => (widget.key as ValueKey<String>).value).toList();
+      expect(rows[4], 'ad:1'); expect(rows[9], 'ad:2');
+    }
+    expect(factory.banners.length, 2);
+    await tester.pumpWidget(const SizedBox()); app.dispose();
+  });
+
   for (final plan in PlanTier.values) {
     testWidgets('ItemsScreen observes $plan entitlement without changing warranties', (tester) async {
       final factory = _Factory();
@@ -205,7 +252,7 @@ class _Storage implements LocalStorageService {
   Future<(List<WarrantyItem>, AppSettings)> load() async => (
     [for (var i = 0; i < 10; i++) WarrantyItem(id: '$i', productType: 'Other',
       productName: i < 3 ? 'First $i' : 'Other $i', brand: 'Brand', model: 'Model',
-      purchaseDate: DateTime(2026, 9, 20), expiryDate: DateTime(2027, 9, 20),
+      purchaseDate: DateTime(2026, 9, 20), expiryDate: i < 8 ? DateTime(2027, 9, 20) : DateTime(2025, 9, 20),
       durationLabel: '1 year', createdAt: DateTime(2026, 9, 30, 12, i))],
     const AppSettings(onboardingComplete: true),
   );

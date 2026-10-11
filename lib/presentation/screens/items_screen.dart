@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/models.dart';
+import '../../data/inline_banner.dart';
+import '../items_ad_list.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
@@ -17,7 +19,10 @@ enum ItemSort {
 }
 
 class ItemsScreen extends StatefulWidget {
-  const ItemsScreen({super.key, this.initialStatus, required this.onSelectTab});
+  const ItemsScreen({super.key, this.initialStatus, required this.onSelectTab,
+    this.adsActive = true, this.inlineBannerFactory = createInlineBanner});
+  final bool adsActive;
+  final InlineBannerFactory inlineBannerFactory;
   final WarrantyStatus? initialStatus;
   final ValueChanged<int> onSelectTab;
   @override
@@ -363,8 +368,23 @@ class _ItemsScreenState extends State<ItemsScreen>
               ),
             ),
             Expanded(
-              child: data.isEmpty
-                  ? ListView(
+              child: Stack(children: [
+                Offstage(offstage: data.isEmpty, child: ItemsAdList(
+                  itemIds: data.map((item) => item.id).toList(),
+                  adsEnabled: app.effectivePlan.hasAds,
+                  active: widget.adsActive,
+                  bannerFactory: widget.inlineBannerFactory,
+                  itemBuilder: (context, index) {
+                    final item = data[index];
+                    return WarrantyCard(
+                      item: item, threshold: app.settings.expiringThresholdDays,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => ItemDetailScreen(
+                          itemId: item.id, onSelectTab: widget.onSelectTab))),
+                    );
+                  },
+                )),
+                if (data.isEmpty) ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(20),
                       children: [
@@ -381,28 +401,7 @@ class _ItemsScreenState extends State<ItemsScreen>
                         ),
                       ],
                     )
-                  : ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                      itemCount: data.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final item = data[index];
-                        return WarrantyCard(
-                          item: item,
-                          threshold: app.settings.expiringThresholdDays,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ItemDetailScreen(
-                                itemId: item.id,
-                                onSelectTab: widget.onSelectTab,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+              ]),
             ),
           ],
         ),

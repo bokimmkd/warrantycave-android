@@ -27,14 +27,14 @@ void main() {
     app.items = [];
     final dark = ValueNotifier(false);
     await tester.pumpWidget(ChangeNotifierProvider.value(value: app,
-      child: ValueListenableBuilder(valueListenable: dark, builder: (_, value, _) => MaterialApp(
+      child: ValueListenableBuilder(valueListenable: dark, builder: (context, value, _) => MaterialApp(
         theme: value ? buildDarkTheme() : buildTheme(),
         localizationsDelegates: const [AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate],
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: ItemsScreen(onSelectTab: (_) {}),
-          bottomNavigationBar: app.effectivePlan.hasAds ? const FreeBannerAd() : null),
+          bottomNavigationBar: context.watch<AppController>().effectivePlan.hasAds ? const FreeBannerAd() : null),
       )),
     ));
     Future<void> tick([int times = 5]) async {

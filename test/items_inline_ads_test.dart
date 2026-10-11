@@ -45,7 +45,7 @@ Widget _list(_Factory factory, List<String> ids, {bool ads = true,
   home: Scaffold(body: ItemsAdList(itemIds: ids, adsEnabled: ads,
     active: active, bannerFactory: factory.create,
     itemBuilder: (_, i) => SizedBox(height: 60,
-      child: InkWell(onTap: () => tap?.call(i), child: Text('Warranty ${ids[i]}')))),
+      child: InkWell(onTap: () => tap?.call(i), child: Text('Warranty ${ids[i]}'))))),
 );
 
 Future<void> _finish(WidgetTester tester, _Factory factory) async {

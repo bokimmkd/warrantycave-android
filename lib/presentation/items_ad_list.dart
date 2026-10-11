@@ -134,7 +134,7 @@ class _ItemsAdListState extends State<ItemsAdList> {
       if (!mounted || _busy || !_scroll.hasClients || oldY == null) return;
       final box = anchor?.currentContext?.findRenderObject();
       if (box is! RenderBox || !box.hasSize || !box.attached) return;
-      final delta = box.localToGlobal(Offset.zero).dy - oldY!;
+      final delta = box.localToGlobal(Offset.zero).dy - oldY;
       if (delta.abs() > 0.5) {
         _scroll.jumpTo((_scroll.offset + delta).clamp(
           _scroll.position.minScrollExtent, _scroll.position.maxScrollExtent));

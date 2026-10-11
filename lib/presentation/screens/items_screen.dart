@@ -198,7 +198,9 @@ class _ItemsScreenState extends State<ItemsScreen>
     final picked = await AppBottomSheets.show<ItemSort>(
       context,
       title: context.l10n.text('sortWarranties'),
-      child: Column(
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: ItemSort.values
             .map(
@@ -228,6 +230,7 @@ class _ItemsScreenState extends State<ItemsScreen>
               ),
             )
             .toList(),
+        ),
       ),
     );
     if (picked != null) setState(() => sort = picked);

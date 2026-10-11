@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   build:
+    if: "${{ !contains(github.event.head_commit.message, '[native-only]') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -85,12 +86,11 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            flutter test integration_test/items_ads_test.dart --dart-define=ADMOB_TEST_ADS=true --reporter expanded
-            adb pull /sdcard/Android/data/com.warrantycave.app/files/ads-previews build/native-ad-previews
+            bash -o pipefail -c 'flutter drive -d emulator-5554 --driver=test_driver/ads_driver.dart --target=integration_test/items_ads_test.dart --dart-define=ADMOB_TEST_ADS=true | sed "/^result /d"'
             adb shell cmd connectivity airplane-mode enable
             adb shell svc wifi disable
             adb shell svc data disable
-            flutter test integration_test/items_ads_test.dart --dart-define=ADMOB_TEST_ADS=true --dart-define=ADS_OFFLINE_TEST=true --reporter expanded
+            bash -o pipefail -c 'flutter drive -d emulator-5554 --driver=test_driver/ads_driver.dart --target=integration_test/items_ads_test.dart --dart-define=ADMOB_TEST_ADS=true --dart-define=ADS_OFFLINE_TEST=true | sed "/^result /d"'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

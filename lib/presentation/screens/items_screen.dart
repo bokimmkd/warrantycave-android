@@ -107,7 +107,7 @@ class _ItemsScreenState extends State<ItemsScreen>
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String?>(
-              key: ValueKey(draftType),
+              key: ValueKey(('type', draftType)),
               initialValue: draftType,
               isExpanded: true,
               decoration: AppInputFields.decoration(
@@ -133,7 +133,7 @@ class _ItemsScreenState extends State<ItemsScreen>
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String?>(
-              key: ValueKey(draftLocation),
+              key: ValueKey(('location', draftLocation)),
               initialValue: draftLocation,
               isExpanded: true,
               decoration: AppInputFields.decoration(

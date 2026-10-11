@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:provider/provider.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:warranty_cave/data/ad_service.dart';
 import 'package:warranty_cave/data/services.dart';
 import 'package:warranty_cave/domain/models.dart';
@@ -17,7 +18,7 @@ import 'package:warranty_cave/presentation/theme.dart';
 /// A local-only test harness: no Firebase accounts, writes, or real purchases.
 /// The banners themselves use the real Android SDK and Google's sample IDs.
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('native test banners and entitlement visibility', (tester) async {
     expect(AdService.inlineBannerId, 'ca-app-pub-3940256099942544/9214589741');
     final app = AppController(storage: _Storage(), photos: _Photos(),
@@ -65,6 +66,16 @@ void main() {
       await count(4);
       for (var i = 0; i < 150 && find.text('Advertisement').evaluate().isEmpty; i++) { await tick(1); }
       expect(find.text('Advertisement'), findsOneWidget, reason: 'Real Google sample inline ad loaded');
+      await binding.convertFlutterSurfaceToImage();
+      Future<void> capture(String name) async {
+        await tester.pump();
+        final bytes = await binding.takeScreenshot(name);
+        final root = await getExternalStorageDirectory();
+        final folder = Directory('${root!.path}/ads-previews');
+        await folder.create(recursive: true);
+        await File('${folder.path}/$name.png').writeAsBytes(bytes);
+      }
+      await capture('WarrantyCave-My-Items-4-Free-light');
       for (final value in [8, 10]) {
         await count(value); await tick(70);
         // The lazy list only builds rows near the viewport; scroll to the second.
@@ -78,12 +89,14 @@ void main() {
       await tester.tap(find.byTooltip('Clear search')); await tick();
       dark.value = true; await tick();
       expect(find.text('Advertisement'), findsWidgets);
+      await capture('WarrantyCave-My-Items-Free-dark');
       // This is the same reactive entitlement gate used after purchase/restore.
       for (final plan in [PlanTier.basic, PlanTier.plus]) {
         app.settings = app.settings.copyWith(plan: plan); app.notifyListeners(); await tick();
         expect(find.text('Advertisement'), findsNothing);
         expect(find.byType(FreeBannerAd), findsNothing);
       }
+      await capture('WarrantyCave-My-Items-Plus-no-ads');
       expect(app.items.length, 10);
       expect(tester.takeException(), isNull);
     }

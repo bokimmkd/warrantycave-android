@@ -40,6 +40,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           mkdir -p build/test-delivery
+          cp pubspec.lock build/test-delivery/resolved-pubspec.lock
           flutter build apk --debug
           cp build/app/outputs/flutter-apk/app-debug.apk build/test-delivery/WarrantyCave-1.0.31-41-debug.apk
           cd android && ./gradlew :app:testDebugUnitTest && cd ..
@@ -85,7 +86,14 @@ jobs:
           disable-animations: true
           script: |
             flutter test integration_test/items_ads_test.dart --dart-define=ADMOB_TEST_ADS=true --reporter expanded
+            adb pull /sdcard/Android/data/com.warrantycave.app/files/ads-previews build/native-ad-previews
             adb shell cmd connectivity airplane-mode enable
             adb shell svc wifi disable
             adb shell svc data disable
             flutter test integration_test/items_ads_test.dart --dart-define=ADMOB_TEST_ADS=true --dart-define=ADS_OFFLINE_TEST=true --reporter expanded
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: WarrantyCave-1.0.31-native-ad-previews
+          path: build/native-ad-previews/*.png
+          if-no-files-found: warn

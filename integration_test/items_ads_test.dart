@@ -56,7 +56,7 @@ void main() {
       expect(find.text('Advertisement'), findsNothing);
       await tester.tap(find.byTooltip('Search warranties')); await tick();
       await tester.enterText(find.byType(TextField), 'Warranty 1'); await tick();
-      expect(find.text('Warranty 1'), findsOneWidget);
+      expect(find.byKey(const ValueKey('item:1')), findsOneWidget);
       expect(tester.takeException(), isNull);
     } else {
       for (final value in [0, 3]) {

@@ -1730,6 +1730,16 @@ class AppLocalizations {
   // Less frequently used screen copy is kept by key here so every entry is
   // visibly complete for all supported languages.
   static const _extended = <String, Map<String, String>>{
+    'rateApp': {
+      'en': 'Rate app',
+      'mk': 'Оцени ја апликацијата',
+      'de': 'App bewerten',
+      'es': 'Valorar la aplicación',
+      'fr': 'Noter l’application',
+      'it': 'Valuta l’app',
+      'tr': 'Uygulamayı değerlendir',
+      'el': 'Αξιολογήστε την εφαρμογή',
+    },
     'playOfferTitle': {
       'en': 'Update WarrantyCave',
       'mk': 'Ажурирај WarrantyCave',

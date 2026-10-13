@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +44,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     final uri = Uri.parse(value);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted)
       AppSnackbars.error(context, context.l10n.text('linkOpenFailed'));
+  }
+
+  Future<void> rateApp() async {
+    try {
+      await const MethodChannel('com.warrantycave.app/play_updates')
+          .invokeMethod<void>('listing');
+    } on MissingPluginException {
+      await open(ReferralPolicy.googlePlayDownloadUrl);
+    } on PlatformException {
+      await open(ReferralPolicy.googlePlayDownloadUrl);
+    }
   }
 
   Future<void> editProfile(AppController app) async {
@@ -613,6 +625,16 @@ class _SettingsScreenState extends State<SettingsScreen>
             Card(
               child: Column(
                 children: [
+                  ListTile(
+                    leading: const _SettingsIconBadge(
+                      icon: Icons.star_outline_rounded,
+                      backgroundColor: Color(0xFFFFF1C7),
+                      foregroundColor: Color(0xFFD99A00),
+                    ),
+                    title: Text(context.l10n.text('rateApp')),
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    onTap: rateApp,
+                  ),
                   ListTile(
                     leading: const _SettingsIconBadge(
                       icon: Icons.shield_rounded,

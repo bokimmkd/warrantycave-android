@@ -55,6 +55,7 @@ internal class PlayUpdates(private val activity: Activity, private val channel: 
                 "update" -> { download(); result.success(null) }
                 "restart" -> { restart(); result.success(null) }
                 "store" -> { openStore(); result.success(null) }
+                "listing" -> { openListing(); result.success(null) }
                 else -> result.notImplemented()
             }
         }
@@ -143,6 +144,9 @@ internal class PlayUpdates(private val activity: Activity, private val channel: 
     }
     private fun openStore() {
         state.later(); emit()
+        openListing()
+    }
+    private fun openListing() {
         try {
             activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${activity.packageName}")).setPackage("com.android.vending"))
         } catch (_: Exception) {

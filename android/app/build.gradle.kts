@@ -65,6 +65,7 @@ flutter {
 
 dependencies {
     implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.facebook.android:facebook-core:18.3.0")
     testImplementation("junit:junit:4.13.2")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

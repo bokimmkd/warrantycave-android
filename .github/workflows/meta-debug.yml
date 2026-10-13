@@ -1,0 +1,46 @@
+name: Meta integration debug verification
+on:
+  push:
+    branches: [feature/meta-install-compact-account]
+  workflow_dispatch:
+concurrency:
+  group: meta-debug-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.5
+          cache: true
+      - name: Prepare Unicode PDF fonts
+        run: |
+          base64 --decode assets/fonts/DejaVuSans.ttf.b64 > assets/fonts/DejaVuSans.ttf
+          base64 --decode assets/fonts/DejaVuSans-Bold.ttf.b64 > assets/fonts/DejaVuSans-Bold.ttf
+      - run: flutter pub get
+      - name: Analyze integration and Settings
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib/data/meta_install_measurement.dart lib/presentation/account_actions.dart lib/presentation/meta_measurement_choice.dart lib/presentation/screens/settings_screen.dart
+      - name: Flutter and backend tests
+        run: |
+          flutter test
+          cd functions && npm ci && npm test
+      - name: Capture UI previews
+        run: CAPTURE_UI=true flutter test --update-goldens test/compact_ui_test.dart
+      - name: Build debug APK and native tests
+        run: |
+          flutter build apk --debug
+          cd android && ./gradlew :app:testDebugUnitTest && cd ..
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs build/app/outputs/flutter-apk/app-debug.apk > build/app/outputs/flutter-apk/debug-signing-certificate.txt
+          python3 scripts/check_meta_manifest.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WarrantyCave-1.0.30-build40-meta-debug
+          path: |
+            build/app/outputs/flutter-apk/app-debug.apk
+            build/app/outputs/flutter-apk/debug-signing-certificate.txt
+            test/captures/*.png
+          if-no-files-found: error
+          retention-days: 30

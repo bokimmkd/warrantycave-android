@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,8 @@ import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
 import '../compact_header.dart';
+import '../account_actions.dart';
+import '../meta_measurement_choice.dart';
 import 'upgrade_screen.dart';
 import 'welcome_screen.dart';
 
@@ -41,6 +44,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     final uri = Uri.parse(value);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted)
       AppSnackbars.error(context, context.l10n.text('linkOpenFailed'));
+  }
+
+  Future<void> rateApp() async {
+    try {
+      await const MethodChannel('com.warrantycave.app/play_updates')
+          .invokeMethod<void>('listing');
+    } on MissingPluginException {
+      await open(ReferralPolicy.googlePlayDownloadUrl);
+    } on PlatformException {
+      await open(ReferralPolicy.googlePlayDownloadUrl);
+    }
   }
 
   Future<void> editProfile(AppController app) async {
@@ -377,26 +391,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                       ),
                     ),
                     const Divider(height: 1),
-                    ListTile(
-                      leading: const _SettingsIconBadge(
-                        icon: Icons.logout_rounded,
-                        backgroundColor: Color(0xFFF0F2F5),
-                        foregroundColor: Color(0xFF536273),
-                      ),
-                      title: Text(context.l10n.text('signOut')),
-                      onTap: () => logout(app),
-                    ),
-                    ListTile(
-                      leading: const _SettingsIconBadge(
-                        icon: Icons.delete_forever_rounded,
-                        backgroundColor: Color(0xFFFFE8EC),
-                        foregroundColor: Colors.redAccent,
-                      ),
-                      title: Text(
-                        context.l10n.text('deleteAccount'),
-                        style: TextStyle(color: Colors.redAccent),
-                      ),
-                      onTap: () => deleteAccount(app),
+                    AccountActions(
+                      onSignOut: () => logout(app),
+                      onDelete: () => deleteAccount(app),
                     ),
                   ],
                 ),
@@ -630,6 +627,16 @@ class _SettingsScreenState extends State<SettingsScreen>
                 children: [
                   ListTile(
                     leading: const _SettingsIconBadge(
+                      icon: Icons.star_outline_rounded,
+                      backgroundColor: Color(0xFFFFF1C7),
+                      foregroundColor: Color(0xFFD99A00),
+                    ),
+                    title: Text(context.l10n.text('rateApp')),
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    onTap: rateApp,
+                  ),
+                  ListTile(
+                    leading: const _SettingsIconBadge(
                       icon: Icons.shield_rounded,
                       backgroundColor: Color(0xFFE8EEFF),
                       foregroundColor: caveBlue,
@@ -638,6 +645,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     trailing: const Icon(Icons.open_in_new, size: 18),
                     onTap: () => open('https://warrantycave.com/privacy'),
                   ),
+                  const MetaMeasurementChoice(),
                   FutureBuilder<bool>(
                     future: _adPrivacyOptionsRequired,
                     builder: (context, snapshot) {

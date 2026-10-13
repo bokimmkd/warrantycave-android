@@ -8,9 +8,16 @@ abstract final class AdService {
   static const _testBannerId = 'ca-app-pub-3940256099942544/6300978111';
   static const _productionBannerId =
       'ca-app-pub-1171723950608276/9463569777';
+  static const _testInlineBannerId = 'ca-app-pub-3940256099942544/9214589741';
+  static const _productionInlineBannerId =
+      'ca-app-pub-1171723950608276/9035972595';
+  static const _forceTestAds = bool.fromEnvironment('ADMOB_TEST_ADS');
+
+  static String get inlineBannerId =>
+      kDebugMode || _forceTestAds ? _testInlineBannerId : _productionInlineBannerId;
 
   static String get _bannerId =>
-      kDebugMode ? _testBannerId : _productionBannerId;
+      kDebugMode || _forceTestAds ? _testBannerId : _productionBannerId;
 
   static Future<void>? _initialization;
 

@@ -17,6 +17,8 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         playUpdates = PlayUpdates(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/play_updates"))
+        MetaAppEvents.attach(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger,
+            "com.warrantycave.app/meta_app_events"))
         shortcutChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, shortcutChannelName)
         shortcutChannel?.setMethodCallHandler { call, result ->
             if (call.method == "getInitialShortcut") result.success(shortcutFrom(intent))
@@ -62,8 +64,8 @@ class MainActivity : FlutterActivity() {
         shortcutFrom(intent)?.let { shortcutChannel?.invokeMethod("openShortcut", it) }
     }
 
-    override fun onResume() { super.onResume(); playUpdates?.resume() }
-    override fun onPause() { playUpdates?.pause(); super.onPause() }
+    override fun onResume() { super.onResume(); playUpdates?.resume(); MetaAppEvents.foreground(this) }
+    override fun onPause() { MetaAppEvents.background(); playUpdates?.pause(); super.onPause() }
     override fun onDestroy() { playUpdates?.destroy(isChangingConfigurations); super.onDestroy() }
 
     private fun shortcutFrom(intent: Intent?): String? = when (intent?.action) {

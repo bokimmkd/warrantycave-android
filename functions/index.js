@@ -372,6 +372,7 @@ exports.sendTransactionalEmail = onDocumentCreated({
     },
     body: JSON.stringify({
       from: 'WarrantyCave <updates@warrantycave.com>',
+      reply_to: 'bokimk.ap@gmail.com',
       to: [mail.to], subject, html, text,
     }),
   });

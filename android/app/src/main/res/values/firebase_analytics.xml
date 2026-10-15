@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_app_id" translatable="false">1:491401464312:android:be219a397b5ac60f60ee0d</string>
+    <string name="google_api_key" translatable="false">AIzaSyDFaf9xal5cTagdkxt-aB-H28TYa6iDdM0</string>
+    <string name="gcm_defaultSenderId" translatable="false">491401464312</string>
+    <string name="project_id" translatable="false">warrantycave</string>
+    <string name="google_storage_bucket" translatable="false">warrantycave.firebasestorage.app</string>
+</resources>

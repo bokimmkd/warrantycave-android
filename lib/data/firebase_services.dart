@@ -1,18 +1,25 @@
 import 'dart:convert';
+import 'dart:async';
+
+import 'usage_analytics.dart';
+
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+
 import '../domain/models.dart';
 import 'services.dart';
 
 class FirebaseAccountService {
-  FirebaseAccountService({FirebaseAuth? auth})
+  FirebaseAccountService({FirebaseAuth? auth, this.analytics})
     : _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
+  final UsageAnalytics? analytics;
   static const _googleServerClientId =
       '491401464312-pkie3i2v4dc1h3r3sbcoub7kp3g2tvto.apps.googleusercontent.com';
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -36,6 +43,7 @@ class FirebaseAccountService {
       password: password,
     );
     final user = result.user!;
+    unawaited(analytics?.signUp('password') ?? Future<void>.value());
     await user.updateDisplayName(displayName.trim());
     await user.sendEmailVerification();
     await user.reload();
@@ -64,7 +72,11 @@ class FirebaseAccountService {
       idToken: googleAuth.idToken,
       accessToken: googleAuth.accessToken,
     );
-    return (await _auth.signInWithCredential(credential)).user!;
+    final result = await _auth.signInWithCredential(credential);
+    if (result.additionalUserInfo?.isNewUser == true) {
+      unawaited(analytics?.signUp('google') ?? Future<void>.value());
+    }
+    return result.user!;
   }
 
   Future<void> resetPassword(String email) =>
@@ -187,9 +199,15 @@ class FirebaseCloudService {
           PlanTier.free,
       smartScanCredits: (result['smartScanCredits'] as num?)?.toInt() ?? 0,
       expiresAt: DateTime.tryParse(result['expiresAt'] as String? ?? ''),
-      paidExpiresAt: DateTime.tryParse(result['paidExpiresAt'] as String? ?? ''),
-      referralPlusUntil: DateTime.tryParse(result['referralPlusUntil'] as String? ?? ''),
-      nextBillingAt: DateTime.tryParse(result['nextBillingAt'] as String? ?? ''),
+      paidExpiresAt: DateTime.tryParse(
+        result['paidExpiresAt'] as String? ?? '',
+      ),
+      referralPlusUntil: DateTime.tryParse(
+        result['referralPlusUntil'] as String? ?? '',
+      ),
+      nextBillingAt: DateTime.tryParse(
+        result['nextBillingAt'] as String? ?? '',
+      ),
     );
   }
 
@@ -217,8 +235,12 @@ class FirebaseCloudService {
           PlanTier.free,
       smartScanCredits: 0,
       expiresAt: DateTime.tryParse(result['expiresAt'] as String? ?? ''),
-      paidExpiresAt: DateTime.tryParse(result['paidExpiresAt'] as String? ?? ''),
-      nextBillingAt: DateTime.tryParse(result['nextBillingAt'] as String? ?? ''),
+      paidExpiresAt: DateTime.tryParse(
+        result['paidExpiresAt'] as String? ?? '',
+      ),
+      nextBillingAt: DateTime.tryParse(
+        result['nextBillingAt'] as String? ?? '',
+      ),
     );
   }
 
@@ -281,9 +303,9 @@ class FirebaseCloudService {
       for (final item in localItems) await saveItem(uid, item);
       return CloudBootstrapResult(localItems, mergedSettings);
     }
-    final remote = await _items(
-      uid,
-    ).orderBy('createdAt', descending: true).get();
+    final remote = await _items(uid)
+        .orderBy('createdAt', descending: true)
+        .get();
     final downloaded = remote.docs
         .map((doc) => WarrantyItem.fromJson(doc.data()))
         .toList();
@@ -320,17 +342,17 @@ class FirebaseCloudService {
           localSettings.smartScanCredits,
       cloudOwnerUid: uid,
     );
-    final remote = await _items(
-      uid,
-    ).orderBy('createdAt', descending: true).get();
+    final remote = await _items(uid)
+        .orderBy('createdAt', descending: true)
+        .get();
     return CloudBootstrapResult(
       remote.docs.map((doc) => WarrantyItem.fromJson(doc.data())).toList(),
       mergedSettings,
     );
   }
 
-  Future<void> saveProfile(String uid, AppSettings settings) =>
-      _profile(uid).set({
+  Future<void> saveProfile(String uid, AppSettings settings) => _profile(uid)
+      .set({
         'firstName': settings.firstName,
         'lastName': settings.lastName,
         'phone': settings.phone,

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="com.google.android.gms.measurement.prefs.xml" />
+        <exclude domain="database" path="google_app_measurement_local.db" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="com.google.android.gms.measurement.prefs.xml" />
+        <exclude domain="database" path="google_app_measurement_local.db" />
+    </device-transfer>
+</data-extraction-rules>

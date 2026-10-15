@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+
 import '../data/firebase_services.dart';
 import '../data/services.dart';
+import '../data/usage_analytics.dart';
+import '../data/play_review.dart';
 import '../domain/models.dart';
 
 class AppController extends ChangeNotifier {
@@ -18,6 +22,8 @@ class AppController extends ChangeNotifier {
     required this.subscriptions,
     this.accounts,
     this.cloud,
+    this.analytics,
+    this.reviews,
   });
 
   final LocalStorageService storage;
@@ -26,6 +32,12 @@ class AppController extends ChangeNotifier {
   final SubscriptionService subscriptions;
   final FirebaseAccountService? accounts;
   final FirebaseCloudService? cloud;
+  final UsageAnalytics? analytics;
+  final PlayReview? reviews;
+  final Set<String> _committedWarrantyIds = {};
+  final Set<String> _pendingCreationIds = {};
+  bool deferredServicesReady = false;
+  bool _disposed = false;
   final _uuid = const Uuid();
 
   List<WarrantyItem> items = [];
@@ -55,6 +67,8 @@ class AppController extends ChangeNotifier {
     try {
       final loaded = await storage.load();
       items = loaded.$1;
+      _committedWarrantyIds.addAll(items.map((item) => item.id));
+      await reviews?.observe(items.length, existingAccount: signedIn);
       settings = loaded.$2;
       _billingSubscription ??= subscriptions.updates.listen(
         _handleBillingUpdate,
@@ -95,6 +109,8 @@ class AppController extends ChangeNotifier {
     } catch (error) {
       debugPrint('Deferred notification setup failed: $error');
     }
+    deferredServicesReady = true;
+    notifyListeners();
   }
 
   PlanTier get effectivePlan {
@@ -108,11 +124,9 @@ class AppController extends ChangeNotifier {
     return settings.plan;
   }
 
-  int get countedItemCount =>
-      items.where((item) => !item.isArchived()).length;
+  int get countedItemCount => items.where((item) => !item.isArchived()).length;
 
-  bool get canAdd =>
-      subscriptions.canAddItem(effectivePlan, countedItemCount);
+  bool get canAdd => subscriptions.canAddItem(effectivePlan, countedItemCount);
   bool canEditItem(WarrantyItem item) =>
       !item.isArchived() &&
       countedItemCount <= effectivePlan.itemLimit &&
@@ -151,9 +165,9 @@ class AppController extends ChangeNotifier {
     billingBusy = true;
     notifyListeners();
     try {
-      await subscriptions
-          .restorePurchases()
-          .timeout(const Duration(seconds: 18));
+      await subscriptions.restorePurchases().timeout(
+        const Duration(seconds: 18),
+      );
     } on TimeoutException {
       billingError = 'Google Play did not respond. Please try again.';
       rethrow;
@@ -228,12 +242,17 @@ class AppController extends ChangeNotifier {
 
   Future<void> upsert(WarrantyItem item) async {
     final index = items.indexWhere((entry) => entry.id == item.id);
+    // Existing imports/edits are not new local creates. Preserve a failed
+    // first save's eligibility for its successful retry.
+    if (index >= 0 && !_pendingCreationIds.contains(item.id))
+      _committedWarrantyIds.add(item.id);
     final removedPhotos = <String>[];
     if (index < 0) {
       if (!canAdd) throw StateError('plan_limit');
       if (item.createdOnPlan != effectivePlan) {
         throw StateError('plan_changed');
       }
+      _pendingCreationIds.add(item.id);
       items = [...items, item];
     } else {
       final previous = items[index];
@@ -257,6 +276,10 @@ class AppController extends ChangeNotifier {
       items = [...items]..[index] = item;
     }
     await _persist();
+    if (_committedWarrantyIds.add(item.id)) {
+      unawaited(analytics?.warrantyCreated() ?? Future<void>.value());
+    }
+    _pendingCreationIds.remove(item.id);
     for (final path in removedPhotos) await photos.delete(path);
     await notifications.scheduleFor(item, settings);
     await _cloudAction(() => cloud!.saveItem(user!.uid, item));
@@ -266,10 +289,7 @@ class AppController extends ChangeNotifier {
     // For cloud-backed plans, delete the remote record first. Removing the
     // local copy while the cloud delete is still pending (or has failed)
     // allows the next refresh to download the item again.
-    if (signedIn &&
-        emailVerified &&
-        cloud != null &&
-        effectivePlan.hasCloud) {
+    if (signedIn && emailVerified && cloud != null && effectivePlan.hasCloud) {
       cloudError = null;
       cloudSyncing = true;
       notifyListeners();
@@ -415,6 +435,7 @@ class AppController extends ChangeNotifier {
     }
     return granted;
   }
+
   Future<void> completeOnboarding() =>
       updateSettings(settings.copyWith(onboardingComplete: true));
 
@@ -567,9 +588,8 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> _flushPendingCloudDeletions() async {
-    if (cloud == null ||
-        !signedIn ||
-        settings.cloudOwnerUid != user!.uid) return;
+    if (cloud == null || !signedIn || settings.cloudOwnerUid != user!.uid)
+      return;
     for (final id in List<String>.of(settings.pendingCloudDeletionIds)) {
       // Keep each ID on disk until its cloud deletion succeeds. A failed
       // deletion aborts refresh so a stale record is never downloaded again.
@@ -620,7 +640,14 @@ class AppController extends ChangeNotifier {
       path.startsWith('https://') || File(path).existsSync();
 
   @override
+  void notifyListeners() {
+    // Startup/billing/cloud futures can finish after the provider is removed.
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
   void dispose() {
+    _disposed = true;
     final billingSubscription = _billingSubscription;
     if (billingSubscription != null) {
       unawaited(billingSubscription.cancel());

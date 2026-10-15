@@ -5,6 +5,9 @@ on:
   push:
     branches: [main, feature/warrantycave-next-update, feature/individual-reminders-dark-mode, feature/plan-item-edit-access, feature/admob-release-readiness, feature/compact-ui-polish, feature/play-updates-adaptive-banner, feature/meta-install-compact-account, release/1.0.31-inline-ads, release/1.0.32-rate-app, release/1.0.33-analytics-review]
 
+permissions:
+  contents: write # Allows an unpublished draft delivery if Actions storage is full.
+
 concurrency:
   group: android-release-${{ github.ref }}
   cancel-in-progress: false
@@ -32,7 +35,7 @@ jobs:
       - name: Dependencies
         run: flutter pub get
       - name: Analyze changed UI
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib/data/usage_analytics.dart lib/data/play_review.dart lib/presentation/release_engagement_host.dart lib/data/play_updates.dart lib/data/ad_service.dart lib/presentation/play_update_widgets.dart lib/presentation/compact_header.dart lib/presentation/widgets.dart lib/presentation/main_shell.dart lib/presentation/screens/home_screen.dart lib/presentation/screens/items_screen.dart lib/presentation/screens/reminders_screen.dart lib/presentation/screens/settings_screen.dart
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib/main.dart lib/data/firebase_services.dart lib/presentation/app_controller.dart lib/data/usage_analytics.dart lib/data/play_review.dart lib/presentation/release_engagement_host.dart lib/data/play_updates.dart lib/data/ad_service.dart lib/presentation/play_update_widgets.dart lib/presentation/compact_header.dart lib/presentation/widgets.dart lib/presentation/main_shell.dart lib/presentation/screens/home_screen.dart lib/presentation/screens/items_screen.dart lib/presentation/screens/reminders_screen.dart lib/presentation/screens/settings_screen.dart
       - name: Tests
         run: |
           flutter test
@@ -55,6 +58,8 @@ jobs:
           keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab > build/app/outputs/bundle/release/signing-certificate.txt
           grep -q "5D:B2:2B:66:1B:0B:1D:40:15:4F:4C:9D:F6:E3:20:8A:DC:B8:D1:99:AB:F0:FC:13:9A:4F:D4:20:65:2D:02:31" build/app/outputs/bundle/release/signing-certificate.txt
       - uses: actions/upload-artifact@v4
+        id: artifacts
+        continue-on-error: true
         with:
           name: WarrantyCave-1.0.33-build-44-test-candidate
           path: |
@@ -70,4 +75,10 @@ jobs:
             build/app/test-results/testDebugUnitTest/*.xml
           if-no-files-found: error
           retention-days: 3
-
+      - name: Deliver candidate as an unpublished draft if artifact storage is full
+        if: steps.artifacts.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          zip -q -r WarrantyCave-1.0.33-44-test-candidate.zip build/app/outputs/flutter-apk/app-release.apk build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/signing-certificate.txt build/app/outputs/bundle/release/checksums.txt build/app/outputs/mapping/release build/app/test-results/testDebugUnitTest test/captures docs/releases/1.0.33-test-candidate.md pubspec.lock
+          gh release create "test-1.0.33-44-${{ github.run_id }}" WarrantyCave-1.0.33-44-test-candidate.zip --draft --target "$GITHUB_SHA" --title "WarrantyCave 1.0.33 (44) — unpublished test candidate" --notes "Testing only. Do not publish to Google Play until Boki tests and confirms. This unpublished draft is an artifact-delivery fallback; it is not a production release."

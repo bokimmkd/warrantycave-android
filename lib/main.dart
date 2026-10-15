@@ -24,6 +24,10 @@ import 'presentation/theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: WarrantyCaveFirebaseOptions.android);
+  final legacyNavigation =
+      await const MethodChannel('com.warrantycave.app/system_ui')
+          .invokeMethod<bool>('legacyNavigation') ??
+      true;
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   final analytics = UsageAnalytics();
   await analytics.initialize();
@@ -39,7 +43,7 @@ Future<void> main() async {
         reviews: PlayReview(),
         cloud: FirebaseCloudService(),
       )..initialize(),
-      child: const WarrantyCaveApp(),
+      child: WarrantyCaveApp(legacyNavigation: legacyNavigation),
     ),
   );
   // Ads and consent must never delay the first useful frame.
@@ -49,7 +53,9 @@ Future<void> main() async {
 }
 
 class WarrantyCaveApp extends StatelessWidget {
-  const WarrantyCaveApp({super.key});
+  const WarrantyCaveApp({super.key, this.legacyNavigation = false});
+  // Android 7 has white navigation buttons and no dark-icon API.
+  final bool legacyNavigation;
   @override
   Widget build(BuildContext context) {
     final languageCode = context.select<AppController, String>(
@@ -76,12 +82,14 @@ class WarrantyCaveApp extends StatelessWidget {
       builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarColor: legacyNavigation
+              ? caveNavy
+              : Colors.transparent,
           statusBarIconBrightness: darkMode
               ? Brightness.light
               : Brightness.dark,
           statusBarBrightness: darkMode ? Brightness.dark : Brightness.light,
-          systemNavigationBarIconBrightness: darkMode
+          systemNavigationBarIconBrightness: darkMode || legacyNavigation
               ? Brightness.light
               : Brightness.dark,
           systemNavigationBarContrastEnforced: true,

@@ -18,6 +18,11 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         UsageAnalytics.attach(applicationContext, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/usage_analytics"))
         PlayReview(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/play_review"))
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/system_ui")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "legacyNavigation") result.success(android.os.Build.VERSION.SDK_INT < 26)
+                else result.notImplemented()
+            }
         playUpdates = PlayUpdates(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/play_updates"))
         MetaAppEvents.attach(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger,
             "com.warrantycave.app/meta_app_events"))

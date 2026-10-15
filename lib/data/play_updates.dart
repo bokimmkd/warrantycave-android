@@ -11,6 +11,7 @@ class PlayUpdateState {
     this.total = 0,
     this.offer,
     this.installFailed = false,
+    this.checking = false,
   });
   factory PlayUpdateState.fromMap(Map<dynamic, dynamic> data) =>
       PlayUpdateState(
@@ -20,11 +21,12 @@ class PlayUpdateState {
         total: data['total'] as int? ?? 0,
         offer: data['offer'] as String?,
         installFailed: data['installFailed'] == true,
+        checking: data['checking'] == true,
       );
   final int version, bytes, total;
   final String stage;
   final String? offer;
-  final bool installFailed;
+  final bool installFailed, checking;
   double? get fraction => total > 0 ? (bytes / total).clamp(0.0, 1.0) : null;
   bool get showProgress =>
       ['waiting', 'downloading', 'installing'].contains(stage);

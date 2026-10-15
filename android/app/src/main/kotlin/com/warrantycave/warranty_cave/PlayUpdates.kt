@@ -50,7 +50,7 @@ internal class PlayUpdates(private val activity: Activity, private val channel: 
         finishedVisit = false
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
-                "state" -> { result.success(state.snapshot()); check() }
+                "state" -> { check(); result.success(snapshot()) }
                 "later" -> { state.later(); emit(); result.success(null) }
                 "update" -> { download(); result.success(null) }
                 "restart" -> { restart(); result.success(null) }
@@ -83,7 +83,8 @@ internal class PlayUpdates(private val activity: Activity, private val channel: 
             state.newVisit(); emit(); check()
         }
     }
-    private fun emit() { if (owner == identity) channel.invokeMethod("changed", state.snapshot()) }
+    private fun snapshot() = state.snapshot() + mapOf("checking" to (queryStarted != 0L))
+    private fun emit() { if (owner == identity) channel.invokeMethod("changed", snapshot()) }
     private fun stage(status: Int) = when (status) {
         InstallStatus.PENDING -> "waiting"
         InstallStatus.DOWNLOADING -> "downloading"
@@ -99,10 +100,11 @@ internal class PlayUpdates(private val activity: Activity, private val channel: 
         if (queryStarted != 0L && now - queryStarted < 15_000) return
         val ticket = ++query; val observation = revision
         queryStarted = now
+        emit()
         manager.appUpdateInfo.addOnCompleteListener { task ->
             if (owner != identity || ticket != query) return@addOnCompleteListener
             queryStarted = 0
-            if (!resumed || state.consent || revision != observation || !task.isSuccessful) return@addOnCompleteListener
+            if (!resumed || state.consent || revision != observation || !task.isSuccessful) { emit(); return@addOnCompleteListener }
             val next = task.result
             info = next
             state.flexible = next.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)

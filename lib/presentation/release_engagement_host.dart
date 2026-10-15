@@ -123,6 +123,7 @@ class _ReleaseEngagementHostState extends State<ReleaseEngagementHost>
       !(_app?.smartScanBusy ?? true) &&
       (!widget.mainReady ||
           (widget.updates.initialized &&
+              !widget.updates.state.checking &&
               widget.updates.state.offer == null &&
               !widget.updates.state.showProgress));
   void _schedule() {
@@ -213,19 +214,23 @@ class UsageMeasurementChoice extends StatelessWidget {
         title: Text(context.l10n.text('usageMeasurementTitle')),
         subtitle: Text(context.l10n.text('usageMeasurementHint')),
         value: analytics.enabled,
-        onChanged: (enabled) async {
-          if (enabled && await showUsageConsent(context) != true) return;
-          try {
-            await analytics.setEnabled(enabled);
-          } catch (_) {
-            if (context.mounted)
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(context.l10n.text('metaMeasurementRetry')),
-                ),
-              );
-          }
-        },
+        onChanged: analytics.busy
+            ? null
+            : (enabled) async {
+                if (enabled && await showUsageConsent(context) != true) return;
+                try {
+                  await analytics.setEnabled(enabled);
+                } catch (_) {
+                  if (context.mounted)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          context.l10n.text('metaMeasurementRetry'),
+                        ),
+                      ),
+                    );
+                }
+              },
       ),
     );
   }

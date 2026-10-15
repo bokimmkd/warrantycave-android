@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,44 +21,93 @@ const _screenKey = Key('screen');
 const _bannerKey = Key('reserved-banner');
 
 Widget _page(int index) => switch (index) {
-  0 => HomeScreen(onAdd: () {}, onSeeAll: () {},
-    onStatusSelected: (_) {}, onSelectTab: (_) {}),
+  0 => HomeScreen(
+    onAdd: () {},
+    onSeeAll: () {},
+    onStatusSelected: (_) {},
+    onSelectTab: (_) {},
+  ),
   1 => ItemsScreen(onSelectTab: (_) {}),
   2 => const RemindersScreen(),
   _ => SettingsScreen(onSelectTab: (_) {}),
 };
 
-Future<AppController> _render(WidgetTester tester, int page, {
-  double width = 390, double scale = 1, bool dark = false,
-  String language = 'en', double keyboard = 0,
+Future<AppController> _render(
+  WidgetTester tester,
+  int page, {
+  double width = 390,
+  double scale = 1,
+  bool dark = false,
+  String language = 'en',
+  double keyboard = 0,
+  double topInset = 0,
+  double bottomInset = 0,
 }) async {
   tester.view.physicalSize = Size(width, 844);
   tester.view.devicePixelRatio = 1;
-  final controller = AppController(storage: _Storage(), photos: _Photos(),
-    notifications: _Notifications(), subscriptions: LocalSubscriptionService());
+  final controller = AppController(
+    storage: _Storage(),
+    photos: _Photos(),
+    notifications: _Notifications(),
+    subscriptions: LocalSubscriptionService(),
+  );
   await controller.initialize();
-  await tester.pumpWidget(ChangeNotifierProvider.value(value: controller,
-    child: MaterialApp(
-      theme: dark ? buildDarkTheme() : buildTheme(),
-      locale: Locale(language), supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: const [AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate],
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(scale),
-          viewInsets: EdgeInsets.only(bottom: keyboard)), child: child!),
-      home: RepaintBoundary(key: _screenKey, child: Scaffold(
-        body: _page(page),
-        bottomNavigationBar: Column(mainAxisSize: MainAxisSize.min, children: [
-          if (keyboard == 0) Container(key: _bannerKey, height: 50,
-            color: dark ? const Color(0xFF263A4E) : const Color(0xFFEAF4FB),
-            alignment: Alignment.center,
-            child: const Text('AdMob banner · reserved space', style: TextStyle(fontSize: 11))),
-          AppBottomNavigation(selectedIndex: page < 2 ? page : page + 1,
-            onSelected: (_) {}),
-        ]),
-      )),
-    )));
+  await tester.pumpWidget(
+    ChangeNotifierProvider.value(
+      value: controller,
+      child: MaterialApp(
+        theme: dark ? buildDarkTheme() : buildTheme(),
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(scale),
+            viewInsets: EdgeInsets.only(bottom: keyboard),
+            viewPadding: EdgeInsets.only(top: topInset, bottom: bottomInset),
+            padding: EdgeInsets.only(
+              top: topInset,
+              bottom: keyboard == 0 ? bottomInset : 0,
+            ),
+          ),
+          child: child!,
+        ),
+        home: RepaintBoundary(
+          key: _screenKey,
+          child: Scaffold(
+            body: _page(page),
+            bottomNavigationBar: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (keyboard == 0)
+                  Container(
+                    key: _bannerKey,
+                    height: 50,
+                    color: dark
+                        ? const Color(0xFF263A4E)
+                        : const Color(0xFFEAF4FB),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'AdMob banner · reserved space',
+                      style: TextStyle(fontSize: 11),
+                    ),
+                  ),
+                AppBottomNavigation(
+                  selectedIndex: page < 2 ? page : page + 1,
+                  onSelected: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
   await tester.pumpAndSettle();
   return controller;
 }
@@ -76,17 +126,24 @@ void main() {
     await fonts.load();
   });
   for (final page in [0, 1, 2, 3]) {
-    testWidgets('compact tab $page stays above reserved banner', (tester) async {
+    testWidgets('compact tab $page stays above reserved banner', (
+      tester,
+    ) async {
       final controller = await _render(tester, page);
       expect(tester.takeException(), isNull);
       if (page < 2) {
         final first = find.byType(WarrantyCard).first;
         expect(tester.getSize(first).height, lessThan(85));
-        expect(tester.getBottomRight(first).dy,
-          lessThanOrEqualTo(tester.getTopLeft(find.byKey(_bannerKey)).dy));
+        expect(
+          tester.getBottomRight(first).dy,
+          lessThanOrEqualTo(tester.getTopLeft(find.byKey(_bannerKey)).dy),
+        );
       }
       if (Platform.environment['CAPTURE_UI'] == 'true') {
-        await expectLater(find.byKey(_screenKey), matchesGoldenFile('captures/tab-$page.png'));
+        await expectLater(
+          find.byKey(_screenKey),
+          matchesGoldenFile('captures/tab-$page.png'),
+        );
       }
       await tester.pumpWidget(const SizedBox());
       controller.dispose();
@@ -94,21 +151,87 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    testWidgets('tab $page handles narrow dark screen and large translated text', (tester) async {
-      for (final code in ['en', 'mk', 'de', 'es', 'fr', 'it', 'tr', 'el']) {
-        final controller = await _render(tester, page, width: 320, scale: 1.5,
-          dark: true, language: code);
-        expect(tester.takeException(), isNull, reason: 'tab $page / $code');
-        await tester.pumpWidget(const SizedBox());
-        controller.dispose();
-      }
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
+    testWidgets(
+      'tab $page handles narrow dark screen and large translated text',
+      (tester) async {
+        for (final code in ['en', 'mk', 'de', 'es', 'fr', 'it', 'tr', 'el']) {
+          final controller = await _render(
+            tester,
+            page,
+            width: 320,
+            scale: 1.5,
+            dark: true,
+            language: code,
+          );
+          expect(tester.takeException(), isNull, reason: 'tab $page / $code');
+          await tester.pumpWidget(const SizedBox());
+          controller.dispose();
+        }
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      },
+    );
+  }
+
+  for (final dark in [false, true]) {
+    for (final bottom in [16.0, 48.0]) {
+      testWidgets(
+        'cutout and navigation insets stay clear dark=$dark bottom=$bottom',
+        (tester) async {
+          for (final page in [0, 1, 2, 3]) {
+            final controller = await _render(
+              tester,
+              page,
+              dark: dark,
+              topInset: 40,
+              bottomInset: bottom,
+            );
+            expect(tester.takeException(), isNull);
+            for (final icon in find.byType(NavigationDestination).evaluate()) {
+              final target = find.byElementPredicate(
+                (element) => element == icon,
+              );
+              expect(
+                tester.getBottomRight(target).dy,
+                lessThanOrEqualTo(844 - bottom),
+              );
+            }
+            if (page < 2) {
+              expect(
+                tester.getTopLeft(find.byType(WarrantyCard).first).dy,
+                greaterThanOrEqualTo(40),
+              );
+              expect(
+                tester.getBottomRight(find.byType(WarrantyCard).first).dy,
+                lessThanOrEqualTo(tester.getTopLeft(find.byKey(_bannerKey)).dy),
+              );
+            }
+            await tester.pumpWidget(const SizedBox());
+            controller.dispose();
+          }
+          final controller = await _render(
+            tester,
+            1,
+            dark: dark,
+            keyboard: 300,
+            topInset: 40,
+            bottomInset: bottom,
+          );
+          expect(find.byKey(_bannerKey), findsNothing);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox());
+          controller.dispose();
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        },
+      );
+    }
   }
 
   for (final page in [0, 1]) {
-    testWidgets('tab $page search filters and closing restores items', (tester) async {
+    testWidgets('tab $page search filters and closing restores items', (
+      tester,
+    ) async {
       final controller = await _render(tester, page);
       expect(find.byType(TextField), findsNothing);
       await tester.tap(find.byTooltip('Search warranties'));
@@ -133,29 +256,49 @@ void main() {
 class _Storage implements LocalStorageService {
   @override
   Future<(List<WarrantyItem>, AppSettings)> load() async => (
-    [for (final (i, name, brand, model) in [
-      (0, 'Samsung S25', 'Samsung', 'S25'),
-      (1, 'Mac Neo', 'Apple', 'Neo'),
-      (2, 'StarLink', 'StarLink', 'Router'),
-      (3, 'Coffee machine', 'Kitchen', 'Daily'),
-      (4, 'Headphones', 'Audio', 'Wireless'),
-      (5, 'Vacuum cleaner', 'Home', 'Compact'),
-    ]) WarrantyItem(id: '$i', productType: 'Other', productName: name,
-      brand: brand, model: model, purchaseDate: DateTime(2026, 9, 20),
-      expiryDate: DateTime(2027, 9, 20), durationLabel: '1 year',
-      createdAt: DateTime(2026, 9, 30, 12, 6 - i))],
-    const AppSettings(onboardingComplete: true, firstName: 'Aleksandar',
-      lastName: 'Petreski', email: 'demo@example.com'),
+    [
+      for (final (i, name, brand, model) in [
+        (0, 'Samsung S25', 'Samsung', 'S25'),
+        (1, 'Mac Neo', 'Apple', 'Neo'),
+        (2, 'StarLink', 'StarLink', 'Router'),
+        (3, 'Coffee machine', 'Kitchen', 'Daily'),
+        (4, 'Headphones', 'Audio', 'Wireless'),
+        (5, 'Vacuum cleaner', 'Home', 'Compact'),
+      ])
+        WarrantyItem(
+          id: '$i',
+          productType: 'Other',
+          productName: name,
+          brand: brand,
+          model: model,
+          purchaseDate: DateTime(2026, 9, 20),
+          expiryDate: DateTime(2027, 9, 20),
+          durationLabel: '1 year',
+          createdAt: DateTime(2026, 9, 30, 12, 6 - i),
+        ),
+    ],
+    const AppSettings(
+      onboardingComplete: true,
+      firstName: 'Aleksandar',
+      lastName: 'Petreski',
+      email: 'demo@example.com',
+    ),
   );
   @override
   Future<void> save(List<WarrantyItem> items, AppSettings settings) async {}
 }
+
 class _Photos implements PhotoStorageService {
   @override
-  Future<String?> capture(ImageSource source, String itemId, String kind) async => null;
+  Future<String?> capture(
+    ImageSource source,
+    String itemId,
+    String kind,
+  ) async => null;
   @override
   Future<void> delete(String path) async {}
 }
+
 class _Notifications implements NotificationService {
   @override
   Future<void> cancelFor(String itemId) async {}

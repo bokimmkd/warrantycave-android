@@ -10,6 +10,7 @@ class UsageAnalytics extends ChangeNotifier {
           const MethodChannel('com.warrantycave.app/usage_analytics');
   final MethodChannel _channel;
   bool enabled = false;
+  bool busy = false;
   bool hasChoice = true; // Unavailable hosts never display a consent prompt.
   bool _disposed = false;
   Future<void> initialize() async {
@@ -25,13 +26,19 @@ class UsageAnalytics extends ChangeNotifier {
   }
 
   Future<void> setEnabled(bool value) async {
+    if (busy) return;
+    busy = true;
     // Stop Dart events immediately even if persistence/native code fails.
     enabled = false;
     if (!_disposed) notifyListeners();
-    await _channel.invokeMethod<void>('setConsent', {'enabled': value});
-    enabled = value;
-    hasChoice = true;
-    if (!_disposed) notifyListeners();
+    try {
+      await _channel.invokeMethod<void>('setConsent', {'enabled': value});
+      enabled = value;
+      hasChoice = true;
+    } finally {
+      busy = false;
+      if (!_disposed) notifyListeners();
+    }
   }
 
   Future<void> signUp(String method) => _event('sign_up', method: method);

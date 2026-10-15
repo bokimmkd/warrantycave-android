@@ -161,7 +161,7 @@ class _App extends AppController {
 class _Storage implements LocalStorageService {
   @override
   Future<(List<WarrantyItem>, AppSettings)> load() async =>
-      ([], const AppSettings());
+      (<WarrantyItem>[], const AppSettings());
   @override
   Future<void> save(List<WarrantyItem> items, AppSettings settings) async {}
 }

@@ -37,6 +37,7 @@ class AppController extends ChangeNotifier {
   final Set<String> _committedWarrantyIds = {};
   final Set<String> _pendingCreationIds = {};
   bool deferredServicesReady = false;
+  bool _disposed = false;
   final _uuid = const Uuid();
 
   List<WarrantyItem> items = [];
@@ -639,7 +640,14 @@ class AppController extends ChangeNotifier {
       path.startsWith('https://') || File(path).existsSync();
 
   @override
+  void notifyListeners() {
+    // Startup/billing/cloud futures can finish after the provider is removed.
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
   void dispose() {
+    _disposed = true;
     final billingSubscription = _billingSubscription;
     if (billingSubscription != null) {
       unawaited(billingSubscription.cancel());

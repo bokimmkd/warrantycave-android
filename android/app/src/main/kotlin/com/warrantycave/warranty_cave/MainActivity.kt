@@ -16,6 +16,8 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        UsageAnalytics.attach(applicationContext, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/usage_analytics"))
+        PlayReview(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/play_review"))
         playUpdates = PlayUpdates(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.warrantycave.app/play_updates"))
         MetaAppEvents.attach(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger,
             "com.warrantycave.app/meta_app_events"))

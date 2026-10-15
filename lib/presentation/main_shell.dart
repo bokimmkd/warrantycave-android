@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../domain/models.dart';
 import '../data/ad_service.dart';
 import '../l10n/app_localizations.dart';
@@ -16,6 +17,8 @@ import 'screens/welcome_screen.dart';
 import 'theme.dart';
 import 'widgets.dart';
 import 'play_update_widgets.dart';
+import '../data/play_updates.dart';
+import 'release_engagement_host.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -25,6 +28,7 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   static const _shortcuts = MethodChannel('com.warrantycave.app/shortcuts');
+  final _updates = PlayUpdates();
   String? _pendingShortcut;
   int index = 0;
   WarrantyStatus? itemStatusFilter;
@@ -41,8 +45,11 @@ class _MainShellState extends State<MainShell> {
 
   Future<void> _loadInitialShortcut() async {
     try {
-      final shortcut = await _shortcuts.invokeMethod<String>('getInitialShortcut');
-      if (mounted && shortcut != null) setState(() => _pendingShortcut = shortcut);
+      final shortcut = await _shortcuts.invokeMethod<String>(
+        'getInitialShortcut',
+      );
+      if (mounted && shortcut != null)
+        setState(() => _pendingShortcut = shortcut);
     } on MissingPluginException {
       // Other platforms do not expose Android launcher shortcuts.
     }
@@ -51,6 +58,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void dispose() {
     _shortcuts.setMethodCallHandler(null);
+    _updates.dispose();
     super.dispose();
   }
 
@@ -104,54 +112,55 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  Future<void> _showUpgradeSheet() =>
-      AppBottomSheets.show<void>(
-        context,
-        title: context.l10n.text('upgradePlan'),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 62,
-              height: 62,
-              decoration: const BoxDecoration(
-                color: AppColors.softBlue,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.workspace_premium_outlined,
-                color: caveTeal,
-                size: 31,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              context.l10n.text('freeLimitReached'),
-              textAlign: TextAlign.center,
-              style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 18),
-            PrimaryButton(
-              label: context.l10n.text('viewPlans'),
-              icon: Icons.workspace_premium_outlined,
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => UpgradeScreen(onSelectTab: _returnToTab),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 6),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(context.l10n.text('maybeLater')),
-            ),
-          ],
+  Future<void> _showUpgradeSheet() => AppBottomSheets.show<void>(
+    context,
+    title: context.l10n.text('upgradePlan'),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 62,
+          height: 62,
+          decoration: const BoxDecoration(
+            color: AppColors.softBlue,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.workspace_premium_outlined,
+            color: caveTeal,
+            size: 31,
+          ),
         ),
-      );
+        const SizedBox(height: 14),
+        Text(
+          context.l10n.text('freeLimitReached'),
+          textAlign: TextAlign.center,
+          style: AppTypography.muted.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 18),
+        PrimaryButton(
+          label: context.l10n.text('viewPlans'),
+          icon: Icons.workspace_premium_outlined,
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => UpgradeScreen(onSelectTab: _returnToTab),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 6),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(context.l10n.text('maybeLater')),
+        ),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +184,9 @@ class _MainShellState extends State<MainShell> {
               const SizedBox(height: 12),
               Text(
                 context.l10n.text('openingCave'),
-                style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: AppTypography.muted.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -185,7 +196,11 @@ class _MainShellState extends State<MainShell> {
       return const WelcomeScreen();
     }
     if (app.accountEnabled && (!app.signedIn || !app.emailVerified)) {
-      return const AuthScreen();
+      return ReleaseEngagementHost(
+        mainReady: false,
+        updates: _updates,
+        child: const AuthScreen(),
+      );
     }
     if (_pendingShortcut != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _applyShortcut());
@@ -197,29 +212,42 @@ class _MainShellState extends State<MainShell> {
         onStatusSelected: _openItems,
         onSelectTab: _returnToTab,
       ),
-      ItemsScreen(initialStatus: itemStatusFilter, onSelectTab: _returnToTab,
-        adsActive: index == 1),
+      ItemsScreen(
+        initialStatus: itemStatusFilter,
+        onSelectTab: _returnToTab,
+        adsActive: index == 1,
+      ),
       const SizedBox(),
       const RemindersScreen(),
       SettingsScreen(onSelectTab: _returnToTab),
     ];
-    return Scaffold(
-      body: PlayUpdateHost(child: IndexedStack(index: index == 2 ? 0 : index, children: pages)),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Scaffold reserves this space outside the scrollable body. Hide it
-          // while typing so the keyboard cannot crowd the content or ad.
-          if (app.effectivePlan.hasAds && MediaQuery.viewInsetsOf(context).bottom == 0)
-            const SafeArea(top: false, bottom: false,
-              child: Center(child: FreeBannerAd())),
-          AppBottomNavigation(
-            selectedIndex: index == 2 ? 0 : index,
-            onSelected: _selectMainTab,
-          ),
-        ],
+    return ReleaseEngagementHost(
+      mainReady: true,
+      updates: _updates,
+      child: Scaffold(
+        body: PlayUpdateHost(
+          updates: _updates,
+          child: IndexedStack(index: index == 2 ? 0 : index, children: pages),
+        ),
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Scaffold reserves this space outside the scrollable body. Hide it
+            // while typing so the keyboard cannot crowd the content or ad.
+            if (app.effectivePlan.hasAds &&
+                MediaQuery.viewInsetsOf(context).bottom == 0)
+              const SafeArea(
+                top: false,
+                bottom: false,
+                child: Center(child: FreeBannerAd()),
+              ),
+            AppBottomNavigation(
+              selectedIndex: index == 2 ? 0 : index,
+              onSelected: _selectMainTab,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-

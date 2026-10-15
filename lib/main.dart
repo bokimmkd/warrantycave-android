@@ -1,9 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'data/usage_analytics.dart';
+import 'data/play_review.dart';
+import 'presentation/release_engagement_host.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+
 import 'data/services.dart';
 import 'data/play_billing_service.dart';
 import 'data/ad_service.dart';
@@ -17,6 +24,9 @@ import 'presentation/theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: WarrantyCaveFirebaseOptions.android);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  final analytics = UsageAnalytics();
+  await analytics.initialize();
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppController(
@@ -24,7 +34,9 @@ Future<void> main() async {
         photos: LocalPhotoStorageService(),
         notifications: LocalNotificationService(),
         subscriptions: GooglePlaySubscriptionService(),
-        accounts: FirebaseAccountService(),
+        accounts: FirebaseAccountService(analytics: analytics),
+        analytics: analytics,
+        reviews: PlayReview(),
         cloud: FirebaseCloudService(),
       )..initialize(),
       child: const WarrantyCaveApp(),
@@ -60,6 +72,22 @@ class WarrantyCaveApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      navigatorObservers: [engagementRouteObserver],
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: Colors.transparent,
+          statusBarIconBrightness: darkMode
+              ? Brightness.light
+              : Brightness.dark,
+          statusBarBrightness: darkMode ? Brightness.dark : Brightness.light,
+          systemNavigationBarIconBrightness: darkMode
+              ? Brightness.light
+              : Brightness.dark,
+          systemNavigationBarContrastEnforced: true,
+        ),
+        child: child!,
+      ),
       home: const MainShell(),
     );
   }

@@ -42,8 +42,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = if (System.getenv("ANDROID_KEYSTORE_PATH").isNullOrBlank()) {
                 signingConfigs.getByName("debug")
             } else {
@@ -65,6 +66,9 @@ flutter {
 
 dependencies {
     implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.google.android.play:review:2.0.2")
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation("com.google.firebase:firebase-analytics")
     implementation("com.facebook.android:facebook-core:18.3.0")
     testImplementation("junit:junit:4.13.2")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")

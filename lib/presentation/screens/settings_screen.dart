@@ -13,6 +13,7 @@ import '../theme.dart';
 import '../compact_header.dart';
 import '../account_actions.dart';
 import '../meta_measurement_choice.dart';
+import '../release_engagement_host.dart';
 import 'upgrade_screen.dart';
 import 'welcome_screen.dart';
 
@@ -645,6 +646,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     trailing: const Icon(Icons.open_in_new, size: 18),
                     onTap: () => open('https://warrantycave.com/privacy'),
                   ),
+                  const UsageMeasurementChoice(),
                   const MetaMeasurementChoice(),
                   FutureBuilder<bool>(
                     future: _adPrivacyOptionsRequired,

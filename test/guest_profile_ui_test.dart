@@ -21,7 +21,7 @@ void main() {
     await controller.updateSettings(controller.settings.copyWith(darkMode: dark));
 
     await tester.pumpWidget(
-      ChangeNotifierProvider.value(
+      ChangeNotifierProvider<AppController>.value(
         value: controller,
         child: const WarrantyCaveApp(),
       ),

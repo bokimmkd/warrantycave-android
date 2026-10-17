@@ -297,21 +297,25 @@ class FirebaseCloudService {
     final ownsLocalData =
         localSettings.cloudOwnerUid.isEmpty ||
         localSettings.cloudOwnerUid == uid;
-    if (localItems.isNotEmpty && ownsLocalData) {
-      mergedSettings = mergedSettings.copyWith(cloudOwnerUid: uid);
-      await saveProfile(uid, mergedSettings);
-      for (final item in localItems) await saveItem(uid, item);
-      return CloudBootstrapResult(localItems, mergedSettings);
-    }
-    final remote = await _items(uid)
-        .orderBy('createdAt', descending: true)
-        .get();
+    // Read remote records BEFORE upload. A guest with four local warranties
+    // must still see all existing account warranties immediately after login.
+    final remote = await _items(uid).orderBy('createdAt', descending: true).get();
     final downloaded = remote.docs
-        .map((doc) => WarrantyItem.fromJson(doc.data()))
-        .toList();
+        .map((doc) => WarrantyItem.fromJson(doc.data())).toList();
+    final merged = mergeAccountWarranties(
+      ownsLocalData ? localItems : const <WarrantyItem>[], downloaded,
+      localSettings.pendingCloudDeletionIds,
+    );
+    if (ownsLocalData) {
+      for (final item in localItems) {
+        if (!localSettings.pendingCloudDeletionIds.contains(item.id)) {
+          await saveItem(uid, item);
+        }
+      }
+    }
     mergedSettings = mergedSettings.copyWith(cloudOwnerUid: uid);
     await saveProfile(uid, mergedSettings);
-    return CloudBootstrapResult(downloaded, mergedSettings);
+    return CloudBootstrapResult(merged, mergedSettings);
   }
 
   Future<CloudBootstrapResult> refresh(
@@ -613,4 +617,13 @@ class FirebaseCloudService {
       message: 'Cloud Storage returned ${response.statusCode}.',
     );
   }
+}
+
+/// Stable IDs keep local edits authoritative and avoid duplicating remote items.
+List<WarrantyItem> mergeAccountWarranties(List<WarrantyItem> local,
+    List<WarrantyItem> remote, List<String> deleted) {
+  final result = {for (final item in remote) item.id: item,
+    for (final item in local) item.id: item};
+  for (final id in deleted) { result.remove(id); }
+  return result.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 }

@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'account_local_store.dart';
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -89,53 +89,8 @@ abstract interface class SmartScanService {
   Future<ScanSuggestion> scan(String localImagePath);
 }
 
-class JsonLocalStorageService implements LocalStorageService {
-  Future<File> get _file async => File(
-    '${(await getApplicationDocumentsDirectory()).path}/warrantycave/data.json',
-  );
-
-  @override
-  Future<(List<WarrantyItem>, AppSettings)> load() async {
-    final file = await _file;
-    for (final candidate in [file, File('${file.path}.bak')]) {
-      try {
-        if (!await candidate.exists()) continue;
-        final root =
-            jsonDecode(await candidate.readAsString()) as Map<String, dynamic>;
-        final items = (root['items'] as List? ?? const [])
-            .map(
-              (entry) => WarrantyItem.fromJson(
-                Map<String, dynamic>.from(entry as Map),
-              ),
-            )
-            .toList();
-        final settings = AppSettings.fromJson(
-          Map<String, dynamic>.from(root['settings'] as Map? ?? const {}),
-        );
-        return (items, settings);
-      } catch (_) {
-        continue;
-      }
-    }
-    return (<WarrantyItem>[], const AppSettings());
-  }
-
-  @override
-  Future<void> save(List<WarrantyItem> items, AppSettings settings) async {
-    final file = await _file;
-    await file.parent.create(recursive: true);
-    final temp = File('${file.path}.tmp');
-    if (await file.exists()) await file.copy('${file.path}.bak');
-    await temp.writeAsString(
-      jsonEncode({
-        'schemaVersion': 2,
-        'items': items.map((e) => e.toJson()).toList(),
-        'settings': settings.toJson(),
-      }),
-      flush: true,
-    );
-    await temp.rename(file.path);
-  }
+class JsonLocalStorageService extends AccountLocalStore implements LocalStorageService {
+  JsonLocalStorageService({super.directory});
 }
 
 class LocalPhotoStorageService implements PhotoStorageService {

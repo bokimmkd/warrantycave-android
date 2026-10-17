@@ -1,3 +1,4 @@
+import 'auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -170,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(context.l10n.text('signOutQuestion')),
-        content: Text(context.l10n.text('signOutInfo')),
+        content: Text(context.l10n.text('guestSignOutInfo')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -183,7 +184,10 @@ class _SettingsScreenState extends State<SettingsScreen>
         ],
       ),
     );
-    if (confirmed == true) await app.signOut();
+    if (confirmed == true) {
+      try { await app.signOut(); }
+      catch (_) { if (mounted) AppSnackbars.error(context, context.l10n.text('accountWait')); }
+    }
   }
 
   Future<void> deleteAccount(AppController app) async {
@@ -344,7 +348,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                 ),
                 subtitle: Text(
-                  s.email.isEmpty
+                  !app.signedIn ? context.l10n.text('guestProfileCopy') : s.email.isEmpty
                       ? context.l10n.format('profileSummary', {
                           'currency': s.defaultCurrency,
                         })
@@ -354,7 +358,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                         }),
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => editProfile(app),
+                onTap: app.accountActionBusy ? null : () async {
+                  if (!app.signedIn || !app.emailVerified) {
+                    await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
+                  } else { await editProfile(app); }
+                },
               ),
             ),
             if (app.signedIn) ...[
@@ -393,8 +401,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                     const Divider(height: 1),
                     AccountActions(
-                      onSignOut: () => logout(app),
-                      onDelete: () => deleteAccount(app),
+                      onSignOut: () => app.accountActionBusy ? null : logout(app),
+                      onDelete: () => app.accountActionBusy ? null : deleteAccount(app),
                     ),
                   ],
                 ),

@@ -7,7 +7,6 @@ import '../data/ad_service.dart';
 import '../l10n/app_localizations.dart';
 import 'app_controller.dart';
 import 'screens/add_warranty_screen.dart';
-import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/items_screen.dart';
 import 'screens/reminders_screen.dart';
@@ -192,15 +191,20 @@ class _MainShellState extends State<MainShell> {
           ),
         ),
       );
+    if (app.loadError != null) {
+      return Scaffold(body: SafeArea(child: Center(child: Padding(
+        padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min,
+          children: [Text(context.l10n.text('localLoadRetry')),
+            const SizedBox(height: 16), FilledButton(
+              onPressed: app.initialize, child: Text(context.l10n.text('tryAgain')))])))));
+    }
     if (!app.settings.onboardingComplete) {
       return const WelcomeScreen();
     }
-    if (app.accountEnabled && (!app.signedIn || !app.emailVerified)) {
-      return ReleaseEngagementHost(
-        mainReady: false,
-        updates: _updates,
-        child: const AuthScreen(),
-      );
+    if (app.accountBusy) {
+      return Scaffold(body: Center(child: Column(mainAxisSize: MainAxisSize.min,
+        children: [const CircularProgressIndicator(), const SizedBox(height: 16),
+          Text(context.l10n.text('pleaseWait'))])));
     }
     if (_pendingShortcut != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _applyShortcut());

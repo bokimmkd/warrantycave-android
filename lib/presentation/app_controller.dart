@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../data/firebase_services.dart';
 import '../data/services.dart';
+import '../data/account_local_store.dart';
 import '../data/usage_analytics.dart';
 import '../data/play_review.dart';
 import '../domain/models.dart';
@@ -43,6 +44,11 @@ class AppController extends ChangeNotifier {
   List<WarrantyItem> items = [];
   AppSettings settings = const AppSettings();
   bool loading = true;
+  bool accountBusy = false;
+  int _localWrites = 0;
+  int _backgroundOperations = 0;
+  bool get accountActionBusy => accountBusy || cloudSyncing || billingBusy || smartScanBusy || _localWrites > 0 || _backgroundOperations > 0;
+
   bool cloudSyncing = false;
   DateTime? lastCloudSync;
   String? loadError;
@@ -64,8 +70,13 @@ class AppController extends ChangeNotifier {
       _plusTestAccounts.contains((user?.email ?? '').trim().toLowerCase());
 
   Future<void> initialize() async {
+    loading = true;
+    notifyListeners();
     try {
-      final loaded = await storage.load();
+      loadError = null;
+      final loaded = storage is AccountLocalStore
+          ? await (storage as AccountLocalStore).activate(user?.uid, email: user?.email)
+          : await storage.load();
       items = loaded.$1;
       _committedWarrantyIds.addAll(items.map((item) => item.id));
       await reviews?.observe(items.length, existingAccount: signedIn);
@@ -81,7 +92,7 @@ class AppController extends ChangeNotifier {
     }
     // Local data is enough to render the app. Billing, cloud and notification
     // plugins continue after the first useful frame instead of blocking it.
-    unawaited(_initializeDeferredServices());
+    if (loadError == null) unawaited(_initializeDeferredServices());
   }
 
   Future<void> _initializeDeferredServices() async {
@@ -94,18 +105,23 @@ class AppController extends ChangeNotifier {
       billingError = error.toString();
       notifyListeners();
     }
-    if (signedIn && emailVerified) await _syncForUser();
+    if (signedIn && emailVerified && !accountBusy) await _syncForUser();
     try {
-      await subscriptions.restorePurchases();
+      if (signedIn && emailVerified && !accountBusy) await subscriptions.restorePurchases();
     } catch (error) {
       billingError = error.toString();
       notifyListeners();
     }
     try {
       await notifications.initialize();
+      // A concurrent login schedules its own account after activation.
+      if (accountBusy) return;
+      _backgroundOperations++;
+      try {
       for (final item in items) {
         await notifications.scheduleFor(item, settings);
       }
+      } finally { _backgroundOperations--; }
     } catch (error) {
       debugPrint('Deferred notification setup failed: $error');
     }
@@ -114,6 +130,7 @@ class AppController extends ChangeNotifier {
   }
 
   PlanTier get effectivePlan {
+    if (accountEnabled && (!signedIn || !emailVerified)) return PlanTier.free;
     if (_isPlusTester) return PlanTier.plus;
     final expiresAt = settings.planExpiresAt;
     if (settings.plan != PlanTier.free &&
@@ -135,6 +152,7 @@ class AppController extends ChangeNotifier {
   String newId() => _uuid.v4();
 
   Future<void> purchasePlan(PlanTier tier) async {
+    if (accountBusy || loadError != null) throw StateError('account-busy');
     if (tier == PlanTier.free) return;
     if (!signedIn || !emailVerified || cloud == null) {
       throw StateError('verified-account-required');
@@ -161,6 +179,10 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> restorePurchases() async {
+    if (accountBusy || loadError != null) throw StateError('account-busy');
+    if (!signedIn || !emailVerified || cloud == null) {
+      throw StateError('verified-account-required');
+    }
     billingError = null;
     billingBusy = true;
     notifyListeners();
@@ -214,6 +236,10 @@ class AppController extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    if (accountBusy) return; // Restore is retried after the account switch commits.
+    billingBusy = true;
+    _backgroundOperations++;
+    notifyListeners();
     try {
       final entitlement = await cloud!.confirmPlayPurchase(
         productId: productId,
@@ -235,12 +261,19 @@ class AppController extends ChangeNotifier {
     } catch (error) {
       billingError = error.toString();
     } finally {
+      _backgroundOperations--;
       billingBusy = false;
       notifyListeners();
     }
   }
 
   Future<void> upsert(WarrantyItem item) async {
+    if (accountBusy || loadError != null) throw StateError('account-busy');
+    _localWrites++;
+    try { return await _upsert(item); } finally { _localWrites--; notifyListeners(); }
+  }
+
+  Future<void> _upsert(WarrantyItem item) async {
     final index = items.indexWhere((entry) => entry.id == item.id);
     // Existing imports/edits are not new local creates. Preserve a failed
     // first save's eligibility for its successful retry.
@@ -286,6 +319,12 @@ class AppController extends ChangeNotifier {
   }
 
   Future<bool> delete(WarrantyItem item) async {
+    if (accountBusy || loadError != null) throw StateError('account-busy');
+    _localWrites++;
+    try { return await _delete(item); } finally { _localWrites--; notifyListeners(); }
+  }
+
+  Future<bool> _delete(WarrantyItem item) async {
     // For cloud-backed plans, delete the remote record first. Removing the
     // local copy while the cloud delete is still pending (or has failed)
     // allows the next refresh to download the item again.
@@ -331,97 +370,160 @@ class AppController extends ChangeNotifier {
   }) => photos.capture(source, itemId, kind);
 
   Future<void> updateSettings(AppSettings value) async {
+    if (accountBusy || loadError != null) throw StateError('account-busy');
+    _localWrites++;
+    try { return await _updateSettings(value); } finally { _localWrites--; notifyListeners(); }
+  }
+
+  Future<void> _updateSettings(AppSettings value) async {
     settings = value;
     await _persist();
     for (final item in items) await notifications.scheduleFor(item, settings);
     await _cloudAction(() => cloud!.saveProfile(user!.uid, settings));
   }
 
+  Future<void> _activateAccount({bool claimGuest = false}) async {
+    final previous = List<WarrantyItem>.of(items);
+    try {
+      if (storage is AccountLocalStore) {
+        final result = await (storage as AccountLocalStore).activate(
+          user?.uid, email: user?.email, claimGuest: claimGuest,
+        );
+        items = result.$1;
+        settings = result.$2;
+      }
+      _committedWarrantyIds..clear()..addAll(items.map((e) => e.id));
+      _pendingCreationIds.clear();
+      lastCloudSync = null;
+      cloudError = null;
+      billingError = null;
+    } catch (error) {
+      // Authentication may already have changed. Never render the old owner's
+      // records under the new identity if the atomic disk switch failed.
+      loadError = error.toString();
+      rethrow;
+    }
+    try {
+      for (final item in previous) { await notifications.cancelFor(item.id); }
+      for (final item in items) { await notifications.scheduleFor(item, settings); }
+    } catch (error) { debugPrint('Account reminder scheduling failed: $error'); }
+  }
+
+  Future<void> _authenticate(Future<void> Function() action, {Future<void> Function()? configure}) async {
+    if (accountActionBusy) throw StateError('account-busy');
+    accountBusy = true;
+    notifyListeners();
+    final previousUid = user?.uid;
+    try {
+      await storage.save(items, settings);
+      try {
+        await action();
+      } finally {
+        // Creating Auth can succeed even when its verification email fails.
+        // Bind the correct local vault in that case too.
+        if (user?.uid != previousUid) {
+          await _activateAccount(claimGuest: previousUid == null);
+          if (signedIn) await configure?.call();
+        }
+      }
+      if (signedIn && emailVerified) await _syncForUser();
+    } finally {
+      accountBusy = false;
+      notifyListeners();
+    }
+    if (signedIn && emailVerified) {
+      try { await restorePurchases(); } catch (_) { /* Login remains valid offline. */ }
+    }
+  }
+
   Future<void> createAccount({
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String password,
-    String referralCode = '',
+    required String firstName, required String lastName,
+    required String email, required String password, String referralCode = '',
   }) async {
     final normalizedReferral = ReferralPolicy.normalize(referralCode);
-    if (normalizedReferral.isNotEmpty &&
-        !ReferralPolicy.isValid(normalizedReferral)) {
+    if (normalizedReferral.isNotEmpty && !ReferralPolicy.isValid(normalizedReferral)) {
       throw const FormatException('invalid-referral-code');
     }
-    await accounts!.createAccount(
-      email: email.trim(),
-      password: password,
-      displayName: '$firstName $lastName'.trim(),
-    );
-    final ownReferralCode = ReferralPolicy.codeForUser(user!.uid);
-    settings = settings.copyWith(
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.trim(),
-      referralCode: ownReferralCode,
-      pendingReferralCode: normalizedReferral,
-    );
+    await _authenticate(() async {
+      await accounts!.createAccount(email: email.trim(), password: password,
+        displayName: '$firstName $lastName'.trim());
+    }, configure: () async {
+    settings = settings.copyWith(firstName: firstName.trim(), lastName: lastName.trim(),
+      email: email.trim(), referralCode: ReferralPolicy.codeForUser(user!.uid),
+      pendingReferralCode: normalizedReferral);
     await _persist();
-    await cloud?.registerReferralSignup(
-      uid: user!.uid,
-      ownCode: ownReferralCode,
-      invitedByCode: normalizedReferral,
-      email: email.trim(),
-    );
+    await cloud?.registerReferralSignup(uid: user!.uid,
+      ownCode: settings.referralCode, invitedByCode: normalizedReferral, email: email.trim());
+    });
   }
 
-  Future<void> signIn(String email, String password) async {
+  Future<void> signIn(String email, String password) => _authenticate(() async {
     await accounts!.signIn(email.trim(), password);
-    if (emailVerified) await _syncForUser();
-    notifyListeners();
-  }
+  });
 
-  Future<void> signInWithGoogle() async {
+  Future<void> signInWithGoogle() => _authenticate(() async {
     await accounts!.signInWithGoogle();
-    final name = (user?.displayName ?? '').trim();
-    final parts = name.isEmpty ? <String>[] : name.split(RegExp(r'\s+'));
-    settings = settings.copyWith(
-      firstName: parts.isEmpty ? settings.firstName : parts.first,
-      lastName: parts.length < 2 ? settings.lastName : parts.skip(1).join(' '),
-      email: user?.email ?? settings.email,
-    );
-    await _syncForUser();
-    notifyListeners();
-  }
+  });
 
   Future<void> sendPasswordReset(String email) =>
       accounts!.resetPassword(email.trim());
   Future<void> resendVerification() => accounts!.resendVerification();
 
   Future<bool> checkVerification() async {
-    final verified = await accounts!.reloadVerification();
-    if (verified) await _syncForUser();
+    if (accountActionBusy) throw StateError('account-busy');
+    accountBusy = true;
     notifyListeners();
+    var verified = false;
+    try {
+      verified = await accounts!.reloadVerification();
+      if (verified) await _syncForUser();
+    } finally { accountBusy = false; notifyListeners(); }
+    if (verified) {
+      try { await restorePurchases(); } catch (_) { /* Verification succeeded. */ }
+    }
     return verified;
   }
 
   Future<void> signOut() async {
-    await accounts!.signOut();
+    if (accountActionBusy) throw StateError('account-busy');
+    accountBusy = true;
     notifyListeners();
+    try {
+      await storage.save(items, settings);
+      try { await accounts!.signOut(); }
+      finally { if (!signedIn) await _activateAccount(); }
+    } finally { accountBusy = false; notifyListeners(); }
   }
 
   Future<void> deleteAccount({String? password}) async {
+    if (accountActionBusy) throw StateError('account-busy');
+    accountBusy = true;
+    notifyListeners();
     final uid = user!.uid;
-    await accounts!.reauthenticate(password: password);
-    await cloud!.deleteUserData(uid);
-    await accounts!.deleteCurrentUser();
-    for (final item in items) {
-      for (final path in [
-        if (item.productPhoto != null) item.productPhoto!,
-        ...item.receiptPhotos,
-        ...item.warrantyPhotos,
-      ])
-        await photos.delete(path);
-    }
-    items = [];
-    settings = AppSettings(onboardingComplete: settings.onboardingComplete);
-    await _persist();
+    final oldItems = List<WarrantyItem>.of(items);
+    try {
+      await accounts!.reauthenticate(password: password);
+      await cloud!.deleteUserData(uid);
+      await accounts!.deleteCurrentUser();
+      if (storage is AccountLocalStore) {
+        await (storage as AccountLocalStore).removeAccount(uid);
+        await _activateAccount();
+      } else {
+        items = [];
+        settings = AppSettings(onboardingComplete: settings.onboardingComplete);
+        await _persist();
+      }
+      for (final item in oldItems) {
+        await notifications.cancelFor(item.id);
+        for (final path in [if (item.productPhoto != null) item.productPhoto!,
+          ...item.receiptPhotos, ...item.warrantyPhotos]) {
+          await photos.delete(path);
+        }
+      }
+    } catch (error) {
+      if (!signedIn) loadError = error.toString();
+      rethrow;
+    } finally { accountBusy = false; notifyListeners(); }
   }
 
   Future<bool> requestNotificationPermission() async {
@@ -440,7 +542,14 @@ class AppController extends ChangeNotifier {
       updateSettings(settings.copyWith(onboardingComplete: true));
 
   Future<void> _syncForUser() async {
-    if (!signedIn || !emailVerified || cloud == null) return;
+    if (!signedIn || !emailVerified || cloud == null || cloudSyncing) return;
+    cloudSyncing = true;
+    notifyListeners();
+    try { await _syncForUserData(); }
+    finally { cloudSyncing = false; notifyListeners(); }
+  }
+
+  Future<void> _syncForUserData() async {
     final ownCode = ReferralPolicy.codeForUser(user!.uid);
     if (settings.referralCode != ownCode) {
       settings = settings.copyWith(referralCode: ownCode);
@@ -497,17 +606,15 @@ class AppController extends ChangeNotifier {
         plan: _isPlusTester ? PlanTier.plus : result.settings.plan,
       );
       await storage.save(items, settings);
+      for (final item in items) { await notifications.scheduleFor(item, settings); }
       lastCloudSync = DateTime.now();
     } catch (error) {
       cloudError = error.toString();
-    } finally {
-      cloudSyncing = false;
-      notifyListeners();
     }
   }
 
   Future<void> refreshCloud() async {
-    if (!signedIn || !emailVerified || cloud == null) return;
+    if (!signedIn || !emailVerified || cloud == null || accountBusy) return;
     if (!settings.plan.hasCloud) {
       cloudError = 'Cloud sync is available on Basic and Plus plans.';
       notifyListeners();
@@ -530,7 +637,7 @@ class AppController extends ChangeNotifier {
         nextBillingAt: entitlement.nextBillingAt,
         updateSubscriptionDates: true,
       );
-      final result = await cloud!.refresh(user!.uid, settings);
+      final result = await cloud!.bootstrap(user!.uid, items, settings);
       items = result.items;
       settings = result.settings.copyWith(
         email: user?.email ?? settings.email,
@@ -550,6 +657,12 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> redeemFounderCode(String code) async {
+    if (accountActionBusy) throw StateError('account-busy');
+    _localWrites++;
+    try { await _redeemFounderCode(code); } finally { _localWrites--; notifyListeners(); }
+  }
+
+  Future<void> _redeemFounderCode(String code) async {
     if (!signedIn || !emailVerified || cloud == null) {
       throw StateError('verified-account-required');
     }
@@ -564,6 +677,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<ScanSuggestion> smartScanReceipt(String localImagePath) async {
+    if (accountBusy || loadError != null) throw StateError('account-busy');
     if (!signedIn || !emailVerified || cloud == null) {
       throw StateError('verified-account-required');
     }

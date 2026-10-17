@@ -6,9 +6,11 @@ import '../app_controller.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import '../../l10n/app_localizations.dart';
+import 'upgrade_screen.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({super.key, this.forPaidPlan = false});
+  final bool forPaidPlan;
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
@@ -121,7 +123,15 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     final app = context.watch<AppController>();
     if (app.signedIn && !app.emailVerified) return const _VerificationView();
-    return Scaffold(
+    if (app.signedIn && app.emailVerified && !busy && !app.accountBusy && !app.billingBusy) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && ModalRoute.of(context)?.isCurrent == true) Navigator.of(context).pop(true);
+      });
+    }
+    return PopScope(
+      canPop: !busy && !app.accountBusy,
+      child: Scaffold(
+      appBar: AppBar(title: Text(context.l10n.text('profile'))),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 36, 24, 24),
@@ -142,8 +152,8 @@ class _AuthScreenState extends State<AuthScreen> {
             const SizedBox(height: 8),
             Text(
               createMode
-                  ? context.l10n.text('profileCopy')
-                  : context.l10n.text('signInCopy'),
+                  ? context.l10n.text('paidAccountCopy')
+                  : context.l10n.text(widget.forPaidPlan ? 'paidAccountCopy' : 'existingAccountCopy'),
               textAlign: TextAlign.center,
               style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
@@ -246,17 +256,24 @@ class _AuthScreenState extends State<AuthScreen> {
             TextButton(
               onPressed: busy
                   ? null
-                  : () => setState(() => createMode = !createMode),
+                  : () {
+                      if (widget.forPaidPlan) {
+                        setState(() => createMode = !createMode);
+                      } else {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                          UpgradeScreen(onSelectTab: (_) => Navigator.popUntil(context, (r) => r.isFirst))));
+                      }
+                    },
               child: Text(
                 createMode
                     ? context.l10n.text('alreadyAccount')
-                    : context.l10n.text('newCreateProfile'),
+                    : context.l10n.text(widget.forPaidPlan ? 'newCreateProfile' : 'createWithPlan'),
               ),
             ),
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -271,16 +288,19 @@ class _VerificationViewState extends State<_VerificationView> {
 
   Future<void> _check() async {
     setState(() => busy = true);
-    final verified = await context.read<AppController>().checkVerification();
-    if (mounted && !verified)
-      AppSnackbars.error(context, context.l10n.text('emailNotVerified'));
-    if (mounted) setState(() => busy = false);
+    try {
+      final verified = await context.read<AppController>().checkVerification();
+      if (mounted && !verified) AppSnackbars.error(context, context.l10n.text('emailNotVerified'));
+    } catch (_) {
+      if (mounted) AppSnackbars.error(context, context.l10n.text('requestFailed'));
+    } finally { if (mounted) setState(() => busy = false); }
   }
 
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppController>();
-    return Scaffold(
+    return PopScope(canPop: !busy && !app.accountBusy, child: Scaffold(
+      appBar: AppBar(title: Text(context.l10n.text('profile'))),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(28),
@@ -327,13 +347,16 @@ class _VerificationViewState extends State<_VerificationView> {
                 child: Text(context.l10n.text('resendEmail')),
               ),
               TextButton(
-                onPressed: app.signOut,
+                onPressed: busy || app.accountActionBusy ? null : () async {
+                  try { await app.signOut(); }
+                  catch (_) { if (context.mounted) AppSnackbars.error(context, context.l10n.text('requestFailed')); }
+                },
                 child: Text(context.l10n.text('differentAccount')),
               ),
             ],
           ),
         ),
       ),
-    );
+    ));
   }
 }

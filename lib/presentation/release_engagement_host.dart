@@ -118,6 +118,7 @@ class _ReleaseEngagementHostState extends State<ReleaseEngagementHost>
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
       MediaQuery.viewInsetsOf(context).bottom == 0 &&
       !(_app?.loading ?? true) &&
+      !(_app?.accountBusy ?? true) &&
       !(_app?.cloudSyncing ?? true) &&
       !(_app?.billingBusy ?? true) &&
       !(_app?.smartScanBusy ?? true) &&

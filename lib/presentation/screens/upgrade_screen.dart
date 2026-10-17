@@ -1,3 +1,4 @@
+import 'auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/models.dart';
@@ -17,10 +18,16 @@ class UpgradeScreen extends StatefulWidget {
 class _UpgradeScreenState extends State<UpgradeScreen> {
   PlanTier? selected;
 
+  Future<bool> _requireAccount(AppController app) async {
+    if (app.signedIn && app.emailVerified) return true;
+    await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AuthScreen(forPaidPlan: true)));
+    return mounted && app.signedIn && app.emailVerified && !app.accountBusy;
+  }
+
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppController>();
-    selected ??= app.settings.plan;
+    selected ??= app.effectivePlan;
     final chosen = selected!;
     final claimPackWithDownload =
         '${context.l10n.text('claimPacks')} · ${context.l10n.text('downloadPdf')}';
@@ -60,7 +67,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               context.l10n.text('includesAds'),
             ],
             selected: chosen == PlanTier.free,
-            current: app.settings.plan == PlanTier.free,
+            current: app.effectivePlan == PlanTier.free,
             onTap: () => setState(() => selected = PlanTier.free),
           ),
           const SizedBox(height: 12),
@@ -78,7 +85,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             ],
             recommended: true,
             selected: chosen == PlanTier.basic,
-            current: app.settings.plan == PlanTier.basic,
+            current: app.effectivePlan == PlanTier.basic,
             onTap: () => setState(() => selected = PlanTier.basic),
           ),
           const SizedBox(height: 12),
@@ -95,7 +102,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               context.l10n.text('noAds'),
             ],
             selected: chosen == PlanTier.plus,
-            current: app.settings.plan == PlanTier.plus,
+            current: app.effectivePlan == PlanTier.plus,
             onTap: () => setState(() => selected = PlanTier.plus),
           ),
           const SizedBox(height: 12),
@@ -114,19 +121,22 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           ),
           const SizedBox(height: 14),
           PrimaryButton(
-            label: chosen == app.settings.plan
+            label: chosen == app.effectivePlan
                 ? context.l10n.text('currentPlan')
                 : context.l10n.format('continueWith', {
                     'plan': _tierLabel(context, chosen),
                     'price': app.billingPrice(chosen),
                   }),
             onPressed:
-                chosen == app.settings.plan ||
+                chosen == app.effectivePlan ||
                     chosen == PlanTier.free ||
-                    app.billingBusy
+                    app.accountActionBusy
                 ? null
                 : () async {
                     try {
+                      if (!await _requireAccount(app)) return;
+                      // An existing subscription may have been restored by login.
+                      if (app.effectivePlan == chosen) return;
                       await app.purchasePlan(chosen);
                     } catch (_) {
                       if (context.mounted) {
@@ -138,7 +148,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                       }
                     }
                   },
-            icon: chosen == app.settings.plan
+            icon: chosen == app.effectivePlan
                 ? Icons.check_circle_outline
                 : Icons.arrow_forward_rounded,
           ),
@@ -147,17 +157,11 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             label: app.billingBusy
                 ? context.l10n.text('restoringPurchases')
                 : context.l10n.text('restorePurchases'),
-            onPressed: app.billingBusy
+            onPressed: app.accountActionBusy
                 ? null
                 : () async {
-                    if (!app.signedIn || !app.emailVerified) {
-                      AppSnackbars.error(
-                        context,
-                        context.l10n.text('purchaseRequiresAccount'),
-                      );
-                      return;
-                    }
                     try {
+                      if (!await _requireAccount(app)) return;
                       await app.restorePurchases();
                     } catch (_) {
                       if (context.mounted) {

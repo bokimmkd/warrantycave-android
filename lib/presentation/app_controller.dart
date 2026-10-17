@@ -50,6 +50,7 @@ class AppController extends ChangeNotifier {
   bool get accountActionBusy => accountBusy || cloudSyncing || billingBusy || smartScanBusy || _localWrites > 0 || _backgroundOperations > 0;
 
   bool cloudSyncing = false;
+  bool _cloudBootstrapPending = true;
   DateTime? lastCloudSync;
   String? loadError;
   String? cloudError;
@@ -115,13 +116,14 @@ class AppController extends ChangeNotifier {
     try {
       await notifications.initialize();
       // A concurrent login schedules its own account after activation.
-      if (accountBusy) return;
+      if (!accountBusy) {
       _backgroundOperations++;
       try {
       for (final item in items) {
         await notifications.scheduleFor(item, settings);
       }
       } finally { _backgroundOperations--; }
+      }
     } catch (error) {
       debugPrint('Deferred notification setup failed: $error');
     }
@@ -394,6 +396,7 @@ class AppController extends ChangeNotifier {
       }
       _committedWarrantyIds..clear()..addAll(items.map((e) => e.id));
       _pendingCreationIds.clear();
+      _cloudBootstrapPending = true;
       lastCloudSync = null;
       cloudError = null;
       billingError = null;
@@ -607,6 +610,7 @@ class AppController extends ChangeNotifier {
       );
       await storage.save(items, settings);
       for (final item in items) { await notifications.scheduleFor(item, settings); }
+      _cloudBootstrapPending = false;
       lastCloudSync = DateTime.now();
     } catch (error) {
       cloudError = error.toString();
@@ -637,7 +641,9 @@ class AppController extends ChangeNotifier {
         nextBillingAt: entitlement.nextBillingAt,
         updateSubscriptionDates: true,
       );
-      final result = await cloud!.bootstrap(user!.uid, items, settings);
+      final result = _cloudBootstrapPending
+          ? await cloud!.bootstrap(user!.uid, items, settings)
+          : await cloud!.refresh(user!.uid, settings);
       items = result.items;
       settings = result.settings.copyWith(
         email: user?.email ?? settings.email,
@@ -647,6 +653,7 @@ class AppController extends ChangeNotifier {
       for (final item in items) {
         await notifications.scheduleFor(item, settings);
       }
+      _cloudBootstrapPending = false;
       lastCloudSync = DateTime.now();
     } catch (error) {
       cloudError = error.toString();

@@ -101,6 +101,7 @@ void main() {
                 expect(destination, index);
               }
               if (Platform.environment['CAPTURE_UI'] == 'true' && scale == 1 && selected == 4) {
+                await tester.pumpAndSettle();
                 await expectLater(find.byKey(_capture), matchesGoldenFile(
                   'captures/nav-${locale.toLanguageTag()}-$dark-${width.toInt()}.png'));
               }

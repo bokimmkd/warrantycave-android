@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../domain/models.dart';
 import '../l10n/app_localizations.dart';
+import '../l10n/navigation_labels.dart';
 import 'theme.dart';
 
 bool isCloudPhoto(String path) =>
@@ -78,12 +79,14 @@ class AppBottomNavigation extends StatelessWidget {
         NavigationDestination(
           icon: const Icon(Icons.home_outlined),
           selectedIcon: const Icon(Icons.home_rounded),
-          label: context.l10n.text('home'),
+          label: context.l10n.navigationLabel('home'),
+          tooltip: context.l10n.text('home'),
         ),
         NavigationDestination(
           icon: const Icon(Icons.inventory_2_outlined),
           selectedIcon: const Icon(Icons.inventory_2_rounded),
-          label: context.l10n.text('items'),
+          label: context.l10n.navigationLabel('items'),
+          tooltip: context.l10n.text('items'),
         ),
         NavigationDestination(
           icon: const DecoratedBox(
@@ -93,17 +96,20 @@ class AppBottomNavigation extends StatelessWidget {
               child: Icon(Icons.add, color: Colors.white),
             ),
           ),
-          label: context.l10n.text('add'),
+          label: context.l10n.navigationLabel('add'),
+          tooltip: context.l10n.text('add'),
         ),
         NavigationDestination(
           icon: const Icon(Icons.notifications_outlined),
           selectedIcon: const Icon(Icons.notifications_rounded),
-          label: context.l10n.text('reminders'),
+          label: context.l10n.navigationLabel('reminders'),
+          tooltip: context.l10n.text('reminders'),
         ),
         NavigationDestination(
           icon: const Icon(Icons.settings_outlined),
           selectedIcon: const Icon(Icons.settings_rounded),
-          label: context.l10n.text('settings'),
+          label: context.l10n.navigationLabel('settings'),
+          tooltip: context.l10n.text('settings'),
         ),
       ],
     ),

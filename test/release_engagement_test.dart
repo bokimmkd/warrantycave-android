@@ -15,7 +15,7 @@ import 'package:warranty_cave/presentation/theme.dart';
 Widget localized(Widget child, {String code = 'en', bool dark = false}) =>
     MaterialApp(
       theme: dark ? buildDarkTheme() : buildTheme(),
-      locale: Locale(code),
+      locale: appLocale(code),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -30,7 +30,7 @@ Widget localized(Widget child, {String code = 'en', bool dark = false}) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
-    'optional analytics choice fits narrow screens in all eight languages and themes',
+    'optional analytics choice fits narrow screens in all supported languages and themes',
     (tester) async {
       tester.view.physicalSize = const Size(320, 640);
       tester.view.devicePixelRatio = 1;
@@ -52,7 +52,7 @@ void main() {
                   ),
                 ),
               ),
-              code: locale.languageCode,
+              code: locale.toLanguageTag(),
               dark: dark,
             ),
           );
@@ -61,7 +61,7 @@ void main() {
           expect(
             tester.takeException(),
             isNull,
-            reason: '${locale.languageCode}/$dark',
+            reason: '${locale.toLanguageTag()}/$dark',
           );
           expect(find.text(l10n.text('usageMeasurementTitle')), findsOneWidget);
           await tester.tap(find.text(l10n.text('metaNotNow')));

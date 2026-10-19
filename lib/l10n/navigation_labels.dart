@@ -7,7 +7,6 @@ extension NavigationLabels on AppLocalizations {
       _navigationLabels[localeCode]?[key] ?? text(key);
 
   static const _navigationLabels = <String, Map<String, String>>{
-    'en': {'reminders': 'Alerts'},
     'mk': {'items': 'Артикли', 'reminders': 'Рокови', 'settings': 'Опции'},
     'de': {'add': 'Neu', 'reminders': 'Fristen', 'settings': 'Optionen'},
     'es': {'reminders': 'Avisos'},

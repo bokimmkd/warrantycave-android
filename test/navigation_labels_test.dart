@@ -79,10 +79,17 @@ void main() {
                   text: paragraph.text,
                   textDirection: paragraph.textDirection,
                   textScaler: paragraph.textScaler,
+                  ellipsis: paragraph.overflow == TextOverflow.ellipsis ? '…' : null,
+                  maxLines: paragraph.maxLines,
                 )..layout(maxWidth: paragraph.size.width);
                 expect(painter.computeLineMetrics().length, 1,
                     reason: '${locale.toLanguageTag()} $key width=$width scale=$scale selected=$selected');
                 expect(painter.width, lessThanOrEqualTo(paragraph.size.width));
+                if (scale == 1) {
+                  expect(painter.didExceedMaxLines, isFalse,
+                      reason: 'Normal-size labels must be fully visible');
+                }
+                expect(paragraph.overflow, TextOverflow.ellipsis);
                 expect(tester.widget<Text>(label).style!.fontSize, 11,
                     reason: 'Never shrink the existing label font');
                 painter.dispose();

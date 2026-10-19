@@ -119,7 +119,7 @@ class _ItemsScreenState extends State<ItemsScreen>
                   value: null,
                   child: Text(context.l10n.text('allProductTypes')),
                 ),
-                ...types.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                ...types.map((e) => DropdownMenuItem(value: e, child: Text(context.l10n.productLabel(e)))),
               ],
               onChanged: (v) => update(() => draftType = v),
             ),

@@ -335,7 +335,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
                     : Icons.schedule_outlined,
                 color: value == duration ? caveTeal : caveBlue,
               ),
-              title: Text(value),
+              title: Text(context.l10n.duration(value)),
               onTap: () => Navigator.pop(context, value),
             ),
           ),
@@ -683,7 +683,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
                 suffixIcon: const Icon(Icons.keyboard_arrow_down),
               ),
               child: Text(
-                productType ?? context.l10n.text('chooseProductType'),
+                productType == null ? context.l10n.text('chooseProductType') : context.l10n.productLabel(productType!),
                 style: TextStyle(
                   color: productType == null ? Colors.blueGrey : Theme.of(context).colorScheme.onSurface,
                 ),
@@ -842,7 +842,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
                         ),
                       ),
                       child: Text(
-                        duration,
+                        context.l10n.duration(duration),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -1214,7 +1214,7 @@ class _ProductTypeSheetState extends State<_ProductTypeSheet> {
   @override
   Widget build(BuildContext context) {
     final options = productTypes
-        .where((e) => e.name.toLowerCase().contains(query.toLowerCase()))
+        .where((e) => context.l10n.productLabel(e.name).toLowerCase().contains(query.toLowerCase()) || e.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
     final categories = options.map((e) => e.category).toSet();
     return SafeArea(
@@ -1266,7 +1266,7 @@ class _ProductTypeSheetState extends State<_ProductTypeSheet> {
                           .map(
                             (option) => ListTile(
                               leading: Icon(option.icon, color: caveBlue),
-                              title: Text(option.name),
+                              title: Text(context.l10n.productLabel(option.name)),
                               onTap: () async {
                                 if (option.name != 'Custom') {
                                   Navigator.pop(context, option.name);

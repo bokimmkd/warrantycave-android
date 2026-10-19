@@ -254,7 +254,7 @@ class WarrantyCard extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurfaceVariant)),
             const SizedBox(height: 2),
             Text(
-              '${DateFormat.yMMMd(context.l10n.locale.languageCode).format(item.expiryDate)} • ${localizedRemainingLabel(context, item)}',
+              '${DateFormat.yMMMd(context.l10n.locale.toString()).format(item.expiryDate)} • ${localizedRemainingLabel(context, item)}',
               style: TextStyle(fontSize: 11.5,
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w600),

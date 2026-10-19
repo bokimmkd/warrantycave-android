@@ -57,7 +57,7 @@ Future<AppController> _render(
       value: controller,
       child: MaterialApp(
         theme: dark ? buildDarkTheme() : buildTheme(),
-        locale: Locale(language),
+        locale: appLocale(language),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -154,7 +154,7 @@ void main() {
     testWidgets(
       'tab $page handles narrow dark screen and large translated text',
       (tester) async {
-        for (final code in ['en', 'mk', 'de', 'es', 'fr', 'it', 'tr', 'el']) {
+        for (final code in ['en', 'mk', 'de', 'es', 'fr', 'it', 'tr', 'el', 'pl', 'cs', 'pt-PT', 'pt-BR']) {
           final controller = await _render(
             tester,
             page,
@@ -171,6 +171,24 @@ void main() {
         tester.view.resetDevicePixelRatio();
       },
     );
+  }
+
+  for (final code in ['pl', 'cs', 'pt-PT', 'pt-BR']) {
+    for (final dark in [false, true]) {
+      testWidgets('new locale $code dark=$dark renders every tab', (tester) async {
+        for (final page in [0, 1, 2, 3]) {
+          final controller = await _render(tester, page, language: code, dark: dark);
+          expect(tester.takeException(), isNull, reason: '$code / $page');
+          if (Platform.environment['CAPTURE_UI'] == 'true') {
+            await expectLater(find.byKey(_screenKey), matchesGoldenFile('captures/$code-$dark-$page.png'));
+          }
+          await tester.pumpWidget(const SizedBox());
+          controller.dispose();
+        }
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+    }
   }
 
   for (final dark in [false, true]) {

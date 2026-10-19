@@ -70,7 +70,7 @@ class WarrantyCaveApp extends StatelessWidget {
       theme: buildTheme(),
       darkTheme: buildDarkTheme(),
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
-      locale: Locale(languageCode),
+      locale: appLocale(languageCode),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,

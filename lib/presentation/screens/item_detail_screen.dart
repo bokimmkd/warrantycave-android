@@ -160,7 +160,7 @@ class ItemDetailScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    item.productType,
+                    context.l10n.productLabel(item.productType),
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 12),
@@ -288,7 +288,7 @@ class ItemDetailScreen extends StatelessWidget {
             'product': item.productName,
             'details': '${item.brand} ${item.model}',
             'date': DateFormat.yMMMd(
-              context.l10n.locale.languageCode,
+              context.l10n.locale.toString(),
             ).format(item.expiryDate),
           }),
         ),
@@ -445,7 +445,7 @@ class ItemDetailScreen extends StatelessWidget {
             pw.TableHelper.fromTextArray(
               data: [
                 [context.l10n.text('field'), context.l10n.text('value')],
-                [context.l10n.text('productType'), item.productType],
+                [context.l10n.text('productType'), context.l10n.productLabel(item.productType)],
                 [context.l10n.text('brand'), item.brand],
                 [context.l10n.text('model'), item.model],
                 [context.l10n.text('serialNumber'), item.serialNumber],
@@ -468,14 +468,14 @@ class ItemDetailScreen extends StatelessWidget {
                 [
                   context.l10n.text('purchaseDate'),
                   DateFormat.yMMMd(
-                    context.l10n.locale.languageCode,
+                    context.l10n.locale.toString(),
                   ).format(item.purchaseDate),
                 ],
-                [context.l10n.text('warrantyDuration'), item.durationLabel],
+                [context.l10n.text('warrantyDuration'), context.l10n.duration(item.durationLabel)],
                 [
                   context.l10n.text('expiryDate'),
                   DateFormat.yMMMd(
-                    context.l10n.locale.languageCode,
+                    context.l10n.locale.toString(),
                   ).format(item.expiryDate),
                 ],
                 [
@@ -507,7 +507,7 @@ class ItemDetailScreen extends StatelessWidget {
             pw.Text(
               context.l10n.format('generatedOn', {
                 'date': DateFormat.yMMMd(
-                  context.l10n.locale.languageCode,
+                  context.l10n.locale.toString(),
                 ).add_jm().format(DateTime.now()),
               }),
               style: const pw.TextStyle(color: PdfColors.grey),
@@ -614,7 +614,7 @@ class _Details extends StatelessWidget {
       MapEntry(
         context.l10n.text('purchaseDate'),
         DateFormat.yMMMd(
-          context.l10n.locale.languageCode,
+          context.l10n.locale.toString(),
         ).format(item.purchaseDate),
       ),
       MapEntry(
@@ -623,11 +623,11 @@ class _Details extends StatelessWidget {
             ? ''
             : formatMoney(item.purchasePrice!, item.currency),
       ),
-      MapEntry(context.l10n.text('warrantyDuration'), item.durationLabel),
+      MapEntry(context.l10n.text('warrantyDuration'), context.l10n.duration(item.durationLabel)),
       MapEntry(
         context.l10n.text('expiryDate'),
         DateFormat.yMMMd(
-          context.l10n.locale.languageCode,
+          context.l10n.locale.toString(),
         ).format(item.expiryDate),
       ),
     ].where((e) => e.value.isNotEmpty);

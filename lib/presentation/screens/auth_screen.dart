@@ -239,7 +239,7 @@ class _AuthScreenState extends State<AuthScreen> {
               const SizedBox(height: 18),
             PrimaryButton(
               label: busy
-                  ? context.l10n.text('pleaseWait')
+                  ? context.l10n.text(app.loginStatusKey ?? 'pleaseWait')
                   : (createMode
                         ? context.l10n.text('createAccount')
                         : context.l10n.text('signIn')),
@@ -250,7 +250,7 @@ class _AuthScreenState extends State<AuthScreen> {
             OutlinedButton.icon(
               onPressed: busy ? null : _signInWithGoogle,
               icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
-              label: Text(context.l10n.text('googlePending')),
+              label: Text(context.l10n.text(busy ? (app.loginStatusKey ?? 'pleaseWait') : 'googlePending')),
             ),
             const SizedBox(height: 14),
             TextButton(

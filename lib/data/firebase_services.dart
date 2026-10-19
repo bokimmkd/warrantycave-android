@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'usage_analytics.dart';
+import 'login_timing.dart';
 
 import 'dart:io';
 
@@ -59,20 +60,20 @@ class FirebaseAccountService {
   Future<User> signInWithGoogle() async {
     // Match School Assistant: clear the previous Google selection before
     // requesting an ID token for the Firebase web OAuth client.
-    await _googleSignIn.signOut();
-    final googleUser = await _googleSignIn.signIn();
+    await timeLoginStage('google.reset', _googleSignIn.signOut);
+    final googleUser = await timeLoginStage('google.accountPicker', _googleSignIn.signIn);
     if (googleUser == null) {
       throw FirebaseAuthException(
         code: 'google-sign-in-canceled',
         message: 'Google sign-in was canceled.',
       );
     }
-    final googleAuth = await googleUser.authentication;
+    final googleAuth = await timeLoginStage('google.token', () => googleUser.authentication);
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
       accessToken: googleAuth.accessToken,
     );
-    final result = await _auth.signInWithCredential(credential);
+    final result = await timeLoginStage('firebase.authentication', () => _auth.signInWithCredential(credential));
     if (result.additionalUserInfo?.isNewUser == true) {
       unawaited(analytics?.signUp('google') ?? Future<void>.value());
     }
@@ -267,7 +268,13 @@ class FirebaseCloudService {
     List<WarrantyItem> localItems,
     AppSettings localSettings,
   ) async {
-    final profileSnapshot = await _profile(uid).get();
+    // Complete both owner-bound reads before any upload. A failed read must
+    // never replace cloud records with only the guest's local records.
+    final snapshots = await Future.wait<Object>([
+      _profile(uid).get(),
+      _items(uid).orderBy('createdAt', descending: true).get(),
+    ]);
+    final profileSnapshot = snapshots[0] as DocumentSnapshot<Map<String, dynamic>>;
     var mergedSettings = localSettings;
     final remoteProfile = profileSnapshot.data();
     if (remoteProfile != null) {
@@ -299,16 +306,18 @@ class FirebaseCloudService {
         localSettings.cloudOwnerUid == uid;
     // Read remote records BEFORE upload. A guest with four local warranties
     // must still see all existing account warranties immediately after login.
-    final remote = await _items(uid).orderBy('createdAt', descending: true).get();
+    final remote = snapshots[1] as QuerySnapshot<Map<String, dynamic>>;
     final downloaded = remote.docs
         .map((doc) => WarrantyItem.fromJson(doc.data())).toList();
     final merged = mergeAccountWarranties(
       ownsLocalData ? localItems : const <WarrantyItem>[], downloaded,
       localSettings.pendingCloudDeletionIds,
     );
+    final remoteById = {for (final item in downloaded) item.id: item};
     if (ownsLocalData) {
       for (final item in localItems) {
-        if (!localSettings.pendingCloudDeletionIds.contains(item.id)) {
+        if (!localSettings.pendingCloudDeletionIds.contains(item.id) &&
+            warrantyNeedsUpload(item, remoteById[item.id])) {
           await saveItem(uid, item);
         }
       }
@@ -620,6 +629,11 @@ class FirebaseCloudService {
 }
 
 /// Stable IDs keep local edits authoritative and avoid duplicating remote items.
+// Model serialization excludes the server timestamp. Identical records need
+// no read/write/photo cycle; changed fields and local photo paths still upload.
+bool warrantyNeedsUpload(WarrantyItem local, WarrantyItem? remote) =>
+    remote == null || jsonEncode(local.toJson()) != jsonEncode(remote.toJson());
+
 List<WarrantyItem> mergeAccountWarranties(List<WarrantyItem> local,
     List<WarrantyItem> remote, List<String> deleted) {
   final result = {for (final item in remote) item.id: item,

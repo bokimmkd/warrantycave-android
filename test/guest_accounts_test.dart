@@ -106,9 +106,11 @@ void main() {
     cloud.gate = Completer<void>();
     final login = app.signIn('A@test.com','password');
     await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(app.loginStatusKey, 'authCloud');
     await expectLater(app.signOut(), throwsStateError);
     cloud.gate!.complete(); await login;
     expect(app.user!.uid, 'A'); expect(app.effectivePlan, PlanTier.basic);
+    expect(app.loginStatusKey, isNull);
   });
   test('purchase and restore require a verified account', () async {
     await expectLater(app.purchasePlan(PlanTier.basic), throwsStateError);

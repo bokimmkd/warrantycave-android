@@ -11,6 +11,7 @@ import '../data/services.dart';
 import '../data/account_local_store.dart';
 import '../data/usage_analytics.dart';
 import '../data/play_review.dart';
+import '../data/login_timing.dart';
 import '../domain/models.dart';
 
 class AppController extends ChangeNotifier {
@@ -45,6 +46,13 @@ class AppController extends ChangeNotifier {
   AppSettings settings = const AppSettings();
   bool loading = true;
   bool accountBusy = false;
+  String? loginStatusKey;
+
+  Future<T> _loginStage<T>(String key, Future<T> Function() action) async {
+    loginStatusKey = key;
+    notifyListeners();
+    return timeLoginStage(key, action);
+  }
   int _localWrites = 0;
   int _backgroundOperations = 0;
   bool get accountActionBusy => accountBusy || cloudSyncing || billingBusy || smartScanBusy || _localWrites > 0 || _backgroundOperations > 0;
@@ -412,30 +420,34 @@ class AppController extends ChangeNotifier {
     } catch (error) { debugPrint('Account reminder scheduling failed: $error'); }
   }
 
-  Future<void> _authenticate(Future<void> Function() action, {Future<void> Function()? configure}) async {
+  Future<void> _authenticate(Future<void> Function() action, {Future<void> Function()? configure, String initialStatus = 'pleaseWait'}) async {
     if (accountActionBusy) throw StateError('account-busy');
     accountBusy = true;
     notifyListeners();
     final previousUid = user?.uid;
     try {
-      await storage.save(items, settings);
+      await timeLoginStage('local.persist', () => storage.save(items, settings));
       try {
-        await action();
+        await _loginStage(initialStatus, action);
       } finally {
         // Creating Auth can succeed even when its verification email fails.
         // Bind the correct local vault in that case too.
         if (user?.uid != previousUid) {
-          await _activateAccount(claimGuest: previousUid == null);
+          await _loginStage('authLocal', () => _activateAccount(claimGuest: previousUid == null));
           if (signedIn) await configure?.call();
         }
       }
-      if (signedIn && emailVerified) await _syncForUser();
+      if (signedIn && emailVerified) await _loginStage('authCloud', _syncForUser);
     } finally {
       accountBusy = false;
+      loginStatusKey = null;
       notifyListeners();
     }
     if (signedIn && emailVerified) {
-      try { await restorePurchases(); } catch (_) { /* Login remains valid offline. */ }
+      try {
+        await _loginStage('restoringPurchases', restorePurchases);
+      } catch (_) { /* Login remains valid offline. */ }
+      finally { loginStatusKey = null; notifyListeners(); }
     }
   }
 
@@ -466,7 +478,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> signInWithGoogle() => _authenticate(() async {
     await accounts!.signInWithGoogle();
-  });
+  }, initialStatus: 'authGoogle');
 
   Future<void> sendPasswordReset(String email) =>
       accounts!.resetPassword(email.trim());

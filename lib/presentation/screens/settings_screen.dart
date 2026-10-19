@@ -589,31 +589,50 @@ class _SettingsScreenState extends State<SettingsScreen>
             const SizedBox(height: 14),
             _Label(context.l10n.text('language')),
             Card(
-              child: ListTile(
-                leading: const _SettingsIconBadge(
-                  icon: Icons.translate_rounded,
-                  backgroundColor: AppColors.softBlue,
-                  foregroundColor: caveBlue,
-                ),
-                title: Text(context.l10n.text('language')),
-                trailing: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: s.languageCode,
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    items: appLanguages
-                        .map(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(children: [
+                      const _SettingsIconBadge(
+                        icon: Icons.translate_rounded,
+                        backgroundColor: AppColors.softBlue,
+                        foregroundColor: caveBlue,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(context.l10n.text('language'))),
+                    ]),
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: s.languageCode,
+                        isExpanded: true,
+                        itemHeight: null,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        selectedItemBuilder: (context) => appLanguages.map(
+                          (language) => Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Text(language.nativeName, maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                          ),
+                        ).toList(),
+                        items: appLanguages.map(
                           (language) => DropdownMenuItem(
                             value: language.code,
-                            child: Text(language.nativeName),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text(language.nativeName),
+                            ),
                           ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        app.updateSettings(s.copyWith(languageCode: value));
-                      }
-                    },
-                  ),
+                        ).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            app.updateSettings(s.copyWith(languageCode: value));
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

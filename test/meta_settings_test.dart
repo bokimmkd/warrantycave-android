@@ -8,7 +8,7 @@ import 'package:warranty_cave/presentation/meta_measurement_choice.dart';
 import 'package:warranty_cave/presentation/theme.dart';
 
 Widget _app(Widget child, {String language = 'en', bool dark = false, double scale = 1}) =>
-  MaterialApp(theme: dark ? buildDarkTheme() : buildTheme(), locale: Locale(language),
+  MaterialApp(theme: dark ? buildDarkTheme() : buildTheme(), locale: appLocale(language),
     supportedLocales: AppLocalizations.supportedLocales,
     localizationsDelegates: const [AppLocalizations.delegate,
       GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate,
@@ -39,9 +39,9 @@ void main() {
         var deleted = 0;
         final l10n = AppLocalizations(locale);
         await tester.pumpWidget(_app(AccountActions(onSignOut: () => signedOut++,
-          onDelete: () => deleted++), language: locale.languageCode, dark: dark, scale: 1.5));
+          onDelete: () => deleted++), language: locale.toLanguageTag(), dark: dark, scale: 1.5));
         await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull, reason: '${locale.languageCode}/$dark');
+        expect(tester.takeException(), isNull, reason: '${locale.toLanguageTag()}/$dark');
         final signOut = find.text(l10n.text('signOut'));
         final delete = find.text(l10n.text('deleteAccount'));
         expect(tester.getCenter(signOut).dx, lessThan(tester.getCenter(delete).dx));

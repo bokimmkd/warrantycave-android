@@ -1,5 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'additional_translations.dart';
+import '../domain/models.dart' show productTypes;
+
+Locale appLocale(String code) {
+  final parts = code.replaceAll('_', '-').split('-');
+  return Locale(parts.first, parts.length > 1 ? parts[1].toUpperCase() : null);
+}
 
 class AppLanguage {
   const AppLanguage(this.code, this.name, this.nativeName);
@@ -17,6 +24,10 @@ const appLanguages = <AppLanguage>[
   AppLanguage('it', 'Italian', 'Italiano'),
   AppLanguage('tr', 'Turkish', 'Türkçe'),
   AppLanguage('el', 'Greek', 'Ελληνικά'),
+  AppLanguage('pl', 'Polish', 'Polski'),
+  AppLanguage('cs', 'Czech', 'Čeština'),
+  AppLanguage('pt-PT', 'Portuguese (Portugal)', 'Português (Portugal)'),
+  AppLanguage('pt-BR', 'Portuguese (Brazil)', 'Português (Brasil)'),
 ];
 
 class AppLocalizations {
@@ -33,12 +44,21 @@ class AppLocalizations {
     Locale('it'),
     Locale('tr'),
     Locale('el'),
+    Locale('pl'),
+    Locale('cs'),
+    Locale('pt', 'PT'),
+    Locale('pt', 'BR'),
   ];
 
   static AppLocalizations of(BuildContext context) =>
       Localizations.of<AppLocalizations>(context, AppLocalizations)!;
 
+  String get localeCode => locale.languageCode == 'pt'
+      ? (locale.countryCode == 'BR' ? 'pt-BR' : 'pt-PT')
+      : locale.languageCode;
+
   String text(String key) =>
+      additionalTranslations[localeCode]?[key] ??
       (_values[locale.languageCode] ?? _values['en']!)[key] ??
       _values['${locale.languageCode}_more']?[key] ??
       _extended[key]?[locale.languageCode] ??
@@ -47,6 +67,21 @@ class AppLocalizations {
       _moreValues['en']?[key] ??
       _values['en']![key] ??
       key;
+
+  String productLabel(String value) {
+    final standard = productTypes.any((type) => type.name == value || type.category == value);
+    return standard ? text(value) : value;
+  }
+
+  // Stored canonical values stay unchanged; custom user text is preserved.
+  String duration(String value) {
+    if (additionalTranslations[localeCode]?.containsKey(value) ?? false) return text(value);
+    final custom = RegExp(r'^(\d+) months \(custom\)$').firstMatch(value);
+    if (custom != null && additionalTranslations.containsKey(localeCode)) {
+      return format('durationMonthsLabel', {'count': custom.group(1)!});
+    }
+    return value;
+  }
 
   String format(String key, Map<String, Object> values) {
     var result = text(key);
@@ -1730,6 +1765,14 @@ class AppLocalizations {
   // Less frequently used screen copy is kept by key here so every entry is
   // visibly complete for all supported languages.
   static const _extended = <String, Map<String, String>>{
+    'authGoogle': {'en': 'Connecting to Google…', 'mk': 'Поврзување со Google…', 'de': 'Verbindung mit Google…', 'es': 'Conectando con Google…', 'fr': 'Connexion à Google…', 'it': 'Connessione a Google…', 'tr': 'Google bağlantısı kuruluyor…', 'el': 'Σύνδεση με το Google…'},
+    'authLocal': {'en': 'Opening your account…', 'mk': 'Отворање на сметката…', 'de': 'Konto wird geöffnet…', 'es': 'Abriendo tu cuenta…', 'fr': 'Ouverture de votre compte…', 'it': 'Apertura del tuo account…', 'tr': 'Hesabınız açılıyor…', 'el': 'Άνοιγμα λογαριασμού…'},
+    'authCloud': {'en': 'Syncing warranties…', 'mk': 'Синхронизирање гаранции…', 'de': 'Garantien werden synchronisiert…', 'es': 'Sincronizando garantías…', 'fr': 'Synchronisation des garanties…', 'it': 'Sincronizzazione garanzie…', 'tr': 'Garantiler eşitleniyor…', 'el': 'Συγχρονισμός εγγυήσεων…'},
+    'notificationToday': {'en': '{product} warranty expires today'},
+    'notificationDays': {'en': '{product} warranty expires in {days} days'},
+    'notificationBody': {'en': 'Open WarrantyCave to review your documents.'},
+    'durationMonthsLabel': {'en': 'Months: {count}'},
+
     "guestProfileCopy": {
       "en": "Free on this device. Sign in to your existing account or choose a paid plan.",
       "mk": "Free на овој уред. Најави се на постојна сметка или избери платен план.",

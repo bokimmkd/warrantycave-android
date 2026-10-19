@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 import '../domain/models.dart';
+import '../l10n/app_localizations.dart';
 
 abstract interface class LocalStorageService {
   Future<(List<WarrantyItem>, AppSettings)> load();
@@ -165,6 +166,7 @@ class LocalNotificationService implements NotificationService {
     await initialize();
     await cancelFor(item.id);
     if (!settings.notificationConsentGranted) return;
+    final l10n = AppLocalizations(appLocale(settings.languageCode));
     final reminders = item.effectiveReminderDays(settings);
     var slot = 0;
     for (final days in const [60, 30, 7, 0]) {
@@ -181,10 +183,9 @@ class LocalNotificationService implements NotificationService {
       if (reminders.contains(days) && scheduled.isAfter(tz.TZDateTime.now(tz.local))) {
         await _plugin.zonedSchedule(
           _notificationId(item.id, slot),
-          days == 0
-              ? '${item.productName} warranty expires today'
-              : '${item.productName} warranty expires in $days days',
-          'Open WarrantyCave to review your documents.',
+          l10n.format(days == 0 ? 'notificationToday' : 'notificationDays',
+              {'product': item.productName, 'days': days}),
+          l10n.text('notificationBody'),
           scheduled,
           const NotificationDetails(
             android: AndroidNotificationDetails(

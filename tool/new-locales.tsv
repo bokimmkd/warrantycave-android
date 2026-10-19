@@ -1,0 +1,411 @@
+key|pl|cs|pt-PT
+linkOpenFailed|Nie można otworzyć linku. Spróbuj ponownie.|Odkaz nelze otevřít. Zkuste to znovu.|Não foi possível abrir a ligação. Tente novamente.
+profile|Profil|Profil|Perfil
+managedByAccount|Zarządzane przez konto logowania|Spravováno přihlašovacím účtem|Gerido pela sua conta de início de sessão
+defaultCurrency|Domyślna waluta|Výchozí měna|Moeda predefinida
+saveChanges|Zapisz zmiany|Uložit změny|Guardar alterações
+profileSaved|Profil zapisany|Profil uložen|Perfil guardado
+signOutQuestion|Wylogować się?|Odhlásit se?|Terminar sessão?
+signOutInfo|Dane w chmurze pozostają na Twoim koncie. Lokalne zdjęcia pozostają na tym urządzeniu.|Data v cloudu zůstanou ve vašem účtu. Místní fotografie zůstanou v tomto zařízení.|Os dados na nuvem permanecem na sua conta. As fotografias locais permanecem neste dispositivo.
+deleteAccountQuestion|Usunąć konto?|Smazat účet?|Eliminar conta?
+deleteAccountInfo|Spowoduje to trwałe usunięcie danych gwarancji w chmurze i lokalnych danych WarrantyCave na tym urządzeniu.|Tím trvale smažete údaje o zárukách v cloudu a místní data aplikace WarrantyCave v tomto zařízení.|Esta ação elimina permanentemente os dados das garantias na nuvem e os dados locais do WarrantyCave neste dispositivo.
+continueLabel|Kontynuuj|Pokračovat|Continuar
+confirmDeletion|Potwierdź trwałe usunięcie|Potvrdit trvalé smazání|Confirmar eliminação permanente
+cannotUndo|Tej czynności nie można cofnąć.|Tuto akci nelze vrátit zpět.|Esta ação não pode ser anulada.
+currentPassword|Obecne hasło|Současné heslo|Palavra-passe atual
+keepAccount|Zachowaj konto|Ponechat účet|Manter conta
+deletePermanently|Usuń trwale|Trvale smazat|Eliminar permanentemente
+deleteAccountFailed|Nie można usunąć konta. Sprawdź hasło i spróbuj ponownie.|Účet nelze smazat. Zkontrolujte heslo a zkuste to znovu.|Não foi possível eliminar a conta. Verifique a palavra-passe e tente novamente.
+profileSummary|Imię, e-mail, telefon • Domyślnie {currency}|Jméno, e-mail, telefon • Výchozí {currency}|Nome, email, telefone • Predefinição: {currency}
+emailDefault|{email} • Domyślnie {currency}|{email} • Výchozí {currency}|{email} • Predefinição: {currency}
+connectedAccount|Połączone konto|Připojený účet|Conta ligada
+syncingAccount|Synchronizowanie {email}…|Synchronizuji {email}…|A sincronizar {email}…
+cloudConnectedAccount|{email} • Połączono z chmurą|{email} • Připojeno ke cloudu|{email} • Ligado à nuvem
+lastSyncedAccount|{email} • Ostatnia synchronizacja: {time}|{email} • Poslední synchronizace: {time}|{email} • Última sincronização: {time}
+syncRetryAccount|{email} • Synchronizacja zostanie ponowiona po połączeniu z internetem|{email} • Synchronizace se zopakuje po připojení|{email} • A sincronização será repetida quando houver ligação
+inviteFriends|Zaproś znajomych|Pozvat přátele|Convidar amigos
+shareReferral|Udostępnij link polecający|Sdílet odkaz s pozvánkou|Partilhar ligação de convite
+expiryThreshold|Próg „Wkrótce wygasa”|Hranice „Brzy vyprší“|Limite de «A expirar em breve»
+daysBeforeExpiry|Dni do wygaśnięcia: {days}|Dnů před vypršením: {days}|Dias antes de expirar: {days}
+syncSecurely|Dane gwarancji i zdjęcia są bezpiecznie synchronizowane między Twoimi urządzeniami.|Údaje o zárukách a fotografie se bezpečně synchronizují mezi vašimi zařízeními.|Os detalhes das garantias e as fotografias são sincronizados em segurança entre os seus dispositivos.
+upgradeForBackup|Jesteś zalogowany. Wybierz wyższy plan, aby tworzyć kopie danych gwarancji i zdjęć.|Jste přihlášeni. Přejděte na vyšší tarif pro zálohování údajů o zárukách a fotografií.|Tem sessão iniciada. Mude de plano para fazer cópias dos detalhes das garantias e das fotografias.
+signInForBackup|Zaloguj się, aby tworzyć kopie danych gwarancji.|Přihlaste se pro zálohování údajů o zárukách.|Inicie sessão para fazer cópias dos detalhes das garantias.
+viewPlans|Zobacz plany|Zobrazit tarify|Ver planos
+warrantyDuration|Okres gwarancji|Délka záruky|Duração da garantia
+customDuration|Własny okres|Vlastní délka|Duração personalizada
+addDocumentPhoto|Dodaj zdjęcie dokumentu|Přidat fotografii dokumentu|Adicionar fotografia do documento
+takePhoto|Zrób zdjęcie|Vyfotit|Tirar fotografia
+deleteProductPhoto|Usunąć zdjęcie produktu?|Smazat fotografii výrobku?|Eliminar fotografia do produto?
+deleteProductPhotoInfo|Zdjęcie produktu zostanie usunięte z tej gwarancji.|Fotografie výrobku bude z této záruky odstraněna.|A fotografia do produto será removida desta garantia.
+delete|Usuń|Smazat|Eliminar
+selectCurrency|Wybierz walutę|Vybrat měnu|Selecionar moeda
+otherCustom|Inne / Własne|Jiné / Vlastní|Outro / Personalizado
+customLocation|Własna lokalizacja|Vlastní umístění|Localização personalizada
+locationName|Nazwa lokalizacji|Název umístění|Nome da localização
+saveLocation|Zapisz lokalizację|Uložit umístění|Guardar localização
+removePhotoQuestion|Usunąć to zdjęcie?|Odstranit tuto fotografii?|Remover esta fotografia?
+removePhotoInfo|To zdjęcie zostanie usunięte z gwarancji.|Tato fotografie bude odstraněna ze záruky.|Esta fotografia será removida da garantia.
+remove|Usuń|Odstranit|Remover
+chooseTypeContinue|Wybierz typ produktu, aby kontynuować.|Pokračujte výběrem typu výrobku.|Escolha um tipo de produto para continuar.
+checkRequiredFields|Sprawdź wymagane pola.|Zkontrolujte povinná pole.|Verifique os campos obrigatórios.
+warrantySaved|Gwarancja zapisana|Záruka uložena|Garantia guardada
+warrantyUpdated|Gwarancja zaktualizowana|Záruka aktualizována|Garantia atualizada
+viewItem|Zobacz produkt|Zobrazit položku|Ver produto
+chooseProductType|Wybierz typ produktu|Vyberte typ výrobku|Escolher tipo de produto
+productNameRequiredError|Nazwa produktu jest wymagana|Název výrobku je povinný|O nome do produto é obrigatório
+chooseLocationOptional|Wybierz lokalizację (opcjonalnie)|Vyberte umístění (nepovinné)|Escolher localização (opcional)
+takeOrChoosePhoto|Zrób zdjęcie lub wybierz z galerii|Vyfoťte nebo vyberte z galerie|Tire uma fotografia ou escolha na galeria
+tapChangePhoto|Dotknij, aby zmienić zdjęcie|Klepnutím změňte fotografii|Toque para alterar a fotografia
+deletePhoto|Usuń zdjęcie|Smazat fotografii|Eliminar fotografia
+purchaseDateRequired|Data zakupu *|Datum nákupu *|Data de compra *
+durationRequired|Okres *|Délka *|Duração *
+expiryDateEditable|Data wygaśnięcia (edytowalna)|Datum vypršení (lze upravit)|Data de validade (editável)
+expiryCalculated|Obliczona na podstawie daty zakupu i okresu gwarancji|Vypočteno z data nákupu a délky záruky|Calculada a partir da data de compra e da duração
+noReceipt|Nie dodano jeszcze paragonu.|Zatím nebyla přidána účtenka.|Ainda não foi adicionado um recibo.
+addReceipt|Dodaj paragon|Přidat účtenku|Adicionar recibo
+noWarrantyDocument|Nie dodano jeszcze dokumentu gwarancyjnego.|Zatím nebyl přidán záruční doklad.|Ainda não foi adicionado um documento de garantia.
+addWarrantyDocument|Dodaj dokument gwarancyjny|Přidat záruční doklad|Adicionar documento de garantia
+customWarrantyDuration|Własny okres gwarancji|Vlastní délka záruky|Duração personalizada da garantia
+numberMonths|Liczba miesięcy|Počet měsíců|Número de meses
+addAnotherPhoto|Dodaj kolejne zdjęcie|Přidat další fotografii|Adicionar outra fotografia
+searchProductTypes|Szukaj typów produktów|Hledat typy výrobků|Pesquisar tipos de produto
+customProductType|Własny typ produktu|Vlastní typ výrobku|Tipo de produto personalizado
+typeName|Nazwa typu|Název typu|Nome do tipo
+useType|Użyj typu|Použít typ|Usar tipo
+warrantyMissing|Ta gwarancja już nie istnieje.|Tato záruka již neexistuje.|Esta garantia já não existe.
+productPhoto|Zdjęcie produktu|Fotografie výrobku|Fotografia do produto
+receiptPhotos|Zdjęcia paragonów|Fotografie účtenek|Fotografias dos recibos
+warrantyPhotos|Zdjęcia gwarancji|Fotografie záruk|Fotografias das garantias
+share|Udostępnij|Sdílet|Partilhar
+claimPack|Pakiet reklamacyjny|Podklady k reklamaci|Dossier de garantia
+deleteWarrantyLabel|Usuń gwarancję|Smazat záruku|Eliminar garantia
+deleteWarrantyInfo|Ta gwarancja i zapisane dokumenty zostaną usunięte.|Tato záruka a její uložené doklady budou smazány.|Esta garantia e os documentos guardados serão removidos.
+shareWarrantyText|{product}\n{details}\nGwarancja wygasa: {date}\nZapisano w WarrantyCave.|{product}\n{details}\nZáruka vyprší: {date}\nUloženo ve WarrantyCave.|{product}\n{details}\nA garantia expira em {date}\nGuardado no WarrantyCave.
+receiptOf|Paragon {current} z {total}|Účtenka {current} z {total}|Recibo {current} de {total}
+warrantyDocumentOf|Dokument gwarancyjny {current} z {total}|Záruční doklad {current} z {total}|Documento de garantia {current} de {total}
+generatedWith|Utworzono w WarrantyCave • warrantycave.com|Vytvořeno pomocí WarrantyCave • warrantycave.com|Gerado com WarrantyCave • warrantycave.com
+pageOf|Strona {current} z {total}|Strana {current} z {total}|Página {current} de {total}
+claimPackTitle|PAKIET REKLAMACYJNY|PODKLADY K REKLAMACI|DOSSIER DE GARANTIA
+field|Pole|Pole|Campo
+value|Wartość|Hodnota|Valor
+warrantyStatus|Status gwarancji|Stav záruky|Estado da garantia
+timeRemaining|Pozostały czas|Zbývající čas|Tempo restante
+retailer|Sprzedawca|Prodejce|Vendedor
+usedAt|Miejsce użytkowania|Místo použití|Local de utilização
+purchaseDate|Data zakupu|Datum nákupu|Data de compra
+expiryDate|Data wygaśnięcia|Datum vypršení|Data de validade
+attachedReceipts|Załączone zdjęcia paragonów: {count}|Přiložené fotografie účtenek: {count}|Fotografias de recibos anexadas: {count}
+attachedWarranties|Załączone zdjęcia gwarancji: {count}|Přiložené fotografie záruk: {count}|Fotografias de garantias anexadas: {count}
+totalImagePages|Łączna liczba stron ze zdjęciami: {count}|Celkový počet stran s obrázky: {count}|Total de páginas com imagens incluídas: {count}
+generatedOn|Utworzono w WarrantyCave dnia {date}.|Vytvořeno pomocí WarrantyCave dne {date}.|Gerado com WarrantyCave em {date}.
+claimPackSubject|Pakiet reklamacyjny — {product}|Podklady k reklamaci — {product}|Dossier de garantia — {product}
+claimPackFailed|Nie można utworzyć pakietu reklamacyjnego. Spróbuj ponownie.|Podklady k reklamaci nelze vytvořit. Zkuste to znovu.|Não foi possível criar o dossier de garantia. Tente novamente.
+toggleFlashlight|Włącz/wyłącz latarkę|Zapnout/vypnout svítilnu|Ligar/desligar lanterna
+scanPackInfo|Kup 50 inteligentnych skanów za $1.99. Kredyty nie wygasają i są niezależne od planu.|Získejte 50 chytrých skenů za $1.99. Kredity nikdy nevyprší a jsou nezávislé na tarifu.|Obtenha 50 digitalizações inteligentes por $1.99. Os créditos não expiram e são independentes do seu plano.
+freeLimitReached|Osiągnięto limit planu Free. Wybierz wyższy plan, aby dodać więcej gwarancji.|Dosáhli jste limitu tarifu Free. Pro další záruky přejděte na vyšší tarif.|Atingiu o limite do plano Free. Mude de plano para adicionar mais garantias.
+viewScanPack|Zobacz pakiet skanów|Zobrazit balíček skenů|Ver pacote de digitalizações
+googlePending|Zaloguj się przez Google|Přihlásit přes Google|Iniciar sessão com o Google
+alreadyAccount|Masz już konto? Zaloguj się|Máte již účet? Přihlaste se|Já tem conta? Inicie sessão
+newCreateProfile|Jesteś tu pierwszy raz? Utwórz profil|Jste tu poprvé? Vytvořte si profil|É novo por aqui? Crie um perfil
+planName|Plan {plan}|Tarif {plan}|Plano {plan}
+planUsage|Gwarancje: {count} z {limit} • {storage}|Záruky: {count} z {limit} • {storage}|Garantias: {count} de {limit} • {storage}
+planAccessUntil|Dostęp do planu do {date}|Přístup k tarifu do {date}|Acesso ao plano até {date}
+planReferralUntil|Plus z polecenia do {date}|Plus za doporučení do {date}|Plus por convite até {date}
+planPaidUntil|Opłacony okres do {date}|Zaplacené období do {date}|Período pago até {date}
+planNextBilling|Następna płatność Google Play: {date}|Další platba Google Play: {date}|Próxima cobrança do Google Play: {date}
+referralReward|{code}\nZyskaj 30 dni Plus po pierwszym płatnym zakupie zaproszonej osoby.|{code}\nZískejte 30 dní Plus po prvním placeném nákupu pozvaného uživatele.|{code}\nGanhe 30 dias de Plus após a primeira compra paga da pessoa convidada.
+referralShare|Pobierz WarrantyCave z Google Play:\n{downloadLink}\n\nKod polecający:\n{code}|Stáhněte si WarrantyCave z Google Play:\n{downloadLink}\n\nKód pozvánky:\n{code}|Transfira WarrantyCave do Google Play:\n{downloadLink}\n\nCódigo de convite:\n{code}
+serialScanned|Zeskanowano numer seryjny|Sériové číslo naskenováno|Número de série digitalizado
+chooseGallery|Wybierz z galerii|Vybrat z galerie|Escolher na galeria
+photoAdded|Dodano zdjęcie|Fotografie přidána|Fotografia adicionada
+photoRemoved|Usunięto zdjęcie|Fotografie odstraněna|Fotografia removida
+savedSafe|Dane gwarancji i dokumenty są bezpieczne w WarrantyCave.|Údaje o zárukách a doklady jsou v bezpečí ve WarrantyCave.|Os detalhes e documentos da sua garantia estão seguros no WarrantyCave.
+saveFailed|Wystąpił błąd podczas zapisywania. Spróbuj ponownie.|Při ukládání došlo k chybě. Zkuste to znovu.|Ocorreu um erro ao guardar. Tente novamente.
+product|Produkt|Výrobek|Produto
+warrantyPeriod|Okres gwarancji|Záruční doba|Período de garantia
+purchaseDetails|Szczegóły zakupu|Podrobnosti nákupu|Detalhes da compra
+emailInUse|Konto z tym adresem e-mail już istnieje.|Účet s tímto e-mailem již existuje.|Já existe uma conta com este email.
+invalidEmail|Wpisz prawidłowy adres e-mail.|Zadejte platnou e-mailovou adresu.|Introduza um endereço de email válido.
+invalidCredentials|Nieprawidłowy e-mail lub hasło.|Nesprávný e-mail nebo heslo.|Email ou palavra-passe incorretos.
+weakPassword|Użyj silniejszego hasła z co najmniej 6 znakami.|Použijte silnější heslo s alespoň 6 znaky.|Use uma palavra-passe mais forte com pelo menos 6 caracteres.
+userNotFound|Nie znaleziono konta z tym adresem e-mail.|Pro tento e-mail nebyl nalezen účet.|Não foi encontrada uma conta com este email.
+networkFailed|Sprawdź połączenie z internetem i spróbuj ponownie.|Zkontrolujte připojení k internetu a zkuste to znovu.|Verifique a ligação à internet e tente novamente.
+enterEmailFirst|Najpierw wpisz adres e-mail.|Nejprve zadejte e-mail.|Introduza primeiro o seu email.
+resetSent|Jeśli konto z tym adresem e-mail istnieje, otrzymasz link do zresetowania hasła.|Pokud účet s tímto e-mailem existuje, obdržíte odkaz pro obnovení hesla.|Se existir uma conta com este email, receberá uma ligação para repor a palavra-passe.
+verificationSent|E-mail weryfikacyjny wysłany ponownie.|Ověřovací e-mail byl znovu odeslán.|Email de verificação reenviado.
+guestProfileCopy|Free na tym urządzeniu. Zaloguj się na istniejące konto lub wybierz płatny plan.|Free v tomto zařízení. Přihlaste se ke stávajícímu účtu nebo zvolte placený tarif.|Free neste dispositivo. Inicie sessão na sua conta ou escolha um plano pago.
+existingAccountCopy|Zaloguj się, aby uzyskać dostęp do swojego konta i planu. Produkty dodane jako gość na tym urządzeniu zostaną przeniesione na to konto.|Přihlaste se pro přístup ke svému účtu a tarifu. Položky přidané jako host v tomto zařízení se přesunou do tohoto účtu.|Inicie sessão para aceder à sua conta e ao seu plano. Os produtos adicionados como convidado neste dispositivo serão transferidos para esta conta.
+paidAccountCopy|Zaloguj się lub utwórz konto dla płatnego planu i kopii w chmurze. Lokalne gwarancje zostaną przeniesione na to konto. Utworzenie konta nie powoduje naliczenia opłaty.|Přihlaste se nebo vytvořte účet pro placený tarif a zálohování do cloudu. Místní záruky se přesunou do tohoto účtu. Za vytvoření účtu se nic neúčtuje.|Inicie sessão ou crie uma conta para o plano pago e as cópias na nuvem. As garantias locais serão transferidas para esta conta. Criar uma conta não implica qualquer cobrança.
+createWithPlan|Nowe konto? Wybierz płatny plan|Nový účet? Zvolte placený tarif|Nova conta? Escolha um plano pago
+guestSignOutInfo|Gwarancje na koncie pozostają zapisane do następnego logowania. Możesz dalej korzystać z Free jako gość na tym urządzeniu.|Záruky vašeho účtu zůstanou uložené do příštího přihlášení. Na tomto zařízení můžete dál používat Free jako host.|As garantias da sua conta ficam guardadas para o próximo início de sessão. Pode continuar a usar Free como convidado neste dispositivo.
+accountWait|Poczekaj na zakończenie zapisywania, synchronizacji lub zakupu i spróbuj ponownie.|Počkejte na dokončení ukládání, synchronizace nebo nákupu a zkuste to znovu.|Aguarde que a operação de gravação, sincronização ou compra termine e tente novamente.
+localLoadRetry|Nie można otworzyć zapisanych danych. Spróbuj ponownie. Nie czyść pamięci aplikacji.|Uložená data nelze otevřít. Zkuste to znovu. Nemažte úložiště aplikace.|Não foi possível abrir os dados guardados. Tente novamente. Não limpe os dados da aplicação.
+tryAgain|Spróbuj ponownie|Zkusit znovu|Tentar novamente
+rateApp|Oceń aplikację|Ohodnotit aplikaci|Avaliar aplicação
+playOfferTitle|Zaktualizuj WarrantyCave|Aktualizovat WarrantyCave|Atualizar WarrantyCave
+playOfferBody|W Google Play jest nowsza wersja. Możesz korzystać z aplikacji podczas pobierania.|Na Google Play je novější verze. Během stahování můžete aplikaci dál používat.|Está disponível uma versão mais recente no Google Play. Continue a usar a aplicação durante a transferência.
+playReadyTitle|Aktualizacja gotowa|Aktualizace připravena|Pronto para atualizar
+playReadyBody|Uruchom ponownie WarrantyCave, aby zainstalować pobraną aktualizację. Gwarancje i ustawienia pozostaną zapisane.|Restartujte WarrantyCave pro instalaci stažené aktualizace. Záruky a nastavení zůstanou uložené.|Reinicie WarrantyCave para instalar a atualização transferida. As garantias e definições ficam guardadas.
+playUpdate|Aktualizuj|Aktualizovat|Atualizar
+playLater|Później|Později|Mais tarde
+playRestart|Uruchom ponownie i zaktualizuj|Restartovat a aktualizovat|Reiniciar para atualizar
+playWaiting|Oczekiwanie na pobranie…|Čekání na stažení…|A aguardar transferência…
+playDownloading|Pobieranie aktualizacji…|Stahování aktualizace…|A transferir atualização…
+playInstalling|Instalowanie aktualizacji…|Instalace aktualizace…|A instalar atualização…
+playInstallFailed|Nie można rozpocząć instalacji. Ponownie wybierz restart.|Instalaci nelze spustit. Zkuste znovu restartovat.|Não foi possível iniciar a instalação. Tente reiniciar novamente.
+homeCaveSubtitle|Twoja skrytka na gwarancje|Vaše úložiště záruk|O seu refúgio de garantias
+itemsCaveSubtitle|Wszystko w porządku|Vše v pořádku|Tudo em ordem
+remindersCaveSubtitle|Bądź o krok do przodu|Buďte o krok napřed|Esteja um passo à frente
+settingsCaveSubtitle|Dostosuj do siebie|Přizpůsobte si aplikaci|Personalize ao seu gosto
+reminderInfo|O lokalnych przypomnieniach|O místních připomínkách|Sobre os lembretes locais
+warrantyExpiryReminders|Przypomnienia o wygaśnięciu gwarancji|Připomínky vypršení záruky|Lembretes de validade da garantia
+usageMeasurementTitle|Pomiar użycia aplikacji|Měření používání aplikace|Medição de utilização da aplicação
+usageMeasurementHint|Opcjonalne Google Firebase Analytics. Możesz zmienić decyzję w każdej chwili.|Volitelné Google Firebase Analytics. Volbu lze kdykoli změnit.|Google Firebase Analytics opcional. Altere a qualquer momento.
+usageMeasurementConsent|Zezwolić Google Firebase Analytics na pomiar aktywności w aplikacji, ponownych wizyt, utworzenia konta i zapisania nowych gwarancji? Otrzymuje informacje techniczne o aplikacji i urządzeniu oraz losowy identyfikator instancji aplikacji, nigdy imienia, adresu e-mail, danych gwarancji, zdjęć, paragonów ani numerów seryjnych. Przechowywanie danych reklamowych i personalizacja reklam pozostają wyłączone dla tego pomiaru. Ta opcja jest niezależna od Meta i ustawień reklam. Możesz odmówić lub wyłączyć ją w Ustawieniach w dowolnym momencie. Wcześniejsza aktywność nie jest wysyłana.|Povolit Google Firebase Analytics měřit aktivitu v aplikaci, opakované návštěvy, úspěšné vytvoření účtu a nově uložené záruky? Přijímá technické informace o aplikaci a zařízení a náhodný identifikátor instance aplikace, nikdy jméno, e-mail, údaje o zárukách, fotografie, účtenky ani sériová čísla. Ukládání reklamních dat a personalizace reklam zůstávají pro toto měření vypnuté. Tato volba je nezávislá na Meta a reklamách. Je volitelná: můžete ji odmítnout nebo kdykoli vypnout v Nastavení. Minulá aktivita se neodesílá.|Permitir que o Google Firebase Analytics meça a atividade na aplicação, visitas repetidas, criação de contas e novas garantias guardadas? Recebe informações técnicas da aplicação e do dispositivo e um identificador aleatório da instância da aplicação, nunca o seu nome, email, detalhes de garantias, fotografias, recibos ou números de série. O armazenamento publicitário e a personalização de anúncios permanecem desativados para esta medição. Esta opção é independente da Meta e das escolhas de anúncios. É opcional: pode recusar ou desativar nas Definições a qualquer momento. A atividade anterior não é enviada.
+metaMeasurementTitle|Pomiar instalacji aplikacji|Měření instalací aplikace|Medição de instalações da aplicação
+metaMeasurementHint|Opcjonalne udostępnianie Meta. Możesz zmienić decyzję w każdej chwili.|Volitelné sdílení se společností Meta. Volbu lze kdykoli změnit.|Partilha opcional com a Meta. Altere a qualquer momento.
+metaMeasurementConsent|Zezwolić WarrantyCave na udostępnianie Meta zdarzeń instalacji i otwarcia aplikacji, identyfikatorów urządzenia i reklamowych oraz podstawowych informacji o aplikacji i urządzeniu w celu pomiaru i ulepszania reklam na Facebooku i Instagramie? Ta integracja nie wysyła gwarancji, paragonów, zdjęć ani danych konta. Zgoda jest opcjonalna: możesz korzystać ze wszystkich funkcji bez niej i wyłączyć ją w Ustawieniach w każdej chwili.|Povolit WarrantyCave sdílet se společností Meta události instalace a otevření aplikace, identifikátory zařízení a reklamní identifikátory a základní informace o aplikaci a zařízení pro měření a zlepšování reklam na Facebooku a Instagramu? Tato integrace neodesílá záruky, účtenky, fotografie ani údaje účtu. Volba je nepovinná: všechny funkce lze používat bez souhlasu a sdílení lze kdykoli vypnout v Nastavení.|Permitir que WarrantyCave partilhe com a Meta eventos de instalação e abertura da aplicação, identificadores do dispositivo e de publicidade e informações básicas da aplicação e do dispositivo para medir e melhorar anúncios do Facebook e Instagram? Esta integração não envia garantias, recibos, fotografias nem detalhes da conta. É opcional: pode usar todas as funções sem permitir e desativar nas Definições a qualquer momento.
+metaNotNow|Nie teraz|Teď ne|Agora não
+metaAllow|Zezwól|Povolit|Permitir
+metaMeasurementRetry|Nie można zapisać wyboru. Spróbuj ponownie.|Volbu nelze uložit. Zkuste to znovu.|Não foi possível guardar a escolha. Tente novamente.
+adPrivacyOptions|Prywatność reklam|Soukromí reklam|Privacidade dos anúncios
+ok|OK|OK|OK
+archivedEditTitle|Gwarancja zarchiwizowana|Záruka archivována|Garantia arquivada
+archivedEditMessage|Dwa dni po wygaśnięciu gwarancja staje się tylko do odczytu i nie wlicza się do limitu planu. Nadal możesz ją przeglądać, pobrać pakiet reklamacyjny lub ją usunąć.|Dva dny po vypršení je záruka pouze pro čtení a nezapočítává se do limitu tarifu. Stále ji můžete zobrazit, stáhnout podklady k reklamaci nebo smazat.|Dois dias após expirar, a garantia fica apenas para leitura e deixa de contar para o limite do plano. Pode continuar a consultá-la, descarregar o dossier de garantia ou eliminá-la.
+overLimitEditTitle|Przekroczono limit planu|Limit tarifu překročen|Limite do plano excedido
+overLimitEditMessage|Edycja jest wstrzymana, gdy liczba gwarancji przekracza limit planu. Wybierz wyższy plan, usuń część gwarancji lub poczekaj, aż wygasłe gwarancje przestaną wliczać się do limitu dwa dni po wygaśnięciu. Przeglądanie, pobieranie pakietów i usuwanie pozostają dostępne.|Úpravy jsou pozastavené, dokud počet záruk překračuje limit tarifu. Zvolte vyšší tarif, smažte dostatek záruk nebo počkejte, až se dva dny po vypršení přestanou započítávat. Zobrazení, stažení podkladů a mazání zůstávají dostupné.|A edição fica suspensa enquanto o número de garantias exceder o limite do plano. Mude de plano, elimine garantias suficientes ou aguarde que deixem de contar dois dias após expirarem. Pode continuar a consultar, descarregar dossiers e eliminar.
+editLockedTitle|Edycja wymaga planu|Úpravy vyžadují tarif|A edição requer um plano
+editLockedPlan|Do edycji tej gwarancji potrzebny jest plan, w którym ją dodano, lub wyższy. Nadal możesz ją przeglądać, pobrać pakiet reklamacyjny lub ją usunąć.|Pro úpravu této záruky potřebujete tarif, ve kterém byla přidána, nebo vyšší. Stále ji můžete zobrazit, stáhnout podklady k reklamaci nebo smazat.|Para editar esta garantia, é necessário o plano com que foi adicionada ou um superior. Pode continuar a consultá-la, descarregar o dossier de garantia ou eliminá-la.
+planExpiryEditNotice|Jeśli po zmianie na niższy plan przekroczysz limit, edycja zostanie wstrzymana, aż liczba gwarancji zmieści się w limicie. Dwa dni po wygaśnięciu gwarancje stają się tylko do odczytu i nie wliczają się do limitu. Przeglądanie, pakiet reklamacyjny i usuwanie pozostają dostępne.|Pokud po přechodu na nižší tarif překročíte limit, úpravy se pozastaví, dokud počet záruk nebude odpovídat tarifu. Dva dny po vypršení jsou záruky pouze pro čtení a nezapočítávají se do limitu. Zobrazení, podklady k reklamaci a mazání zůstávají dostupné.|Se a mudança para um plano inferior exceder o limite, a edição fica suspensa até o número de garantias caber no plano. Dois dias após expirarem, as garantias ficam apenas para leitura e deixam de contar para o limite. A consulta, o dossier de garantia e a eliminação continuam disponíveis.
+appearance|Wygląd|Vzhled|Aspeto
+darkMode|Tryb ciemny|Tmavý režim|Modo escuro
+itemReminders|Przypomnienia dla tej gwarancji|Připomínky této záruky|Lembretes desta garantia
+useDefaultReminders|Użyj domyślnych przypomnień|Použít výchozí připomínky|Usar lembretes predefinidos
+reminderDefaultsHint|Te ustawienia obowiązują, chyba że dostosujesz przypomnienia podczas edycji gwarancji.|Tato nastavení platí, pokud při úpravě záruky nepřizpůsobíte připomínky.|Estas predefinições aplicam-se salvo se personalizar os lembretes ao editar uma garantia.
+itemReminderPermissionHint|Włącz powiadomienia na karcie Przypomnienia, aby otrzymywać te alerty.|Pro tato upozornění povolte oznámení na kartě Připomínky.|Ative as notificações no separador Lembretes para receber estes avisos.
+viewIntroductionAgain|Pokaż wprowadzenie ponownie|Znovu zobrazit úvod|Ver introdução novamente
+noAds|Bez reklam|Bez reklam|Sem anúncios
+introTitle1|Witaj w WarrantyCave|Vítejte ve WarrantyCave|Bem-vindo ao WarrantyCave
+introCopy1|Przechowuj gwarancje, paragony i dane produktów w jednym bezpiecznym miejscu.|Uchovávejte záruky, účtenky a údaje o výrobcích na jednom bezpečném místě.|Guarde garantias, recibos e detalhes dos produtos num único local seguro.
+introTitle2|Nigdy więcej nie zgub gwarancji|Už nikdy neztraťte záruku|Nunca mais perca a sua garantia
+introCopy2|Zapisuj zdjęcia paragonów i gwarancji, numery seryjne oraz szczegóły zakupów.|Ukládejte fotografie účtenek a záruk, sériová čísla a podrobnosti nákupů.|Guarde fotografias de recibos e garantias, números de série e detalhes das compras.
+introTitle3|Przypomnienia przed wygaśnięciem|Připomínky před vypršením|Receba lembretes antes de expirar
+introCopy3|Śledź aktywne, wygasające i wygasłe gwarancje oraz otrzymuj przypomnienia.|Sledujte platné, brzy končící a vypršelé záruky a dostávejte připomínky.|Acompanhe produtos com garantias ativas, a expirar e expiradas e receba lembretes.
+introTitle4|Gotowość, gdy najbardziej jej potrzebujesz|Připraveni, když je to nejvíc potřeba|Pronto quando mais precisa
+introCopy4|Kopia w chmurze, pakiet reklamacyjny PDF i skaner kodów pomagają być przygotowanym.|Zálohování do cloudu, podklady k reklamaci v PDF a čtečka čárových kódů vám pomohou být připraveni.|As cópias na nuvem, o dossier de garantia em PDF e o leitor de códigos de barras ajudam a estar preparado.
+introSkip|Pomiń|Přeskočit|Saltar
+introNext|Dalej|Další|Seguinte
+extendedWarrantyToggle|Przedłużona gwarancja|Prodloužená záruka|Garantia prolongada
+extendedWarrantyHint|Ten produkt ma przedłużoną gwarancję. Ustaw ostateczną datę wygaśnięcia powyżej.|Tento výrobek má prodlouženou záruku. Nastavte výše konečné datum vypršení.|Este produto tem garantia prolongada. Defina acima a data final de validade.
+extendedWarrantyBadge|PRZEDŁUŻONA|PRODLOUŽENÁ|PROLONGADA
+downloadPdf|Pobierz PDF|Stáhnout PDF|Descarregar PDF
+sharePdf|Udostępnij PDF|Sdílet PDF|Partilhar PDF
+pdfSaved|Pakiet reklamacyjny zapisany.|Podklady k reklamaci uloženy.|Dossier de garantia guardado.
+getStarted|Rozpocznij|Začít|Começar
+peaceStarts|Spokój zaczyna się tutaj.|Klid začíná tady.|A tranquilidade começa aqui.
+addAWarranty|Dodaj gwarancję|Přidat záruku|Adicionar garantia
+smartScan|Inteligentny skan|Chytré skenování|Digitalização inteligente
+redeemFounderCode|Aktywuj kod promocyjny|Aktivovat promo kód|Ativar código promocional
+promoCodeDescription|Odblokuj Basic bezpłatnie na rok|Získejte Basic zdarma na 1 rok|Desbloqueie Basic grátis durante 1 ano
+enterFounderCode|Wpisz kod promocyjny|Zadejte promo kód|Introduza o código promocional
+founderCodeActivated|Basic jest aktywny przez rok.|Basic je aktivní na jeden rok.|Basic está ativo durante um ano.
+founderCodeFailed|Kod jest nieprawidłowy lub został już użyty.|Kód je neplatný nebo již použitý.|O código é inválido ou já foi utilizado.
+smartScanCreditsRemaining|Pozostałe skany: {count}|Zbývající skeny: {count}|Digitalizações restantes: {count}
+scanDocument|Zeskanuj paragon lub dokument gwarancyjny|Naskenujte účtenku nebo záruční doklad|Digitalize um recibo ou documento de garantia
+addManually|Dodaj ręcznie|Přidat ručně|Adicionar manualmente
+enterDetails|Wpisz samodzielnie dane produktu i gwarancji|Zadejte údaje o výrobku a záruce ručně|Introduza os detalhes do produto e da garantia manualmente
+maybeLater|Może później|Možná později|Talvez mais tarde
+firstName|Imię|Jméno|Nome próprio
+lastName|Nazwisko|Příjmení|Apelido
+email|E-mail|E-mail|Email
+password|Hasło|Heslo|Palavra-passe
+confirmPassword|Potwierdź hasło|Potvrdit heslo|Confirmar palavra-passe
+forgotPassword|Nie pamiętasz hasła?|Zapomenuté heslo?|Esqueceu-se da palavra-passe?
+signIn|Zaloguj się|Přihlásit se|Iniciar sessão
+createAccount|Utwórz konto|Vytvořit účet|Criar conta
+resendEmail|Wyślij e-mail ponownie|Znovu odeslat e-mail|Reenviar email
+differentAccount|Użyj innego konta|Použít jiný účet|Usar outra conta
+productTypeRequired|Typ produktu *|Typ výrobku *|Tipo de produto *
+productNameRequired|Nazwa produktu *|Název výrobku *|Nome do produto *
+brand|Marka|Značka|Marca
+model|Model|Model|Modelo
+itemUsed|Gdzie używasz tego produktu?|Kde se tento výrobek používá?|Onde é utilizado este produto?
+authorizedService|Autoryzowany serwis|Autorizovaný servis|Assistência autorizada
+servicePhone|Telefon serwisu|Telefon servisu|Telefone da assistência
+serviceEmail|E-mail serwisu|E-mail servisu|Email da assistência
+storeRetailer|Sklep / Sprzedawca|Obchod / Prodejce|Loja / Vendedor
+purchasePrice|Cena zakupu|Kupní cena|Preço de compra
+notes|Notatki|Poznámky|Notas
+receipt|Paragon|Účtenka|Recibo
+warrantyDocument|Dokument gwarancyjny|Záruční doklad|Documento de garantia
+saveWarranty|Zapisz gwarancję|Uložit záruku|Guardar garantia
+warrantyDetails|Szczegóły gwarancji|Podrobnosti záruky|Detalhes da garantia
+edit|Edytuj|Upravit|Editar
+deleteWarranty|Usunąć gwarancję?|Smazat záruku?|Eliminar garantia?
+phone|Telefon|Telefon|Telefone
+signOut|Wyloguj się|Odhlásit se|Terminar sessão
+deleteAccount|Usuń konto|Smazat účet|Eliminar conta
+cloudBackup|Kopia w chmurze|Záloha v cloudu|Cópia de segurança na nuvem
+privacyPolicy|Polityka prywatności|Zásady ochrany soukromí|Política de privacidade
+terms|Regulamin|Podmínky|Termos
+support|Pomoc|Podpora|Apoio
+website|Strona internetowa|Webové stránky|Site
+welcomeCopy|Twoje gwarancje, paragony i dowody zakupu — bezpieczne i dostępne, gdy ich potrzebujesz.|Vaše záruky, účtenky a doklady o nákupu — v bezpečí, kdykoli je potřebujete.|As suas garantias, recibos e comprovativos de compra — seguros para quando precisar.
+welcomeBack|Witaj ponownie|Vítejte zpět|Bem-vindo de volta
+createProfile|Utwórz swój profil|Vytvořte si profil|Crie o seu perfil
+signInCopy|Zaloguj się, aby otworzyć WarrantyCave.|Přihlaste se pro otevření WarrantyCave.|Inicie sessão para abrir WarrantyCave.
+profileCopy|Twórz kopie danych gwarancji i miej do nich dostęp na swoich urządzeniach.|Zálohujte údaje o zárukách a mějte je dostupné na svých zařízeních.|Mantenha os detalhes das garantias com cópia de segurança e disponíveis nos seus dispositivos.
+pleaseWait|Proszę czekać…|Čekejte prosím…|Aguarde…
+enterEmailPassword|Wpisz e-mail i hasło.|Zadejte e-mail a heslo.|Introduza o email e a palavra-passe.
+enterName|Wpisz imię i nazwisko.|Zadejte jméno a příjmení.|Introduza o nome e o apelido.
+passwordMismatch|Hasła nie są zgodne.|Hesla se neshodují.|As palavras-passe não coincidem.
+requestFailed|Nie można wykonać tej czynności. Spróbuj ponownie.|Požadavek nelze dokončit. Zkuste to znovu.|Não foi possível concluir o pedido. Tente novamente.
+verifyEmail|Zweryfikuj e-mail|Ověřte e-mail|Verifique o email
+verifiedEmail|E-mail zweryfikowany|E-mail jsem ověřil(a)|Já verifiquei o email
+emailNotVerified|E-mail nie został jeszcze zweryfikowany.|E-mail zatím není ověřen.|O email ainda não foi verificado.
+openingCave|Otwieranie skrytki z gwarancjami…|Otevírání úložiště záruk…|A abrir as suas garantias…
+daysRemaining|Pozostało dni: {days}|Zbývá dnů: {days}|Dias restantes: {days}
+expiresInDays|Dni do wygaśnięcia: {days}|Dnů do vypršení: {days}|Dias até expirar: {days}
+expiresToday|Wygasa dzisiaj|Vyprší dnes|Expira hoje
+expiredDaysAgo|Dni od wygaśnięcia: {days}|Dnů od vypršení: {days}|Dias desde que expirou: {days}
+restorePurchases|Przywróć zakupy|Obnovit nákupy|Restaurar compras
+restoringPurchases|Sprawdzanie zakupów…|Kontrola nákupů…|A verificar compras…
+purchaseRequiresAccount|Zaloguj się i zweryfikuj e-mail przed zakupem lub przywróceniem planu.|Před nákupem nebo obnovením tarifu se přihlaste a ověřte e-mail.|Inicie sessão e verifique o email antes de comprar ou restaurar um plano.
+purchaseUnavailable|Płatności Google Play są chwilowo niedostępne. Spróbuj ponownie za chwilę.|Platby Google Play zatím nejsou dostupné. Zkuste to za chvíli.|A faturação do Google Play ainda não está disponível. Tente novamente em breve.
+home|Start|Domů|Início
+items|Produkty|Položky|Produtos
+add|Dodaj|Přidat|Adicionar
+reminders|Przypomnienia|Připomínky|Lembretes
+settings|Ustawienia|Nastavení|Definições
+addWarranty|Dodaj gwarancję|Přidat záruku|Adicionar garantia
+editWarranty|Edytuj gwarancję|Upravit záruku|Editar garantia
+serialNumber|Numer seryjny|Sériové číslo|Número de série
+scanSerial|Skanuj numer seryjny|Naskenovat sériové číslo|Digitalizar número de série
+barcodeScanner|Skaner kodów kreskowych i QR|Čtečka čárových a QR kódů|Leitor de códigos de barras e QR
+scannerPaid|Skaner kodów jest dostępny w planach Basic i Plus.|Čtečka čárových kódů je součástí Basic a Plus.|O leitor de códigos de barras está incluído em Basic e Plus.
+language|Język|Jazyk|Idioma
+account|Konto|Účet|Conta
+warrantyPreferences|Ustawienia gwarancji|Předvolby záruk|Preferências de garantia
+legalSupport|Informacje prawne i pomoc|Právní informace a podpora|Informações legais e apoio
+save|Zapisz|Uložit|Guardar
+cancel|Anuluj|Zrušit|Cancelar
+scanTitle|Skanuj numer seryjny|Naskenovat sériové číslo|Digitalizar número de série
+scanHint|Umieść kod kreskowy lub QR produktu w ramce. Numer seryjny zostanie uzupełniony automatycznie.|Umístěte čárový nebo QR kód výrobku do rámečku. Sériové číslo se vyplní automaticky.|Coloque o código de barras ou QR do produto dentro da moldura. O número de série será preenchido automaticamente.
+referralCode|Kod polecający (opcjonalnie)|Kód pozvánky (nepovinné)|Código de convite (opcional)
+referralHint|Osoba zapraszająca otrzyma 30 dni Plus po Twoim pierwszym udanym płatnym zakupie.|Zvoucí získá 30 dní Plus po vašem prvním úspěšném placeném nákupu.|Quem o convidou recebe 30 dias de Plus após a sua primeira compra paga concluída.
+goodToSeeYou|Miło Cię widzieć!|Rádi vás vidíme!|Que bom vê-lo!
+warrantiesSafe|Twoje gwarancje są tu bezpieczne.|Vaše záruky jsou zde v bezpečí.|As suas garantias estão seguras aqui.
+searchWarranties|Szukaj gwarancji|Hledat záruky|Pesquisar garantias
+active|Aktywne|Platné|Ativas
+expiring|Wygasające|Končící|A expirar
+expired|Wygasłe|Vypršelé|Expiradas
+recentlyAdded|Ostatnio dodane|Nedávno přidané|Adicionados recentemente
+searchResults|Wyniki wyszukiwania|Výsledky hledání|Resultados da pesquisa
+seeAll|Zobacz wszystkie|Zobrazit vše|Ver todos
+expiringSoon|Wkrótce wygasa|Brzy vyprší|A expirar em breve
+noWarranties|Brak gwarancji|Zatím žádné záruky|Ainda não há garantias
+noMatches|Nie znaleziono wyników|Žádné výsledky|Nenhum resultado encontrado
+addFirst|Dodaj pierwszy produkt i przechowuj wszystko bezpiecznie w jednym miejscu.|Přidejte první výrobek a mějte vše v bezpečí na jednom místě.|Adicione o primeiro produto e guarde tudo em segurança num único local.
+tryAnother|Spróbuj innej nazwy, marki, modelu lub filtra.|Zkuste jiný název, značku, model nebo filtr.|Tente outro nome de produto, marca, modelo ou filtro.
+filterWarranties|Filtruj gwarancje|Filtrovat záruky|Filtrar garantias
+status|Status|Stav|Estado
+all|Wszystkie|Vše|Todas
+productType|Typ produktu|Typ výrobku|Tipo de produto
+allProductTypes|Wszystkie typy produktów|Všechny typy výrobků|Todos os tipos de produto
+location|Lokalizacja|Umístění|Localização
+allLocations|Wszystkie lokalizacje|Všechna umístění|Todas as localizações
+reset|Resetuj|Obnovit|Repor
+apply|Zastosuj|Použít|Aplicar
+sortWarranties|Sortuj gwarancje|Seřadit záruky|Ordenar garantias
+expirySoonest|Najbliższe wygaśnięcie|Nejbližší vypršení|Validade mais próxima
+purchaseNewest|Data zakupu: najnowsze|Datum nákupu: nejnovější|Data de compra: mais recente
+purchaseOldest|Data zakupu: najstarsze|Datum nákupu: nejstarší|Data de compra: mais antiga
+productName|Nazwa produktu|Název výrobku|Nome do produto
+myItems|Moje produkty|Moje položky|Os meus produtos
+activeWarranties|Aktywne gwarancje|Platné záruky|Garantias ativas
+expiredWarranties|Wygasłe gwarancje|Vypršelé záruky|Garantias expiradas
+search|Szukaj|Hledat|Pesquisar
+searchHint|Nazwa, marka, model, numer seryjny, sklep lub lokalizacja|Název, značka, model, sériové číslo, obchod nebo umístění|Nome, marca, modelo, número de série, loja ou localização
+clearSearch|Wyczyść wyszukiwanie|Vymazat hledání|Limpar pesquisa
+filters|Filtry|Filtry|Filtros
+filtersActive|Aktywne filtry|Aktivní filtry|Filtros ativos
+sort|Sortuj|Seřadit|Ordenar
+localAlerts|Lokalne powiadomienia są zaplanowane na tym urządzeniu. Działają bez konta.|Místní upozornění jsou naplánována v tomto zařízení. Fungují bez účtu.|Os avisos locais são agendados neste dispositivo. Funcionam sem conta.
+days60|60 dni wcześniej|60 dní předem|60 dias antes
+days30|30 dni wcześniej|30 dní předem|30 dias antes
+days7|7 dni wcześniej|7 dní předem|7 dias antes
+expiryDay|W dniu wygaśnięcia|V den vypršení|No dia em que expira
+expiryReminder|Przypomnienie o wygaśnięciu gwarancji|Připomínka vypršení záruky|Lembrete de validade da garantia
+enableNotifications|Zezwól na powiadomienia|Povolit oznámení|Permitir notificações
+reminderEnabled|Przypomnienie włączone|Připomínka zapnuta|Lembrete ativado
+notificationNeeded|WarrantyCave potrzebuje zgody na powiadomienia o wygaśnięciu gwarancji.|WarrantyCave potřebuje oprávnění k oznámením pro připomínky vypršení.|WarrantyCave precisa de permissão para enviar lembretes de validade.
+monitored|Lokalnie monitorowane gwarancje: {count}. Harmonogram przypomnień aktualizuje się po edycji produktu.|Místně sledované záruky: {count}. Plán připomínek se aktualizuje při úpravě položky.|Garantias acompanhadas localmente: {count}. Os lembretes são atualizados ao editar um produto.
+upgradePlan|Zmień plan|Změnit tarif|Mudar de plano
+freeForever|Pierwsze 10 gwarancji pozostaje bezpłatne na zawsze.|Prvních 10 záruk zůstává navždy zdarma.|As primeiras 10 garantias são grátis para sempre.
+unlockCloud|Odblokuj kopię w chmurze, synchronizację i więcej miejsca na gwarancje.|Získejte zálohování do cloudu, synchronizaci a více místa pro záruky.|Desbloqueie cópias na nuvem, sincronização e espaço para mais garantias.
+free|Free|Free|Free
+basic|Basic|Basic|Basic
+plus|Plus|Plus|Plus
+upTo10|Do 10 produktów|Až 10 položek|Até 10 produtos
+upTo25|Do 25 produktów|Až 25 položek|Até 25 produtos
+upTo100|Do 100 produktów|Až 100 položek|Até 100 produtos
+localStorage|Pamięć lokalna|Místní úložiště|Armazenamento local
+manualEntry|Ręczne wprowadzanie|Ruční zadávání|Introdução manual
+localReminders|Lokalne przypomnienia|Místní připomínky|Lembretes locais
+includesAds|Zawiera reklamy|Obsahuje reklamy|Inclui anúncios
+cloudSync|Kopia w chmurze i synchronizacja|Záloha v cloudu a synchronizace|Cópia na nuvem e sincronização
+allReminders|Wszystkie przypomnienia|Všechny připomínky|Todos os lembretes
+claimPacks|Pakiety reklamacyjne ze zdjęciami|Podklady k reklamaci s fotografiemi|Dossiers de garantia com fotografias
+smartScanPack|Pakiet inteligentnych skanów|Balíček chytrých skenů|Pacote de digitalizações inteligentes
+scanCredits|50 skanów • Kredyty nie wygasają|50 skenů • Kredity nikdy nevyprší|50 digitalizações • Os créditos não expiram
+securePurchase|Zakup zostanie bezpiecznie zakończony w ostatnim kroku potwierdzenia Google Play.|Nákup bezpečně dokončíte v závěrečném potvrzení Google Play.|A compra é concluída em segurança na confirmação final do Google Play.
+currentPlan|Obecny plan|Současný tarif|Plano atual
+continueWith|Kontynuuj z {plan} — {price}|Pokračovat s {plan} — {price}|Continuar com {plan} — {price}
+notNow|Nie teraz|Teď ne|Agora não
+billingPending|Płatności Google Play zostaną aktywowane po dodaniu produktów do tej wersji testowej.|Platby Google Play se aktivují po přidání produktů obchodu do této testovací verze.|A faturação do Google Play será ativada quando os produtos forem adicionados a esta versão de teste.
+mostPopular|NAJPOPULARNIEJSZY|NEJOBLÍBENĚJŠÍ|MAIS POPULAR
+currentPlanCaps|OBECNY PLAN|SOUČASNÝ TARIF|PLANO ATUAL
+authGoogle|Łączenie z Google…|Připojování ke Google…|A ligar ao Google…
+authLocal|Otwieranie konta…|Otevírání účtu…|A abrir a sua conta…
+authCloud|Synchronizowanie gwarancji…|Synchronizace záruk…|A sincronizar garantias…
+notificationToday|{product}: gwarancja wygasa dzisiaj|{product}: záruka vyprší dnes|{product}: a garantia expira hoje
+notificationDays|{product}: dni do wygaśnięcia gwarancji: {days}|{product}: dnů do vypršení záruky: {days}|{product}: dias até a garantia expirar: {days}
+notificationBody|Otwórz WarrantyCave, aby sprawdzić dokumenty.|Otevřete WarrantyCave a zkontrolujte doklady.|Abra WarrantyCave para consultar os documentos.
+Electronics|Elektronika|Elektronika|Eletrónica
+TV|Telewizor|Televizor|Televisão
+Phone|Telefon|Telefon|Telemóvel
+Computer|Komputer|Počítač|Computador
+Laptop|Laptop|Notebook|Portátil
+Tablet|Tablet|Tablet|Tablet
+Monitor|Monitor|Monitor|Monitor
+Printer|Drukarka|Tiskárna|Impressora
+Gaming Console|Konsola do gier|Herní konzole|Consola de jogos
+Camera|Aparat|Fotoaparát|Câmara
+Audio / Speakers|Audio / Głośniki|Audio / Reproduktory|Áudio / Colunas
+Router / Network Equipment|Router / Sprzęt sieciowy|Router / Síťové vybavení|Router / Equipamento de rede
+Home Appliances|Sprzęt AGD|Domácí spotřebiče|Eletrodomésticos
+Refrigerator|Lodówka|Chladnička|Frigorífico
+Freezer|Zamrażarka|Mraznička|Congelador
+Washing Machine|Pralka|Pračka|Máquina de lavar roupa
+Dryer|Suszarka|Sušička|Máquina de secar roupa
+Dishwasher|Zmywarka|Myčka|Máquina de lavar loiça
+Oven / Stove|Piekarnik / Kuchenka|Trouba / Sporák|Forno / Fogão
+Microwave|Mikrofalówka|Mikrovlnná trouba|Micro-ondas
+Air Conditioner|Klimatyzator|Klimatizace|Ar condicionado
+Vacuum Cleaner|Odkurzacz|Vysavač|Aspirador
+Coffee Machine|Ekspres do kawy|Kávovar|Máquina de café
+Small Appliance|Małe AGD|Malý spotřebič|Pequeno eletrodoméstico
+Tools|Narzędzia|Nářadí|Ferramentas
+Power Tool|Elektronarzędzie|Elektrické nářadí|Ferramenta elétrica
+Garden Tool|Narzędzie ogrodowe|Zahradní nářadí|Ferramenta de jardim
+Auto|Motoryzacja|Auto|Automóvel
+Car Electronics / Accessories|Elektronika / Akcesoria samochodowe|Autoelektronika / Příslušenství|Eletrónica / Acessórios auto
+Other|Inne|Jiné|Outro
+Custom|Własne|Vlastní|Personalizado
+6 months|6 miesięcy|6 měsíců|6 meses
+1 year|1 rok|1 rok|1 ano
+2 years|2 lata|2 roky|2 anos
+3 years|3 lata|3 roky|3 anos
+4 years|4 lata|4 roky|4 anos
+5 years|5 lat|5 let|5 anos
+durationMonthsLabel|Liczba miesięcy: {count}|Počet měsíců: {count}|Meses: {count}

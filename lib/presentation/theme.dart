@@ -62,6 +62,7 @@ ThemeData buildTheme() {
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) => TextStyle(
           fontSize: 11,
+          overflow: TextOverflow.ellipsis,
           fontWeight: states.contains(WidgetState.selected)
               ? FontWeight.w700
               : FontWeight.w500,
@@ -134,6 +135,7 @@ ThemeData buildDarkTheme() {
       indicatorColor: primary.withValues(alpha: .22),
       labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
         fontSize: 11,
+          overflow: TextOverflow.ellipsis,
         fontWeight: states.contains(WidgetState.selected)
             ? FontWeight.w700 : FontWeight.w500,
         color: states.contains(WidgetState.selected) ? primary : onSurface,

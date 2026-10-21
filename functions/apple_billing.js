@@ -28,6 +28,9 @@ function subscriptionState(transaction, renewal, status, now = Date.now()) {
     productId: transaction.productId,
     expiresAt: expiry,
     autoRenewing: renewal?.autoRenewStatus === 1,
+    // During grace, Apple may retry a payment at any time. Grace expiry is
+    // an access deadline and must never be advertised as the next charge date.
+    nextBillingAt: status === 1 && renewal?.autoRenewStatus === 1 ? expiry : null,
   };
 }
 

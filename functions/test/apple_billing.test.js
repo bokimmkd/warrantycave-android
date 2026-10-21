@@ -28,4 +28,5 @@ test('Apple: grace access uses only the signed grace expiry', () => {
   const grace = subscriptionState({...purchase, expiresDate: NOW - 1},
     {autoRenewStatus: 1, gracePeriodExpiresDate: NOW + 500}, 4, NOW);
   assert.equal(grace.expiresAt, NOW + 500);
+  assert.equal(grace.nextBillingAt, null);
 });

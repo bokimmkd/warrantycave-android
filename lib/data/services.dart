@@ -1,4 +1,5 @@
 import 'account_local_store.dart';
+import 'notification_planner.dart';
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -24,6 +25,10 @@ abstract interface class NotificationService {
   Future<bool> requestPermission();
   Future<void> scheduleFor(WarrantyItem item, AppSettings settings);
   Future<void> cancelFor(String itemId);
+}
+
+abstract interface class BatchNotificationService implements NotificationService {
+  Future<void> reconcile(List<WarrantyItem> items, AppSettings settings);
 }
 
 abstract interface class CloudSyncService {
@@ -235,6 +240,41 @@ class LocalNotificationService implements NotificationService {
 
   int _notificationId(String value, int slot) =>
       ((value.hashCode & 0x3fffffff) * 4 + slot) & 0x7fffffff;
+}
+
+class IOSNotificationService extends LocalNotificationService
+    implements BatchNotificationService {
+  Future<void> _queue = Future<void>.value();
+  int _generation = 0;
+
+  @override
+  Future<void> reconcile(List<WarrantyItem> items, AppSettings settings) {
+    final generation = ++_generation;
+    final snapshot = List<WarrantyItem>.of(items);
+    final run = _queue.catchError((Object _) {}).then((_) async {
+      if (generation != _generation) return;
+      await initialize();
+      if (generation != _generation) return;
+      await _plugin.cancelAll();
+      final planned = planIOSReminders(snapshot, settings, now: DateTime.now());
+      final l10n = AppLocalizations(appLocale(settings.languageCode));
+      for (var index = 0; index < planned.length; index++) {
+        if (generation != _generation) return;
+        final reminder = planned[index];
+        await _plugin.zonedSchedule(
+          index,
+          l10n.format(reminder.days == 0 ? 'notificationToday' : 'notificationDays',
+            {'product': reminder.item.productName, 'days': reminder.days}),
+          l10n.text('notificationBody'), reminder.at,
+          const NotificationDetails(iOS: DarwinNotificationDetails()),
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: reminder.item.id,
+        );
+      }
+    });
+    _queue = run;
+    return run;
+  }
 }
 
 class LocalSubscriptionService implements SubscriptionService {

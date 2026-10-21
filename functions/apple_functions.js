@@ -10,8 +10,8 @@ const {referralRewardExpiryMs} = require('./referral');
 const applePrivateKey = defineSecret('APPLE_IAP_PRIVATE_KEY');
 const functionOptions = {region: 'us-central1', secrets: [applePrivateKey]};
 
-function registerAppleFunctions({db, requireUser, entitlements}) {
-  const store = () => createAppleStore(applePrivateKey.value());
+function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
+  const store = storeFactory || (() => createAppleStore(applePrivateKey.value()));
   const accountRef = (uid) => db.collection('appleBillingAccounts').doc(uid);
   const subscriptionRef = (environment, id) =>
     db.collection('appleSubscriptions').doc(`${environment}-${id}`);
@@ -44,6 +44,7 @@ function registerAppleFunctions({db, requireUser, entitlements}) {
         plan: state?.plan || 'free',
         expiresAt: state ? Timestamp.fromMillis(state.expiresAt) : null,
         autoRenewing: state?.autoRenewing || false,
+        nextBillingAt: state?.nextBillingAt ? Timestamp.fromMillis(state.nextBillingAt) : null,
         verificationStartedAt: startedAt, verifiedAt: FieldValue.serverTimestamp(),
       });
       if (inviter?.exists) {
@@ -132,6 +133,8 @@ function registerAppleFunctions({db, requireUser, entitlements}) {
         if (typeof token !== 'string' || !/^[a-f0-9-]{36}$/i.test(token)) { response.sendStatus(200); return; }
         const account = await db.collection('appleAccountTokens').doc(token).get();
         if (!account.exists) { response.sendStatus(200); return; }
+        const user = await db.collection('users').doc(account.data().uid).get();
+        if (!user.exists) { response.sendStatus(200); return; }
         const startedAt = Date.now();
         const current = await apple.current(verified.payload.originalTransactionId, verified.environment);
         await save(current, account.data().uid, startedAt);

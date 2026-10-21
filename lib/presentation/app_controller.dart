@@ -127,9 +127,7 @@ class AppController extends ChangeNotifier {
       if (!accountBusy) {
       _backgroundOperations++;
       try {
-      for (final item in items) {
-        await notifications.scheduleFor(item, settings);
-      }
+      await _scheduleAllNotifications();
       } finally { _backgroundOperations--; }
       }
     } catch (error) {
@@ -137,6 +135,14 @@ class AppController extends ChangeNotifier {
     }
     deferredServicesReady = true;
     notifyListeners();
+  }
+
+  Future<void> _scheduleAllNotifications() async {
+    if (notifications case final BatchNotificationService batch) {
+      await batch.reconcile(items, settings);
+    } else {
+      for (final item in items) { await notifications.scheduleFor(item, settings); }
+    }
   }
 
   PlanTier get effectivePlan {
@@ -328,7 +334,11 @@ class AppController extends ChangeNotifier {
     }
     _pendingCreationIds.remove(item.id);
     for (final path in removedPhotos) await photos.delete(path);
-    await notifications.scheduleFor(item, settings);
+    if (notifications case final BatchNotificationService batch) {
+      await batch.reconcile(items, settings);
+    } else {
+      await notifications.scheduleFor(item, settings);
+    }
     await _cloudAction(() => cloud!.saveItem(user!.uid, item));
   }
 
@@ -366,7 +376,11 @@ class AppController extends ChangeNotifier {
         pendingCloudDeletionIds: [...settings.pendingCloudDeletionIds, item.id],
       );
     }
-    await notifications.cancelFor(item.id);
+    if (notifications case final BatchNotificationService batch) {
+      await batch.reconcile(items, settings);
+    } else {
+      await notifications.cancelFor(item.id);
+    }
     for (final path in [
       if (item.productPhoto != null) item.productPhoto!,
       ...item.receiptPhotos,
@@ -392,7 +406,7 @@ class AppController extends ChangeNotifier {
   Future<void> _updateSettings(AppSettings value) async {
     settings = value;
     await _persist();
-    for (final item in items) await notifications.scheduleFor(item, settings);
+    await _scheduleAllNotifications();
     await _cloudAction(() => cloud!.saveProfile(user!.uid, settings));
   }
 
@@ -419,8 +433,10 @@ class AppController extends ChangeNotifier {
       rethrow;
     }
     try {
-      for (final item in previous) { await notifications.cancelFor(item.id); }
-      for (final item in items) { await notifications.scheduleFor(item, settings); }
+      if (notifications is! BatchNotificationService) {
+        for (final item in previous) { await notifications.cancelFor(item.id); }
+      }
+      await _scheduleAllNotifications();
     } catch (error) { debugPrint('Account reminder scheduling failed: $error'); }
   }
 
@@ -536,8 +552,9 @@ class AppController extends ChangeNotifier {
         settings = AppSettings(onboardingComplete: settings.onboardingComplete);
         await _persist();
       }
+      if (notifications is BatchNotificationService) await _scheduleAllNotifications();
       for (final item in oldItems) {
-        await notifications.cancelFor(item.id);
+        if (notifications is! BatchNotificationService) await notifications.cancelFor(item.id);
         for (final path in [if (item.productPhoto != null) item.productPhoto!,
           ...item.receiptPhotos, ...item.warrantyPhotos]) {
           await photos.delete(path);
@@ -554,9 +571,7 @@ class AppController extends ChangeNotifier {
     if (granted) {
       settings = settings.copyWith(notificationConsentGranted: true);
       await _persist();
-      for (final item in items) {
-        await notifications.scheduleFor(item, settings);
-      }
+      await _scheduleAllNotifications();
     }
     return granted;
   }
@@ -629,7 +644,7 @@ class AppController extends ChangeNotifier {
         plan: _isPlusTester ? PlanTier.plus : result.settings.plan,
       );
       await storage.save(items, settings);
-      for (final item in items) { await notifications.scheduleFor(item, settings); }
+      await _scheduleAllNotifications();
       _cloudBootstrapPending = false;
       lastCloudSync = DateTime.now();
     } catch (error) {
@@ -670,9 +685,7 @@ class AppController extends ChangeNotifier {
         plan: _isPlusTester ? PlanTier.plus : result.settings.plan,
       );
       await storage.save(items, settings);
-      for (final item in items) {
-        await notifications.scheduleFor(item, settings);
-      }
+      await _scheduleAllNotifications();
       _cloudBootstrapPending = false;
       lastCloudSync = DateTime.now();
     } catch (error) {

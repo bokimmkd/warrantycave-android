@@ -53,7 +53,7 @@ Future<void> main() async {
       create: (_) => AppController(
         storage: JsonLocalStorageService(),
         photos: LocalPhotoStorageService(),
-        notifications: LocalNotificationService(),
+        notifications: isIOS ? IOSNotificationService() : LocalNotificationService(),
         subscriptions: isIOS
             ? AppleSubscriptionService(
                 accountToken: () async {

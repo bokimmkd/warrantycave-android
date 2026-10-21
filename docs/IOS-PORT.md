@@ -26,6 +26,11 @@ build to exercise Google's iOS test ads. Accounts/cloud and purchases are unavai
 configured. Notification permission is requested only when the user enables
 reminders. Simulator camera hardware, Apple sign-in, real subscriptions and
 delivery of notifications while the app is closed need device/sandbox testing.
+Because iOS retains at most 64 pending notification requests, the iOS scheduler
+selects the nearest 64 across all warranties. It reconciles them on startup,
+account changes and warranty/settings edits, including deletions and consent
+revocation. Later reminders require reopening the app to refill the queue; this
+is an iOS platform limit rather than a promise of unlimited offline scheduling.
 
 The `iOS simulator and shared checks` workflow compiles Swift/plugins and runs
 an integration test of native startup, guest warranty persistence and navigation.
@@ -68,7 +73,8 @@ Create these **auto-renewable, one-year products in one subscription group**:
 | `warrantycave_plus_yearly` | Plus | 100 active items |
 
 Set Plus above Basic for upgrade/downgrade handling, configure storefront prices
-and required subscription metadata, and complete paid-app agreements/tax/banking.
+and required subscription metadata, disable Family Sharing (ownership is bound
+to the buyer's WarrantyCave account), and complete paid-app agreements/tax/banking.
 The app displays prices returned by StoreKit rather than copied Android prices.
 
 The server issues an opaque UUID for each authenticated/verified Firebase user.

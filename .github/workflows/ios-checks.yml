@@ -1,8 +1,6 @@
 name: iOS simulator and shared checks
 
 on:
-  push:
-    branches: [feature/ios-port]
   pull_request:
     paths: ['ios/**', 'lib/**', 'pubspec.*', 'test/**', 'integration_test/ios_smoke_test.dart', 'functions/**', 'scripts/*ios*', '.github/workflows/ios-checks.yml']
   workflow_dispatch:

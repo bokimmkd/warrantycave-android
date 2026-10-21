@@ -5,7 +5,7 @@ const {registerAppleFunctions} = require('../apple_functions');
 
 const TOKEN = '4b293923-b932-450a-bc62-96599c5c3481';
 function fixture({owner = 'alice', refunded = false, invalidSignature = false,
-  upperCaseToken = false, environment = 'Production', price = 2990} = {}) {
+  upperCaseToken = false, environment = 'Production', price = 2990, offerDiscountType} = {}) {
   const subscriptionPath = `appleSubscriptions/${environment}-1001`;
   const records = new Map([
     ['users/alice', {}],
@@ -29,7 +29,7 @@ function fixture({owner = 'alice', refunded = false, invalidSignature = false,
     },
   };
   const transaction = {originalTransactionId: '1001', transactionId: '1002',
-    productId: 'warrantycave_basic_yearly', price,
+    productId: 'warrantycave_basic_yearly', price, offerDiscountType,
     appAccountToken: upperCaseToken ? TOKEN.toUpperCase() : TOKEN};
   const handlers = registerAppleFunctions({
     db, requireUser: (request) => request.auth,
@@ -74,8 +74,8 @@ test('Apple UUID account ownership is independent of string capitalization', asy
   assert.deepEqual(await handlers.confirmApplePurchase.run(request), {plan: 'basic'});
 });
 
-test('sandbox and zero-price transactions cannot grant a real referral reward', async () => {
-  for (const options of [{environment: 'Sandbox'}, {price: 0}]) {
+test('sandbox, free-trial and zero-price transactions cannot grant a real referral reward', async () => {
+  for (const options of [{environment: 'Sandbox'}, {price: 0}, {offerDiscountType: 'FREE_TRIAL'}]) {
     const {handlers, request, records} = fixture(options);
     records.set('users/alice', {referralInviterUid: 'bob'});
     records.set('users/bob', {});

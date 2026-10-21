@@ -111,7 +111,7 @@ of Play entitlement fields. The highest valid tier wins across stores and reward
 Notifications reconcile renewal, cancellation, grace, expiration and refunds;
 on account sync, records older than five minutes are refreshed from Apple.
 First paid Apple purchases can trigger the existing one-time inviter Plus reward.
-Sandbox/zero-price transactions never award real referral benefits. The server-only
+Sandbox/free-trial/zero-price transactions never award real referral benefits. The server-only
 reward ledger also prevents a profile delete/recreate from claiming the Apple
 reward again.
 The implementation does **not** extend an Apple renewal charge date. Review the

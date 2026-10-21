@@ -37,6 +37,7 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
       if ((previous.data()?.verificationStartedAt || 0) > startedAt) return;
       const user = userSnap.data();
       const inviterUid = environment === 'Production' && state &&
+          transaction.offerDiscountType !== 'FREE_TRIAL' &&
           Number(transaction.price || 0) > 0 && !rewarded.exists &&
           !user.referralRewardedAt && user.referralInviterUid &&
           user.referralInviterUid !== uid ? user.referralInviterUid : null;

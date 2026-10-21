@@ -46,7 +46,7 @@ jobs:
       group: ios-native-${{ github.ref }}
       cancel-in-progress: true
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 75
     env:
       CI: true
       FLUTTER_SUPPRESS_ANALYTICS: true
@@ -71,6 +71,10 @@ jobs:
           cache-dependency-path: functions/package-lock.json
       - run: npm ci && npm test && node --check index.js && node --check apple_functions.js
         working-directory: functions
+      # Compile the Firebase/MLKit native dependencies before starting the
+      # simulator, which otherwise competes for the hosted runner's resources.
+      - name: Compile iOS app before booting the simulator
+        run: flutter build ios --simulator --debug --dart-define-from-file=.ios-dart-defines.json
       - name: Boot iPhone simulator
         run: |
           device=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for rows in d["devices"].values() for x in rows if x["name"].startswith("iPhone")))')

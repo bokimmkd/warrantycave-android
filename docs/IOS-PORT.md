@@ -32,9 +32,11 @@ account changes and warranty/settings edits, including deletions and consent
 revocation. Later reminders require reopening the app to refill the queue; this
 is an iOS platform limit rather than a promise of unlimited offline scheduling.
 
-The `iOS simulator and shared checks` workflow compiles Swift/plugins and runs
-an integration test of native startup, guest warranty persistence and navigation.
-Its app artifact is for Simulator; it is not a signed IPA or TestFlight upload.
+The `iOS simulator and shared checks` workflow builds Swift/plugins once for its
+selected iPhone simulator through an integration test of native startup, guest
+warranty persistence and navigation. Its artifact contains screenshot evidence,
+not a signed IPA or TestFlight upload. Use `flutter run` above for an interactive
+local app; an integration-test runner is not distributed as the manual test app.
 Release/Profile builds fail if the native configuration is still local/development.
 
 ## Connect the real services

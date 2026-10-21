@@ -18,7 +18,8 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
 
   async function save(current, uid, startedAt) {
     const {transaction, state, environment} = current;
-    const token = transaction.appAccountToken;
+    const token = typeof transaction.appAccountToken === 'string'
+      ? transaction.appAccountToken.toLowerCase() : null;
     if (!token || !/^[a-f0-9-]{36}$/i.test(token)) {
       throw new HttpsError('failed-precondition', 'This purchase is not linked to a WarrantyCave account.');
     }
@@ -129,7 +130,8 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
       try {
         const verified = await apple.verifyTransaction(signed);
         if (verified.environment !== notification.environment) { response.sendStatus(400); return; }
-        const token = verified.payload.appAccountToken;
+        const token = typeof verified.payload.appAccountToken === 'string'
+          ? verified.payload.appAccountToken.toLowerCase() : null;
         if (typeof token !== 'string' || !/^[a-f0-9-]{36}$/i.test(token)) { response.sendStatus(200); return; }
         const account = await db.collection('appleAccountTokens').doc(token).get();
         if (!account.exists) { response.sendStatus(200); return; }

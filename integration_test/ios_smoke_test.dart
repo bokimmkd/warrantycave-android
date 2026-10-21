@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:provider/provider.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:warranty_cave/main.dart' as application;
 import 'package:warranty_cave/domain/models.dart';
 import 'package:warranty_cave/presentation/app_controller.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('iOS native startup, guest warranty persistence and navigation', (
     tester,
   ) async {
@@ -57,5 +58,10 @@ void main() {
     }
     expect(find.text(item.productName), findsWidgets);
     expect(tester.takeException(), isNull);
+    // Capture while the actual warranty screen is still visible, rather than
+    // capturing SpringBoard after Flutter's test runner exits.
+    final screenshot = await binding.takeScreenshot('WarrantyCave-iOS');
+    final documents = await getApplicationDocumentsDirectory();
+    await File('${documents.path}/ios-smoke.png').writeAsBytes(screenshot);
   });
 }

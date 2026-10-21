@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const {registerAppleFunctions} = require('../apple_functions');
 
 const TOKEN = '4b293923-b932-450a-bc62-96599c5c3481';
-function fixture({owner = 'alice', refunded = false, invalidSignature = false} = {}) {
+function fixture({owner = 'alice', refunded = false, invalidSignature = false, upperCaseToken = false} = {}) {
   const records = new Map([
     ['users/alice', {}],
     ['appleBillingAccounts/alice', {token: TOKEN}],
@@ -26,7 +26,7 @@ function fixture({owner = 'alice', refunded = false, invalidSignature = false} =
     },
   };
   const transaction = {originalTransactionId: '1001', transactionId: '1002',
-    productId: 'warrantycave_basic_yearly', appAccountToken: TOKEN};
+    productId: 'warrantycave_basic_yearly', appAccountToken: upperCaseToken ? TOKEN.toUpperCase() : TOKEN};
   const handlers = registerAppleFunctions({
     db, requireUser: (request) => request.auth,
     entitlements: async () => ({plan: records.get('appleSubscriptions/Production-1001').plan}),
@@ -63,6 +63,11 @@ test('replaying an old signed purchase fetches current Apple state and removes r
   assert.deepEqual(await handlers.confirmApplePurchase.run(request), {plan: 'free'});
   assert.deepEqual(calls, [['verify', 'previously.signed.receipt'], ['current', '1001', 'Production']]);
   assert.equal(records.get('appleSubscriptions/Production-1001').expiresAt, null);
+});
+
+test('Apple UUID account ownership is independent of string capitalization', async () => {
+  const {handlers, request} = fixture({upperCaseToken: true});
+  assert.deepEqual(await handlers.confirmApplePurchase.run(request), {plan: 'basic'});
 });
 
 test('invalid signatures, product substitutions and account token mismatches cannot grant a plan', async () => {

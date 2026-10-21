@@ -268,7 +268,17 @@ class _AuthScreenState extends State<AuthScreen> {
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: busy ? null : _signInWithApple,
-                icon: const Icon(Icons.apple),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  foregroundColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white : Colors.black,
+                  backgroundColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black : Colors.white,
+                  side: BorderSide(color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white : Colors.black),
+                  textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+                ),
+                icon: const Icon(Icons.apple, size: 26),
                 label: Text(context.l10n.text(busy ? 'pleaseWait' : 'continueWithApple')),
               ),
             ],

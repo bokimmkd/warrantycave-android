@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'additional_translations.dart';
+import 'ios_translations.dart';
 import '../domain/models.dart' show productTypes;
 
 Locale appLocale(String code) {
@@ -58,6 +59,7 @@ class AppLocalizations {
       : locale.languageCode;
 
   String text(String key) =>
+      iosTranslations[localeCode]?[key] ??
       additionalTranslations[localeCode]?[key] ??
       (_values[locale.languageCode] ?? _values['en']!)[key] ??
       _values['${locale.languageCode}_more']?[key] ??

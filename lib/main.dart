@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'data/usage_analytics.dart';
@@ -13,6 +14,7 @@ import 'package:provider/provider.dart';
 
 import 'data/services.dart';
 import 'data/play_billing_service.dart';
+import 'data/apple_billing_service.dart';
 import 'data/ad_service.dart';
 import 'data/firebase_services.dart';
 import 'firebase_options.dart';
@@ -23,25 +25,49 @@ import 'presentation/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: WarrantyCaveFirebaseOptions.android);
+  // The native iOS Firebase app is a separate registration in the same project.
+  // Only explicit local simulator builds may run without that registration.
+  const localOnly = bool.fromEnvironment('IOS_LOCAL_ONLY');
+  final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
+  if (localOnly && kReleaseMode) {
+    throw StateError('Local-only builds cannot be released.');
+  }
+  final useFirebase = !(isIOS && localOnly);
+  if (useFirebase) {
+    await Firebase.initializeApp(
+      options: isIOS ? null : WarrantyCaveFirebaseOptions.android,
+    );
+  }
   final legacyNavigation =
-      await const MethodChannel('com.warrantycave.app/system_ui')
-          .invokeMethod<bool>('legacyNavigation') ??
-      true;
+      defaultTargetPlatform == TargetPlatform.android &&
+      (await const MethodChannel(
+            'com.warrantycave.app/system_ui',
+          ).invokeMethod<bool>('legacyNavigation') ??
+          true);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   final analytics = UsageAnalytics();
   await analytics.initialize();
+  final cloud = useFirebase ? FirebaseCloudService() : null;
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppController(
         storage: JsonLocalStorageService(),
         photos: LocalPhotoStorageService(),
         notifications: LocalNotificationService(),
-        subscriptions: GooglePlaySubscriptionService(),
-        accounts: FirebaseAccountService(analytics: analytics),
-        analytics: analytics,
+        subscriptions: isIOS
+            ? AppleSubscriptionService(
+                accountToken: () async {
+                  if (cloud == null) throw StateError('Sign in to continue.');
+                  return cloud.appleBillingAccountToken();
+                },
+              )
+            : GooglePlaySubscriptionService(),
+        accounts: useFirebase
+            ? FirebaseAccountService(analytics: analytics)
+            : null,
+        analytics: useFirebase ? analytics : null,
         reviews: PlayReview(),
-        cloud: FirebaseCloudService(),
+        cloud: cloud,
       )..initialize(),
       child: WarrantyCaveApp(legacyNavigation: legacyNavigation),
     ),

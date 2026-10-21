@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../app_controller.dart';
@@ -40,7 +41,7 @@ class _AuthScreenState extends State<AuthScreen> {
   String _message(Object error) {
     if (error is PlatformException) {
       final details = error.message?.trim();
-      return 'Google sign-in failed (${error.code})'
+      return '${context.l10n.text('requestFailed')} (${error.code})'
           '${details == null || details.isEmpty ? '.' : ': $details'}';
     }
     if (error is FirebaseAuthException) {
@@ -112,6 +113,17 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => busy = true);
     try {
       await context.read<AppController>().signInWithGoogle();
+    } catch (error) {
+      if (mounted) AppSnackbars.error(context, _message(error));
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    setState(() => busy = true);
+    try {
+      await context.read<AppController>().signInWithApple();
     } catch (error) {
       if (mounted) AppSnackbars.error(context, _message(error));
     } finally {
@@ -252,6 +264,14 @@ class _AuthScreenState extends State<AuthScreen> {
               icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
               label: Text(context.l10n.text(busy ? (app.loginStatusKey ?? 'pleaseWait') : 'googlePending')),
             ),
+            if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: busy ? null : _signInWithApple,
+                icon: const Icon(Icons.apple),
+                label: Text(context.l10n.text(busy ? 'pleaseWait' : 'continueWithApple')),
+              ),
+            ],
             const SizedBox(height: 14),
             TextButton(
               onPressed: busy

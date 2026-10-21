@@ -46,6 +46,8 @@ abstract interface class SubscriptionService {
 
 enum BillingUpdateStatus { pending, purchased, restored, canceled, error }
 
+enum BillingStore { googlePlay, appStore }
+
 class BillingUpdate {
   const BillingUpdate({
     required this.status,
@@ -53,6 +55,8 @@ class BillingUpdate {
     this.productId,
     this.purchaseToken,
     this.error,
+    this.store = BillingStore.googlePlay,
+    this.signedTransaction,
   });
 
   final BillingUpdateStatus status;
@@ -60,6 +64,8 @@ class BillingUpdate {
   final String? productId;
   final String? purchaseToken;
   final String? error;
+  final BillingStore store;
+  final String? signedTransaction;
 }
 
 class ScanSuggestion {
@@ -90,7 +96,8 @@ abstract interface class SmartScanService {
   Future<ScanSuggestion> scan(String localImagePath);
 }
 
-class JsonLocalStorageService extends AccountLocalStore implements LocalStorageService {
+class JsonLocalStorageService extends AccountLocalStore
+    implements LocalStorageService {
   JsonLocalStorageService({super.directory});
 }
 
@@ -145,6 +152,11 @@ class LocalNotificationService implements NotificationService {
     await _plugin.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        ),
       ),
     );
     _initialized = true;
@@ -153,6 +165,14 @@ class LocalNotificationService implements NotificationService {
   @override
   Future<bool> requestPermission() async {
     await initialize();
+    if (Platform.isIOS) {
+      return await _plugin
+              .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin
+              >()
+              ?.requestPermissions(alert: true, badge: true, sound: true) ??
+          false;
+    }
     return await _plugin
             .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin
@@ -170,9 +190,7 @@ class LocalNotificationService implements NotificationService {
     final reminders = item.effectiveReminderDays(settings);
     var slot = 0;
     for (final days in const [60, 30, 7, 0]) {
-      final date = dateOnly(
-        item.expiryDate,
-      ).subtract(Duration(days: days));
+      final date = dateOnly(item.expiryDate).subtract(Duration(days: days));
       final scheduled = tz.TZDateTime(
         tz.local,
         date.year,
@@ -180,14 +198,18 @@ class LocalNotificationService implements NotificationService {
         date.day,
         9,
       );
-      if (reminders.contains(days) && scheduled.isAfter(tz.TZDateTime.now(tz.local))) {
+      if (reminders.contains(days) &&
+          scheduled.isAfter(tz.TZDateTime.now(tz.local))) {
         await _plugin.zonedSchedule(
           _notificationId(item.id, slot),
-          l10n.format(days == 0 ? 'notificationToday' : 'notificationDays',
-              {'product': item.productName, 'days': days}),
+          l10n.format(days == 0 ? 'notificationToday' : 'notificationDays', {
+            'product': item.productName,
+            'days': days,
+          }),
           l10n.text('notificationBody'),
           scheduled,
           const NotificationDetails(
+            iOS: DarwinNotificationDetails(),
             android: AndroidNotificationDetails(
               'warranty_expiry',
               'Warranty expiry reminders',
@@ -231,7 +253,10 @@ class LocalSubscriptionService implements SubscriptionService {
   @override
   Future<void> initialize() async {}
   @override
-  Future<bool> purchase(PlanTier tier, {PlanTier currentPlan = PlanTier.free}) async => false;
+  Future<bool> purchase(
+    PlanTier tier, {
+    PlanTier currentPlan = PlanTier.free,
+  }) async => false;
   @override
   Future<void> restorePurchases() async {}
   @override

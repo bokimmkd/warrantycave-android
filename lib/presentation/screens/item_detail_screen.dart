@@ -8,6 +8,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../share_origin.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/models.dart';
@@ -91,16 +92,18 @@ class ItemDetailScreen extends StatelessWidget {
             },
             icon: Icon(
               Icons.edit_outlined,
-              color: canEdit ? null : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: canEdit
+                  ? null
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             tooltip: context.l10n.text(
               canEdit
                   ? 'edit'
                   : archived
-                      ? 'archivedEditTitle'
-                      : overLimit
-                          ? 'overLimitEditTitle'
-                          : 'editLockedTitle',
+                  ? 'archivedEditTitle'
+                  : overLimit
+                  ? 'overLimitEditTitle'
+                  : 'editLockedTitle',
             ),
           ),
         ],
@@ -161,7 +164,9 @@ class ItemDetailScreen extends StatelessWidget {
                   ),
                   Text(
                     context.l10n.productLabel(item.productType),
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   StatusChip(
@@ -284,6 +289,7 @@ class ItemDetailScreen extends StatelessWidget {
   Future<void> _shareText(BuildContext context, WarrantyItem item) =>
       SharePlus.instance.share(
         ShareParams(
+          sharePositionOrigin: shareOrigin(context),
           text: context.l10n.format('shareWarrantyText', {
             'product': item.productName,
             'details': '${item.brand} ${item.model}',
@@ -445,14 +451,19 @@ class ItemDetailScreen extends StatelessWidget {
             pw.TableHelper.fromTextArray(
               data: [
                 [context.l10n.text('field'), context.l10n.text('value')],
-                [context.l10n.text('productType'), context.l10n.productLabel(item.productType)],
+                [
+                  context.l10n.text('productType'),
+                  context.l10n.productLabel(item.productType),
+                ],
                 [context.l10n.text('brand'), item.brand],
                 [context.l10n.text('model'), item.model],
                 [context.l10n.text('serialNumber'), item.serialNumber],
                 [context.l10n.text('warrantyStatus'), status],
                 if (item.isExtendedWarranty)
-                  [context.l10n.text('extendedWarrantyToggle'),
-                   context.l10n.text('extendedWarrantyBadge')],
+                  [
+                    context.l10n.text('extendedWarrantyToggle'),
+                    context.l10n.text('extendedWarrantyBadge'),
+                  ],
                 [
                   context.l10n.text('timeRemaining'),
                   localizedRemainingLabel(context, item),
@@ -471,7 +482,10 @@ class ItemDetailScreen extends StatelessWidget {
                     context.l10n.locale.toString(),
                   ).format(item.purchaseDate),
                 ],
-                [context.l10n.text('warrantyDuration'), context.l10n.duration(item.durationLabel)],
+                [
+                  context.l10n.text('warrantyDuration'),
+                  context.l10n.duration(item.durationLabel),
+                ],
                 [
                   context.l10n.text('expiryDate'),
                   DateFormat.yMMMd(
@@ -563,8 +577,10 @@ class ItemDetailScreen extends StatelessWidget {
       );
       await file.writeAsBytes(await doc.save());
       if (download) {
-        final saved = await const MethodChannel('com.warrantycave.app/document_saver')
-            .invokeMethod<bool>('savePdf', {
+        final saved =
+            await const MethodChannel(
+              'com.warrantycave.app/document_saver',
+            ).invokeMethod<bool>('savePdf', {
               'fileName': file.uri.pathSegments.last,
               'bytes': await file.readAsBytes(),
             });
@@ -574,6 +590,7 @@ class ItemDetailScreen extends StatelessWidget {
       } else {
         await SharePlus.instance.share(
           ShareParams(
+            sharePositionOrigin: shareOrigin(context),
             files: [XFile(file.path)],
             subject: context.l10n.format('claimPackSubject', {
               'product': item.productName,
@@ -623,7 +640,10 @@ class _Details extends StatelessWidget {
             ? ''
             : formatMoney(item.purchasePrice!, item.currency),
       ),
-      MapEntry(context.l10n.text('warrantyDuration'), context.l10n.duration(item.durationLabel)),
+      MapEntry(
+        context.l10n.text('warrantyDuration'),
+        context.l10n.duration(item.durationLabel),
+      ),
       MapEntry(
         context.l10n.text('expiryDate'),
         DateFormat.yMMMd(
@@ -645,7 +665,11 @@ class _Details extends StatelessWidget {
                       Expanded(
                         child: Text(
                           e.key,
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                       Expanded(

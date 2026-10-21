@@ -1,5 +1,7 @@
 import 'auth_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
@@ -17,10 +19,19 @@ class UpgradeScreen extends StatefulWidget {
 
 class _UpgradeScreenState extends State<UpgradeScreen> {
   PlanTier? selected;
+  bool get isIOS => defaultTargetPlatform == TargetPlatform.iOS;
+  String price(AppController app, PlanTier tier) => isIOS
+      ? context.l10n.format('appleAnnualPrice', {
+          'price': app.billingPrice(tier),
+        })
+      : app.billingPrice(tier);
 
   Future<bool> _requireAccount(AppController app) async {
     if (app.signedIn && app.emailVerified) return true;
-    await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AuthScreen(forPaidPlan: true)));
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const AuthScreen(forPaidPlan: true)),
+    );
     return mounted && app.signedIn && app.emailVerified && !app.accountBusy;
   }
 
@@ -51,7 +62,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           Text(
             context.l10n.text('unlockCloud'),
             textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 24),
           _PlanCard(
@@ -73,7 +86,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           const SizedBox(height: 12),
           _PlanCard(
             tier: PlanTier.basic,
-            price: app.billingPrice(PlanTier.basic),
+            price: price(app, PlanTier.basic),
             features: [
               context.l10n.text('upTo25'),
               context.l10n.text('cloudSync'),
@@ -91,7 +104,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           const SizedBox(height: 12),
           _PlanCard(
             tier: PlanTier.plus,
-            price: app.billingPrice(PlanTier.plus),
+            price: price(app, PlanTier.plus),
             features: [
               context.l10n.text('upTo100'),
               context.l10n.text('cloudSync'),
@@ -115,9 +128,11 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            context.l10n.text('securePurchase'),
+            context.l10n.text(isIOS ? 'appleSecurePurchase' : 'securePurchase'),
             textAlign: TextAlign.center,
-            style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: AppTypography.muted.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 14),
           PrimaryButton(
@@ -125,7 +140,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 ? context.l10n.text('currentPlan')
                 : context.l10n.format('continueWith', {
                     'plan': _tierLabel(context, chosen),
-                    'price': app.billingPrice(chosen),
+                    'price': price(app, chosen),
                   }),
             onPressed:
                 chosen == app.effectivePlan ||
@@ -175,6 +190,35 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                   },
             icon: Icons.restore_rounded,
           ),
+          if (isIOS) ...[
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.text('appleSubscriptionTerms'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () => launchUrl(
+                    Uri.parse(
+                      'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                    ),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: Text(context.l10n.text('terms')),
+                ),
+                TextButton(
+                  onPressed: () => launchUrl(
+                    Uri.parse('https://warrantycave.com/privacy'),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: Text(context.l10n.text('privacyPolicy')),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 10),
           OutlineButton(
             label: context.l10n.text('notNow'),
@@ -315,7 +359,9 @@ class _PlanCard extends StatelessWidget {
                       child: Text(
                         e,
                         softWrap: true,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ],

@@ -1,0 +1,5 @@
+// Google's iOS sample app ID, used only by explicit local simulator builds.
+IOS_ADMOB_APP_ID = ca-app-pub-3940256099942544~1458002511
+IOS_GOOGLE_CLIENT_ID = local-not-configured
+IOS_GOOGLE_REVERSED_CLIENT_ID = com.warrantycave.local
+IOS_CONFIGURATION_KIND = local

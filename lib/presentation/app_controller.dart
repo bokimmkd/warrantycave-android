@@ -182,7 +182,7 @@ class AppController extends ChangeNotifier {
     if (!launched) {
       billingBusy = false;
       billingError =
-          subscriptions.setupError ?? 'Google Play Billing is unavailable.';
+          subscriptions.setupError ?? 'Purchases are currently unavailable.';
       notifyListeners();
       throw StateError(billingError!);
     }
@@ -201,7 +201,7 @@ class AppController extends ChangeNotifier {
         const Duration(seconds: 18),
       );
     } on TimeoutException {
-      billingError = 'Google Play did not respond. Please try again.';
+      billingError = 'The store did not respond. Please try again.';
       rethrow;
     } catch (error) {
       billingError = error.toString();
@@ -228,7 +228,7 @@ class AppController extends ChangeNotifier {
     }
     if (update.status == BillingUpdateStatus.error) {
       billingBusy = false;
-      billingError = update.error ?? 'Google Play purchase failed.';
+      billingError = update.error ?? 'The purchase could not be completed.';
       notifyListeners();
       return;
     }
@@ -242,7 +242,7 @@ class AppController extends ChangeNotifier {
     }
     if (token == null || token.isEmpty || productId == null) {
       billingBusy = false;
-      billingError = 'Google Play did not return a valid purchase token.';
+      billingError = 'The store did not return valid purchase details.';
       notifyListeners();
       return;
     }
@@ -251,10 +251,14 @@ class AppController extends ChangeNotifier {
     _backgroundOperations++;
     notifyListeners();
     try {
-      final entitlement = await cloud!.confirmPlayPurchase(
-        productId: productId,
-        purchaseToken: token,
-      );
+      final entitlement = update.store == BillingStore.appStore
+          ? await cloud!.confirmApplePurchase(
+              productId: productId,
+              signedTransaction: update.signedTransaction ?? '',
+            )
+          : await cloud!.confirmPlayPurchase(
+              productId: productId, purchaseToken: token,
+            );
       await subscriptions.completePurchase(token);
       settings = settings.copyWith(
         plan: _isPlusTester ? PlanTier.plus : entitlement.plan,
@@ -479,6 +483,10 @@ class AppController extends ChangeNotifier {
   Future<void> signInWithGoogle() => _authenticate(() async {
     await accounts!.signInWithGoogle();
   }, initialStatus: 'authGoogle');
+
+  Future<void> signInWithApple() => _authenticate(() async {
+    await accounts!.signInWithApple();
+  }, initialStatus: 'pleaseWait');
 
   Future<void> sendPasswordReset(String email) =>
       accounts!.resetPassword(email.trim());

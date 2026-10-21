@@ -1,0 +1,66 @@
+name: iOS simulator and shared checks
+
+on:
+  push:
+    branches: [feature/ios-port]
+  pull_request:
+    paths: ['ios/**', 'lib/**', 'pubspec.*', 'test/**', 'integration_test/ios_smoke_test.dart', 'functions/**', 'scripts/*ios*', '.github/workflows/ios-checks.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      CI: true
+      FLUTTER_SUPPRESS_ANALYTICS: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+          cache: true
+      - run: xcodebuild -version
+      - run: flutter config --no-enable-swift-package-manager
+      - run: python3 scripts/configure_ios.py --local
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings lib test integration_test/ios_smoke_test.dart
+      - run: flutter test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - run: npm ci && npm test && node --check index.js && node --check apple_functions.js
+        working-directory: functions
+      - name: Build iOS simulator app
+        run: flutter build ios --simulator --debug --dart-define-from-file=.ios-dart-defines.json
+      - name: Boot iPhone simulator
+        run: |
+          device=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for rows in d["devices"].values() for x in rows if x["name"].startswith("iPhone")))')
+          echo "IOS_SIMULATOR_ID=$device" >> "$GITHUB_ENV"
+          xcrun simctl boot "$device" || true
+          xcrun simctl bootstatus "$device" -b
+      - name: Test actual app startup and persistent local warranties on iOS
+        run: flutter test integration_test/ios_smoke_test.dart -d "$IOS_SIMULATOR_ID" --dart-define-from-file=.ios-dart-defines.json --reporter expanded
+      - name: Capture simulator screenshot
+        if: always()
+        run: |
+          mkdir -p build/ios-evidence
+          xcrun simctl io "$IOS_SIMULATOR_ID" screenshot build/ios-evidence/warrantycave-ios.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: warrantycave-ios-simulator
+          path: |
+            build/ios/iphonesimulator/Runner.app
+            build/ios-evidence/
+          retention-days: 7

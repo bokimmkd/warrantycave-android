@@ -58,6 +58,7 @@ dependencies:
   google_mobile_ads: ^5.1.0
   in_app_purchase: ^3.2.3
   in_app_purchase_android: ^0.5.0
+  in_app_purchase_storekit: ^0.4.15
 
 dev_dependencies:
   integration_test:
@@ -71,12 +72,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-
-# Android-only release workspace: the iOS implementation is not used by this
-# project, but google_mobile_ads declares it for cross-platform resolution.
-dependency_overrides:
-  webview_flutter_wkwebview:
-    path: toolchain_stubs/webview_flutter_wkwebview
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

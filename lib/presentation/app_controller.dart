@@ -127,9 +127,7 @@ class AppController extends ChangeNotifier {
       if (!accountBusy) {
       _backgroundOperations++;
       try {
-      for (final item in items) {
-        await notifications.scheduleFor(item, settings);
-      }
+      await _scheduleAllNotifications();
       } finally { _backgroundOperations--; }
       }
     } catch (error) {
@@ -137,6 +135,14 @@ class AppController extends ChangeNotifier {
     }
     deferredServicesReady = true;
     notifyListeners();
+  }
+
+  Future<void> _scheduleAllNotifications() async {
+    if (notifications case final BatchNotificationService batch) {
+      await batch.reconcile(items, settings);
+    } else {
+      for (final item in items) { await notifications.scheduleFor(item, settings); }
+    }
   }
 
   PlanTier get effectivePlan {
@@ -182,7 +188,7 @@ class AppController extends ChangeNotifier {
     if (!launched) {
       billingBusy = false;
       billingError =
-          subscriptions.setupError ?? 'Google Play Billing is unavailable.';
+          subscriptions.setupError ?? 'Purchases are currently unavailable.';
       notifyListeners();
       throw StateError(billingError!);
     }
@@ -201,7 +207,7 @@ class AppController extends ChangeNotifier {
         const Duration(seconds: 18),
       );
     } on TimeoutException {
-      billingError = 'Google Play did not respond. Please try again.';
+      billingError = 'The store did not respond. Please try again.';
       rethrow;
     } catch (error) {
       billingError = error.toString();
@@ -228,7 +234,7 @@ class AppController extends ChangeNotifier {
     }
     if (update.status == BillingUpdateStatus.error) {
       billingBusy = false;
-      billingError = update.error ?? 'Google Play purchase failed.';
+      billingError = update.error ?? 'The purchase could not be completed.';
       notifyListeners();
       return;
     }
@@ -242,7 +248,7 @@ class AppController extends ChangeNotifier {
     }
     if (token == null || token.isEmpty || productId == null) {
       billingBusy = false;
-      billingError = 'Google Play did not return a valid purchase token.';
+      billingError = 'The store did not return valid purchase details.';
       notifyListeners();
       return;
     }
@@ -251,10 +257,14 @@ class AppController extends ChangeNotifier {
     _backgroundOperations++;
     notifyListeners();
     try {
-      final entitlement = await cloud!.confirmPlayPurchase(
-        productId: productId,
-        purchaseToken: token,
-      );
+      final entitlement = update.store == BillingStore.appStore
+          ? await cloud!.confirmApplePurchase(
+              productId: productId,
+              signedTransaction: update.signedTransaction ?? '',
+            )
+          : await cloud!.confirmPlayPurchase(
+              productId: productId, purchaseToken: token,
+            );
       await subscriptions.completePurchase(token);
       settings = settings.copyWith(
         plan: _isPlusTester ? PlanTier.plus : entitlement.plan,
@@ -324,7 +334,11 @@ class AppController extends ChangeNotifier {
     }
     _pendingCreationIds.remove(item.id);
     for (final path in removedPhotos) await photos.delete(path);
-    await notifications.scheduleFor(item, settings);
+    if (notifications case final BatchNotificationService batch) {
+      await batch.reconcile(items, settings);
+    } else {
+      await notifications.scheduleFor(item, settings);
+    }
     await _cloudAction(() => cloud!.saveItem(user!.uid, item));
   }
 
@@ -362,7 +376,11 @@ class AppController extends ChangeNotifier {
         pendingCloudDeletionIds: [...settings.pendingCloudDeletionIds, item.id],
       );
     }
-    await notifications.cancelFor(item.id);
+    if (notifications case final BatchNotificationService batch) {
+      await batch.reconcile(items, settings);
+    } else {
+      await notifications.cancelFor(item.id);
+    }
     for (final path in [
       if (item.productPhoto != null) item.productPhoto!,
       ...item.receiptPhotos,
@@ -388,7 +406,7 @@ class AppController extends ChangeNotifier {
   Future<void> _updateSettings(AppSettings value) async {
     settings = value;
     await _persist();
-    for (final item in items) await notifications.scheduleFor(item, settings);
+    await _scheduleAllNotifications();
     await _cloudAction(() => cloud!.saveProfile(user!.uid, settings));
   }
 
@@ -415,8 +433,10 @@ class AppController extends ChangeNotifier {
       rethrow;
     }
     try {
-      for (final item in previous) { await notifications.cancelFor(item.id); }
-      for (final item in items) { await notifications.scheduleFor(item, settings); }
+      if (notifications is! BatchNotificationService) {
+        for (final item in previous) { await notifications.cancelFor(item.id); }
+      }
+      await _scheduleAllNotifications();
     } catch (error) { debugPrint('Account reminder scheduling failed: $error'); }
   }
 
@@ -480,6 +500,10 @@ class AppController extends ChangeNotifier {
     await accounts!.signInWithGoogle();
   }, initialStatus: 'authGoogle');
 
+  Future<void> signInWithApple() => _authenticate(() async {
+    await accounts!.signInWithApple();
+  }, initialStatus: 'pleaseWait');
+
   Future<void> sendPasswordReset(String email) =>
       accounts!.resetPassword(email.trim());
   Future<void> resendVerification() => accounts!.resendVerification();
@@ -528,8 +552,9 @@ class AppController extends ChangeNotifier {
         settings = AppSettings(onboardingComplete: settings.onboardingComplete);
         await _persist();
       }
+      if (notifications is BatchNotificationService) await _scheduleAllNotifications();
       for (final item in oldItems) {
-        await notifications.cancelFor(item.id);
+        if (notifications is! BatchNotificationService) await notifications.cancelFor(item.id);
         for (final path in [if (item.productPhoto != null) item.productPhoto!,
           ...item.receiptPhotos, ...item.warrantyPhotos]) {
           await photos.delete(path);
@@ -546,9 +571,7 @@ class AppController extends ChangeNotifier {
     if (granted) {
       settings = settings.copyWith(notificationConsentGranted: true);
       await _persist();
-      for (final item in items) {
-        await notifications.scheduleFor(item, settings);
-      }
+      await _scheduleAllNotifications();
     }
     return granted;
   }
@@ -621,7 +644,7 @@ class AppController extends ChangeNotifier {
         plan: _isPlusTester ? PlanTier.plus : result.settings.plan,
       );
       await storage.save(items, settings);
-      for (final item in items) { await notifications.scheduleFor(item, settings); }
+      await _scheduleAllNotifications();
       _cloudBootstrapPending = false;
       lastCloudSync = DateTime.now();
     } catch (error) {
@@ -662,9 +685,7 @@ class AppController extends ChangeNotifier {
         plan: _isPlusTester ? PlanTier.plus : result.settings.plan,
       );
       await storage.save(items, settings);
-      for (final item in items) {
-        await notifications.scheduleFor(item, settings);
-      }
+      await _scheduleAllNotifications();
       _cloudBootstrapPending = false;
       lastCloudSync = DateTime.now();
     } catch (error) {

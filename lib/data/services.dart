@@ -1,4 +1,5 @@
 import 'account_local_store.dart';
+import 'notification_planner.dart';
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -26,6 +27,10 @@ abstract interface class NotificationService {
   Future<void> cancelFor(String itemId);
 }
 
+abstract interface class BatchNotificationService implements NotificationService {
+  Future<void> reconcile(List<WarrantyItem> items, AppSettings settings);
+}
+
 abstract interface class CloudSyncService {
   bool get isConfigured;
   Future<void> sync();
@@ -46,6 +51,8 @@ abstract interface class SubscriptionService {
 
 enum BillingUpdateStatus { pending, purchased, restored, canceled, error }
 
+enum BillingStore { googlePlay, appStore }
+
 class BillingUpdate {
   const BillingUpdate({
     required this.status,
@@ -53,6 +60,8 @@ class BillingUpdate {
     this.productId,
     this.purchaseToken,
     this.error,
+    this.store = BillingStore.googlePlay,
+    this.signedTransaction,
   });
 
   final BillingUpdateStatus status;
@@ -60,6 +69,8 @@ class BillingUpdate {
   final String? productId;
   final String? purchaseToken;
   final String? error;
+  final BillingStore store;
+  final String? signedTransaction;
 }
 
 class ScanSuggestion {
@@ -90,7 +101,8 @@ abstract interface class SmartScanService {
   Future<ScanSuggestion> scan(String localImagePath);
 }
 
-class JsonLocalStorageService extends AccountLocalStore implements LocalStorageService {
+class JsonLocalStorageService extends AccountLocalStore
+    implements LocalStorageService {
   JsonLocalStorageService({super.directory});
 }
 
@@ -145,6 +157,11 @@ class LocalNotificationService implements NotificationService {
     await _plugin.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        ),
       ),
     );
     _initialized = true;
@@ -153,6 +170,14 @@ class LocalNotificationService implements NotificationService {
   @override
   Future<bool> requestPermission() async {
     await initialize();
+    if (Platform.isIOS) {
+      return await _plugin
+              .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin
+              >()
+              ?.requestPermissions(alert: true, badge: true, sound: true) ??
+          false;
+    }
     return await _plugin
             .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin
@@ -170,9 +195,7 @@ class LocalNotificationService implements NotificationService {
     final reminders = item.effectiveReminderDays(settings);
     var slot = 0;
     for (final days in const [60, 30, 7, 0]) {
-      final date = dateOnly(
-        item.expiryDate,
-      ).subtract(Duration(days: days));
+      final date = dateOnly(item.expiryDate).subtract(Duration(days: days));
       final scheduled = tz.TZDateTime(
         tz.local,
         date.year,
@@ -180,14 +203,18 @@ class LocalNotificationService implements NotificationService {
         date.day,
         9,
       );
-      if (reminders.contains(days) && scheduled.isAfter(tz.TZDateTime.now(tz.local))) {
+      if (reminders.contains(days) &&
+          scheduled.isAfter(tz.TZDateTime.now(tz.local))) {
         await _plugin.zonedSchedule(
           _notificationId(item.id, slot),
-          l10n.format(days == 0 ? 'notificationToday' : 'notificationDays',
-              {'product': item.productName, 'days': days}),
+          l10n.format(days == 0 ? 'notificationToday' : 'notificationDays', {
+            'product': item.productName,
+            'days': days,
+          }),
           l10n.text('notificationBody'),
           scheduled,
           const NotificationDetails(
+            iOS: DarwinNotificationDetails(),
             android: AndroidNotificationDetails(
               'warranty_expiry',
               'Warranty expiry reminders',
@@ -215,6 +242,41 @@ class LocalNotificationService implements NotificationService {
       ((value.hashCode & 0x3fffffff) * 4 + slot) & 0x7fffffff;
 }
 
+class IOSNotificationService extends LocalNotificationService
+    implements BatchNotificationService {
+  Future<void> _queue = Future<void>.value();
+  int _generation = 0;
+
+  @override
+  Future<void> reconcile(List<WarrantyItem> items, AppSettings settings) {
+    final generation = ++_generation;
+    final snapshot = List<WarrantyItem>.of(items);
+    final run = _queue.catchError((Object _) {}).then((_) async {
+      if (generation != _generation) return;
+      await initialize();
+      if (generation != _generation) return;
+      await _plugin.cancelAll();
+      final planned = planIOSReminders(snapshot, settings, now: DateTime.now());
+      final l10n = AppLocalizations(appLocale(settings.languageCode));
+      for (var index = 0; index < planned.length; index++) {
+        if (generation != _generation) return;
+        final reminder = planned[index];
+        await _plugin.zonedSchedule(
+          index,
+          l10n.format(reminder.days == 0 ? 'notificationToday' : 'notificationDays',
+            {'product': reminder.item.productName, 'days': reminder.days}),
+          l10n.text('notificationBody'), reminder.at,
+          const NotificationDetails(iOS: DarwinNotificationDetails()),
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: reminder.item.id,
+        );
+      }
+    });
+    _queue = run;
+    return run;
+  }
+}
+
 class LocalSubscriptionService implements SubscriptionService {
   @override
   Stream<BillingUpdate> get updates => const Stream.empty();
@@ -231,7 +293,10 @@ class LocalSubscriptionService implements SubscriptionService {
   @override
   Future<void> initialize() async {}
   @override
-  Future<bool> purchase(PlanTier tier, {PlanTier currentPlan = PlanTier.free}) async => false;
+  Future<bool> purchase(
+    PlanTier tier, {
+    PlanTier currentPlan = PlanTier.free,
+  }) async => false;
   @override
   Future<void> restorePurchases() async {}
   @override

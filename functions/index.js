@@ -15,6 +15,8 @@ const vision = require('@google-cloud/vision');
 const {parseReceipt} = require('./receipt_parser');
 const {renderEmail} = require('./transactional_email');
 const {deferralState} = require('./play_deferral');
+const {resolveEntitlements} = require('./entitlements');
+const {applePrivateKey, registerAppleFunctions} = require('./apple_functions');
 const {
   normalizeCode,
   referralCodeForUid,
@@ -203,38 +205,20 @@ exports.smartScanReceipt = onCall({region: 'us-central1', timeoutSeconds: 60, me
   return {...suggestion, remainingCredits: isOwner ? 999 : remainingCredits};
 });
 
-exports.getEntitlements = onCall({region: 'us-central1'}, async (request) => {
-  const auth = requireUser(request);
-  const user = (await db.collection('users').doc(auth.uid).get()).data() || {};
-  const now = Date.now();
-  const isOwner = String(auth.token.email || '').toLowerCase() === OWNER_EMAIL;
-  const paidUntil = user.planExpiresAt?.toMillis?.() || 0;
-  const promoUntil = user.promotionalBasicUntil?.toMillis?.() || 0;
-  const referralPlusUntil = user.referralPlusUntil?.toMillis?.() || 0;
-  let plan = 'free';
-  let expiresAt = null;
-  if (isOwner) {
-    plan = 'plus';
-    expiresAt = null;
-  } else if (referralPlusUntil > now) {
-    plan = 'plus';
-    expiresAt = new Date(user.plan === 'plus' ? Math.max(referralPlusUntil, paidUntil) : referralPlusUntil).toISOString();
-  } else if (paidUntil > now && ['basic', 'plus'].includes(user.plan)) {
-    plan = user.plan;
-    expiresAt = user.planExpiresAt.toDate().toISOString();
-  } else if (promoUntil > now) {
-    plan = 'basic';
-    expiresAt = user.promotionalBasicUntil.toDate().toISOString();
-  }
-  return {
-    plan, expiresAt,
-    paidExpiresAt: paidUntil > now ? user.planExpiresAt.toDate().toISOString() : null,
-    referralPlusUntil: referralPlusUntil > now ? user.referralPlusUntil.toDate().toISOString() : null,
-    nextBillingAt: paidUntil > now && user.playAutoRenewing === true
-      ? user.planExpiresAt.toDate().toISOString() : null,
-    smartScanCredits: isOwner ? 999 : Number(user.smartScanCredits || 0),
-  };
-});
+async function getEntitlementsForUser(auth) {
+  const [userSnap, apple] = await Promise.all([
+    db.collection('users').doc(auth.uid).get(), appleFunctions.refresh(auth.uid),
+  ]);
+  return resolveEntitlements(userSnap.data() || {}, apple,
+    String(auth.token.email || '').toLowerCase() === OWNER_EMAIL);
+}
+
+const appleFunctions = registerAppleFunctions({db, requireUser, entitlements: getEntitlementsForUser});
+exports.getAppleBillingAccount = appleFunctions.getAppleBillingAccount;
+exports.confirmApplePurchase = appleFunctions.confirmApplePurchase;
+exports.onAppleSubscriptionUpdate = appleFunctions.onAppleSubscriptionUpdate;
+exports.getEntitlements = onCall({region: 'us-central1', secrets: [applePrivateKey]},
+  async (request) => getEntitlementsForUser(requireUser(request)));
 
 exports.confirmPlayPurchase = onCall({region: 'us-central1'}, async (request) => {
   const auth = requireUser(request);

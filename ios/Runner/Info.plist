@@ -89,11 +89,9 @@
 	<true/>
 	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
 	<false/>
-	<key>GOOGLE_ANALYTICS_ADID_COLLECTION_ENABLED</key>
-	<false/>
 	<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS</key>
 	<false/>
-	<key>GOOGLE_ANALYTICS_AUTOMATIC_SCREEN_REPORTING_ENABLED</key>
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
 	<false/>
 </dict>
 </plist>

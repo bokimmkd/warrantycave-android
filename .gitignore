@@ -28,3 +28,4 @@ ios/Runner/GoogleService-Info.plist.tmp
 *.xcuserstate
 .ios-dart-defines.json
 .ios-config.json
+__pycache__/

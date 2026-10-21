@@ -29,6 +29,7 @@ jobs:
       - run: xcodebuild -version
       - run: flutter config --no-enable-swift-package-manager
       - run: python3 scripts/configure_ios.py --local
+      - run: python3 -m unittest discover -s scripts -p 'test_ios_release.py'
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings lib test integration_test/ios_smoke_test.dart
       - run: flutter test

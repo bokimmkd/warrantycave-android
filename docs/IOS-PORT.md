@@ -110,8 +110,11 @@ Apple subscriptions live in server-only `appleSubscriptions` records, independen
 of Play entitlement fields. The highest valid tier wins across stores and rewards.
 Notifications reconcile renewal, cancellation, grace, expiration and refunds;
 on account sync, records older than five minutes are refreshed from Apple.
-First paid Apple purchases can trigger the existing one-time inviter Plus reward;
-the implementation does **not** extend an Apple renewal charge date. Review the
+First paid Apple purchases can trigger the existing one-time inviter Plus reward.
+Sandbox/zero-price transactions never award real referral benefits. The server-only
+reward ledger also prevents a profile delete/recreate from claiming the Apple
+reward again.
+The implementation does **not** extend an Apple renewal charge date. Review the
 referral offer and emails for iOS before release, including mixed-store customers.
 
 ## Before TestFlight / App Store submission

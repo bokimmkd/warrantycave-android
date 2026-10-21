@@ -24,9 +24,11 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
       throw new HttpsError('failed-precondition', 'This purchase is not linked to a WarrantyCave account.');
     }
     const ref = subscriptionRef(environment, transaction.originalTransactionId);
+    const rewardRef = db.collection('referralRewards').doc(uid);
     await db.runTransaction(async (tx) => {
-      const [account, previous, userSnap] = await Promise.all([
+      const [account, previous, userSnap, rewarded] = await Promise.all([
         tx.get(accountRef(uid)), tx.get(ref), tx.get(db.collection('users').doc(uid)),
+        tx.get(rewardRef),
       ]);
       if (!userSnap.exists || account.data()?.token !== token ||
           (previous.exists && previous.data().uid !== uid)) {
@@ -34,7 +36,8 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
       }
       if ((previous.data()?.verificationStartedAt || 0) > startedAt) return;
       const user = userSnap.data();
-      const inviterUid = state && Number(transaction.price || 0) > 0 &&
+      const inviterUid = environment === 'Production' && state &&
+          Number(transaction.price || 0) > 0 && !rewarded.exists &&
           !user.referralRewardedAt && user.referralInviterUid &&
           user.referralInviterUid !== uid ? user.referralInviterUid : null;
       const inviterRef = inviterUid ? db.collection('users').doc(inviterUid) : null;
@@ -58,7 +61,7 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
           referralPlusUntil: rewardUntil, referralRewardCount: FieldValue.increment(1),
           lastReferralRewardedAt: FieldValue.serverTimestamp(),
         });
-        tx.set(db.collection('referralRewards').doc(uid), {
+        tx.set(rewardRef, {
           inviterUid, invitedUid: uid, rewardUntil: rewardUntil.toDate().toISOString(),
           createdAt: FieldValue.serverTimestamp(),
         });

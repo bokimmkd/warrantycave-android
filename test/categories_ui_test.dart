@@ -120,9 +120,10 @@ void main() {
           await tester.pumpAndSettle();
         }
         expect(selected, [0,1,2,3,4]);
-        await tester.drag(find.byType(ListView), const Offset(0, -6000));
-        await tester.pumpAndSettle();
         final last = find.widgetWithText(ListTile, 'Other');
+        await tester.scrollUntilVisible(last, 250, scrollable: find.byType(Scrollable));
+        await tester.ensureVisible(last);
+        await tester.pumpAndSettle();
         expect(last.hitTestable(), findsOneWidget);
         expect(tester.getBottomRight(last).dy, lessThanOrEqualTo(tester.getTopLeft(nav).dy));
         expect(tester.getBottomRight(nav).dy, lessThanOrEqualTo(size.height - 32));

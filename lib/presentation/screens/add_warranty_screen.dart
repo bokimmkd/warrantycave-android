@@ -1,3 +1,5 @@
+import 'categories_screen.dart';
+import '../../domain/category_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -309,7 +311,7 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
           top: Radius.circular(AppRadius.sheet),
         ),
       ),
-      builder: (context) => const _ProductTypeSheet(),
+      builder: (context) => const ProductTypeSheet(),
     );
     if (selected != null) setState(() => productType = selected);
   }
@@ -683,13 +685,23 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
                 suffixIcon: const Icon(Icons.keyboard_arrow_down),
               ),
               child: Text(
-                productType == null ? context.l10n.text('chooseProductType') : context.l10n.productLabel(productType!),
+                productType == null ? context.l10n.text('chooseProductType') : context.l10n.productLabel(productType!, context.watch<AppController>().settings),
                 style: TextStyle(
                   color: productType == null ? Colors.blueGrey : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
           ),
+          Align(alignment: AlignmentDirectional.centerEnd, child: TextButton.icon(
+            icon: const Icon(Icons.category_outlined),
+            label: Text(context.l10n.text('manageCategories')),
+            onPressed: () async {
+              await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CategoriesScreen()));
+              if (mounted && productType != null) {
+                setState(() => productType = resolveCategory(productType!, context.read<AppController>().settings.categories));
+              }
+            },
+          )),
           const SizedBox(height: 12),
           TextFormField(
             controller: name,
@@ -1201,147 +1213,4 @@ class _PhotoSection extends StatelessWidget {
       ],
     ],
   );
-}
-
-class _ProductTypeSheet extends StatefulWidget {
-  const _ProductTypeSheet();
-  @override
-  State<_ProductTypeSheet> createState() => _ProductTypeSheetState();
-}
-
-class _ProductTypeSheetState extends State<_ProductTypeSheet> {
-  String query = '';
-  @override
-  Widget build(BuildContext context) {
-    final options = productTypes
-        .where((e) => context.l10n.productLabel(e.name).toLowerCase().contains(query.toLowerCase()) || e.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-    final categories = options.map((e) => e.category).toSet();
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          20,
-          20,
-          20 + MediaQuery.viewInsetsOf(context).bottom,
-        ),
-        child: SizedBox(
-          height: MediaQuery.sizeOf(context).height * .72,
-          child: Column(
-            children: [
-              Text(
-                context.l10n.text('chooseProductType'),
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                onChanged: (v) => setState(() => query = v),
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: context.l10n.text('searchProductTypes'),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: ListView(
-                  children: [
-                    for (final category in categories) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-                        child: Text(
-                          category.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                      ...options
-                          .where((e) => e.category == category)
-                          .map(
-                            (option) => ListTile(
-                              leading: Icon(option.icon, color: caveBlue),
-                              title: Text(context.l10n.productLabel(option.name)),
-                              onTap: () async {
-                                if (option.name != 'Custom') {
-                                  Navigator.pop(context, option.name);
-                                  return;
-                                }
-                                final c = TextEditingController();
-                                final value =
-                                    await AppBottomSheets.show<String>(
-                                      context,
-                                      title: context.l10n.text(
-                                        'customProductType',
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          TextField(
-                                            controller: c,
-                                            autofocus: true,
-                                            decoration:
-                                                AppInputFields.decoration(
-                                                  context: context,
-                                                  label: context.l10n.text(
-                                                    'typeName',
-                                                  ),
-                                                ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: OutlineButton(
-                                                  label: context.l10n.text(
-                                                    'cancel',
-                                                  ),
-                                                  icon: Icons.close,
-                                                  onPressed: () =>
-                                                      Navigator.pop(context),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Expanded(
-                                                child: PrimaryButton(
-                                                  label: context.l10n.text(
-                                                    'useType',
-                                                  ),
-                                                  expand: false,
-                                                  icon: Icons.check,
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        c.text.trim(),
-                                                      ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                c.dispose();
-                                if (value != null &&
-                                    value.isNotEmpty &&
-                                    context.mounted)
-                                  Navigator.pop(context, value);
-                              },
-                            ),
-                          ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

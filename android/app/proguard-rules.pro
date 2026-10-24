@@ -8,8 +8,10 @@
 # Firebase, Play, Billing, Mobile Ads, Meta and Flutter ship consumer rules.
 # Do not keep their entire packages: R8 must be able to optimize unused code.
 
-# Native Flutter engine entry points and optional deferred-component APIs.
--keep class io.flutter.** { *; }
+# Flutter 3.47.5 marks JNI entry points and GeneratedPluginRegistrant with
+# @Keep; AndroidX consumer rules preserve those. Avoid retaining the entire
+# embedding (and every unused class) with io.flutter.**.
+# Optional deferred-component APIs are not used by this application.
 -dontwarn javax.annotation.**
 -dontwarn com.google.android.play.core.splitcompat.SplitCompatApplication
 -dontwarn com.google.android.play.core.splitinstall.**

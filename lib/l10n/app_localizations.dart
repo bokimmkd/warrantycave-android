@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'additional_translations.dart';
+import 'category_translations.dart';
+import '../domain/category_entry.dart';
+import '../domain/models.dart' show AppSettings;
 import '../domain/models.dart' show productTypes;
 
 Locale appLocale(String code) {
@@ -58,6 +61,7 @@ class AppLocalizations {
       : locale.languageCode;
 
   String text(String key) =>
+      categoryTranslations[localeCode]?[key] ??
       additionalTranslations[localeCode]?[key] ??
       (_values[locale.languageCode] ?? _values['en']!)[key] ??
       _values['${locale.languageCode}_more']?[key] ??
@@ -68,7 +72,12 @@ class AppLocalizations {
       _values['en']![key] ??
       key;
 
-  String productLabel(String value) {
+  String productLabel(String value, [AppSettings? settings]) {
+    if (settings != null) {
+      value = resolveCategory(value, settings.categories);
+      final label = settings.categories[value]?.name;
+      if (label != null && label.isNotEmpty) return label;
+    }
     final standard = productTypes.any((type) => type.name == value || type.category == value);
     return standard ? text(value) : value;
   }

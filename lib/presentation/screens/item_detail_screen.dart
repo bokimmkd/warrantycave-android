@@ -160,7 +160,7 @@ class ItemDetailScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    context.l10n.productLabel(item.productType),
+                    context.l10n.productLabel(item.productType, context.read<AppController>().settings),
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 12),
@@ -445,7 +445,7 @@ class ItemDetailScreen extends StatelessWidget {
             pw.TableHelper.fromTextArray(
               data: [
                 [context.l10n.text('field'), context.l10n.text('value')],
-                [context.l10n.text('productType'), context.l10n.productLabel(item.productType)],
+                [context.l10n.text('productType'), context.l10n.productLabel(item.productType, context.read<AppController>().settings)],
                 [context.l10n.text('brand'), item.brand],
                 [context.l10n.text('model'), item.model],
                 [context.l10n.text('serialNumber'), item.serialNumber],

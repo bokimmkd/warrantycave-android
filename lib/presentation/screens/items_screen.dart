@@ -1,3 +1,4 @@
+import '../../domain/category_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/models.dart';
@@ -119,7 +120,7 @@ class _ItemsScreenState extends State<ItemsScreen>
                   value: null,
                   child: Text(context.l10n.text('allProductTypes')),
                 ),
-                ...types.map((e) => DropdownMenuItem(value: e, child: Text(context.l10n.productLabel(e)))),
+                ...types.map((e) => DropdownMenuItem(value: e, child: Text(context.l10n.productLabel(e, context.read<AppController>().settings)))),
               ],
               onChanged: (v) => update(() => draftType = v),
             ),
@@ -242,6 +243,10 @@ class _ItemsScreenState extends State<ItemsScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final app = context.watch<AppController>();
+    if (type != null) {
+      type = resolveCategory(type!, app.settings.categories);
+      if (!app.items.any((item) => item.productType == type)) type = null;
+    }
     var data = app.items
         .where(
           (i) =>

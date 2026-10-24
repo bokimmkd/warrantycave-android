@@ -1,3 +1,5 @@
+import '../domain/category_entry.dart';
+import '../domain/category_catalog.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -284,6 +286,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> _upsert(WarrantyItem item) async {
+    item = normalizeItemCategory(item, settings);
     final index = items.indexWhere((entry) => entry.id == item.id);
     // Existing imports/edits are not new local creates. Preserve a failed
     // first save's eligibility for its successful retry.
@@ -390,6 +393,47 @@ class AppController extends ChangeNotifier {
     await _persist();
     for (final item in items) await notifications.scheduleFor(item, settings);
     await _cloudAction(() => cloud!.saveProfile(user!.uid, settings));
+  }
+
+  /// Commit metadata and reclassified warranties in one local snapshot. A
+  /// permanent replacement alias also repairs stale cloud/older-client records.
+  Future<String> saveCategory({String? id, required String name, String? replacement}) async {
+    if (accountActionBusy || loadError != null) throw StateError('account-busy');
+    final label = name.trim();
+    if (label.isEmpty || label.length > 80) throw const FormatException('category-name');
+    final key = id ?? 'user:${_uuid.v4()}';
+    if (replacement != null) {
+      if (key == 'Other' || replacement == key ||
+          !categoryIds(settings, items).contains(replacement)) {
+        throw const FormatException('category-replacement');
+      }
+    }
+    _localWrites++;
+    notifyListeners();
+    try {
+      final latest = settings.categories.values.fold<int>(0, (n, e) {
+        final stamp = int.tryParse(e.revision.split(':').first) ?? 0;
+        return stamp > n ? stamp : n;
+      });
+      final now = DateTime.now().microsecondsSinceEpoch;
+      final revision = '${(now > latest ? now : latest + 1).toString().padLeft(20, '0')}:${_uuid.v4()}';
+      final next = settings.copyWith(categories: {...settings.categories,
+        key: CategoryEntry(name: label, revision: revision, replacement: replacement),
+      });
+      final updated = items.map((e) => normalizeItemCategory(e, next)).toList();
+      final changed = updated.where((e) => items.any((old) => old.id == e.id && old.productType != e.productType)).toList();
+      await storage.save(updated, next);
+      items = updated;
+      settings = next;
+      notifyListeners();
+      await _cloudAction(() async {
+        await cloud!.saveProfile(user!.uid, settings);
+        for (final item in changed) { await cloud!.saveItem(user!.uid, item); }
+      });
+      // An offline metadata edit must be retried before a cloud-only refresh.
+      if (cloudError != null) _cloudBootstrapPending = true;
+      return key;
+    } finally { _localWrites--; notifyListeners(); }
   }
 
   Future<void> _activateAccount({bool claimGuest = false}) async {
@@ -630,7 +674,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> refreshCloud() async {
-    if (!signedIn || !emailVerified || cloud == null || accountBusy) return;
+    if (!signedIn || !emailVerified || cloud == null || accountBusy || _localWrites > 0) return;
     if (!settings.plan.hasCloud) {
       cloudError = 'Cloud sync is available on Basic and Plus plans.';
       notifyListeners();

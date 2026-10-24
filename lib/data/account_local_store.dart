@@ -130,10 +130,12 @@ class AccountLocalStore {
     var target = profiles.containsKey(scope)
       ? _decode(profiles[scope]) : (<WarrantyItem>[], _deviceSettings(device));
     final guest = _decode(profiles['guest']);
-    if (uid != null && claimGuest && guest.$1.isNotEmpty) {
+    if (uid != null && claimGuest && (guest.$1.isNotEmpty || guest.$2.categories.isNotEmpty)) {
       final merged = {for (final item in guest.$1) item.id: item,
         for (final item in target.$1) item.id: item};
-      target = (merged.values.toList(), target.$2);
+      target = (merged.values.toList(), target.$2.copyWith(
+        categories: {...guest.$2.categories, ...target.$2.categories},
+      ));
       // Transfer, rather than copy: a later account must not inherit these.
       profiles['guest'] = _encode((<WarrantyItem>[], _deviceSettings(device)));
     }
@@ -144,7 +146,7 @@ class AccountLocalStore {
       cloudOwnerUid: uid ?? '',
       email: uid == null ? '' : email ?? target.$2.email,
     );
-    if (uid == null) settings = _deviceSettings(settings);
+    if (uid == null) settings = _deviceSettings(settings).copyWith(categories: settings.categories);
     target = (target.$1, settings);
     profiles[scope] = _encode(target);
     root['profiles'] = profiles;

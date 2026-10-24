@@ -1,3 +1,5 @@
+import '../domain/category_entry.dart';
+import '../domain/category_catalog.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -279,6 +281,7 @@ class FirebaseCloudService {
     final remoteProfile = profileSnapshot.data();
     if (remoteProfile != null) {
       mergedSettings = localSettings.copyWith(
+        categories: mergeCategories(localSettings.categories, decodeCategories(remoteProfile['categories'])),
         firstName:
             remoteProfile['firstName'] as String? ?? localSettings.firstName,
         lastName:
@@ -312,18 +315,18 @@ class FirebaseCloudService {
     final merged = mergeAccountWarranties(
       ownsLocalData ? localItems : const <WarrantyItem>[], downloaded,
       localSettings.pendingCloudDeletionIds,
-    );
+    ).map((item) => normalizeItemCategory(item, mergedSettings)).toList();
+    mergedSettings = mergedSettings.copyWith(cloudOwnerUid: uid);
+    await saveProfile(uid, mergedSettings);
     final remoteById = {for (final item in downloaded) item.id: item};
     if (ownsLocalData) {
-      for (final item in localItems) {
+      for (final item in merged) {
         if (!localSettings.pendingCloudDeletionIds.contains(item.id) &&
             warrantyNeedsUpload(item, remoteById[item.id])) {
           await saveItem(uid, item);
         }
       }
     }
-    mergedSettings = mergedSettings.copyWith(cloudOwnerUid: uid);
-    await saveProfile(uid, mergedSettings);
     return CloudBootstrapResult(merged, mergedSettings);
   }
 
@@ -334,6 +337,7 @@ class FirebaseCloudService {
     final profileSnapshot = await _profile(uid).get();
     final remoteProfile = profileSnapshot.data();
     final mergedSettings = localSettings.copyWith(
+      categories: mergeCategories(localSettings.categories, decodeCategories(remoteProfile?['categories'])),
       firstName:
           remoteProfile?['firstName'] as String? ?? localSettings.firstName,
       lastName: remoteProfile?['lastName'] as String? ?? localSettings.lastName,
@@ -359,13 +363,18 @@ class FirebaseCloudService {
         .orderBy('createdAt', descending: true)
         .get();
     return CloudBootstrapResult(
-      remote.docs.map((doc) => WarrantyItem.fromJson(doc.data())).toList(),
+      remote.docs.map((doc) => normalizeItemCategory(WarrantyItem.fromJson(doc.data()), mergedSettings)).toList(),
       mergedSettings,
     );
   }
 
-  Future<void> saveProfile(String uid, AppSettings settings) => _profile(uid)
-      .set({
+  Future<void> saveProfile(String uid, AppSettings settings) async {
+    await _firestore.runTransaction<void>((transaction) async {
+      final ref = _profile(uid);
+      final snapshot = await transaction.get(ref);
+      final categories = mergeCategories(settings.categories,
+        decodeCategories(snapshot.data()?['categories']));
+      transaction.set(ref, {
         'firstName': settings.firstName,
         'lastName': settings.lastName,
         'phone': settings.phone,
@@ -376,7 +385,11 @@ class FirebaseCloudService {
         if (settings.pendingReferralCode.isNotEmpty)
           'pendingReferralCode': settings.pendingReferralCode,
         'updatedAt': FieldValue.serverTimestamp(),
+
+        if (categories.isNotEmpty) 'categories': encodeCategories(categories),
       }, SetOptions(merge: true));
+    });
+  }
 
   /// Registers the user's deterministic code and optional inviter through the
   /// trusted backend. Rewards are granted only after Play verifies a purchase.

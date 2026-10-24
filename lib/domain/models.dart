@@ -1,3 +1,4 @@
+import 'category_entry.dart';
 import 'package:flutter/material.dart';
 
 enum WarrantyStatus { active, expiringSoon, expired }
@@ -310,7 +311,7 @@ class AppSettings {
     this.lastName = '',
     this.email = '',
     this.phone = '',
-    this.defaultCurrency = 'MKD',
+    this.defaultCurrency = 'EUR',
     this.cloudOwnerUid = '',
     this.languageCode = 'en',
     this.referralCode = '',
@@ -321,6 +322,7 @@ class AppSettings {
     this.referralPlusUntil,
     this.nextBillingAt,
     this.pendingCloudDeletionIds = const [],
+    this.categories = const {},
   });
 
   final bool onboardingComplete;
@@ -349,6 +351,7 @@ class AppSettings {
   /// Local deletions made while cloud sync is unavailable. Apply these before
   /// downloading cloud records again so a deleted warranty cannot reappear.
   final List<String> pendingCloudDeletionIds;
+  final Map<String, CategoryEntry> categories;
 
   AppSettings copyWith({
     bool? onboardingComplete,
@@ -377,6 +380,7 @@ class AppSettings {
     DateTime? nextBillingAt,
     bool updateSubscriptionDates = false,
     List<String>? pendingCloudDeletionIds,
+    Map<String, CategoryEntry>? categories,
   }) => AppSettings(
     onboardingComplete: onboardingComplete ?? this.onboardingComplete,
     expiringThresholdDays: expiringThresholdDays ?? this.expiringThresholdDays,
@@ -403,6 +407,7 @@ class AppSettings {
     referralPlusUntil: updateSubscriptionDates ? referralPlusUntil : referralPlusUntil ?? this.referralPlusUntil,
     nextBillingAt: updateSubscriptionDates ? nextBillingAt : nextBillingAt ?? this.nextBillingAt,
     pendingCloudDeletionIds: pendingCloudDeletionIds ?? this.pendingCloudDeletionIds,
+    categories: categories ?? this.categories,
   );
 
   Map<String, dynamic> toJson() => {
@@ -430,6 +435,7 @@ class AppSettings {
     'referralPlusUntil': referralPlusUntil?.toIso8601String(),
     'nextBillingAt': nextBillingAt?.toIso8601String(),
     'pendingCloudDeletionIds': pendingCloudDeletionIds,
+    'categories': encodeCategories(categories),
   };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
@@ -451,7 +457,7 @@ class AppSettings {
     lastName: json['lastName'] as String? ?? '',
     email: json['email'] as String? ?? '',
     phone: json['phone'] as String? ?? '',
-    defaultCurrency: json['defaultCurrency'] as String? ?? 'MKD',
+    defaultCurrency: json['defaultCurrency'] as String? ?? 'EUR',
     cloudOwnerUid: json['cloudOwnerUid'] as String? ?? '',
     languageCode: json['languageCode'] as String? ?? 'en',
     referralCode: json['referralCode'] as String? ?? '',
@@ -463,6 +469,7 @@ class AppSettings {
     paidExpiresAt: DateTime.tryParse(json['paidExpiresAt'] as String? ?? ''),
     referralPlusUntil: DateTime.tryParse(json['referralPlusUntil'] as String? ?? ''),
     nextBillingAt: DateTime.tryParse(json['nextBillingAt'] as String? ?? ''),
+    categories: decodeCategories(json['categories']),
     pendingCloudDeletionIds: List<String>.from(
       json['pendingCloudDeletionIds'] as List? ?? const [],
     ),

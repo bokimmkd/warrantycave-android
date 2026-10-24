@@ -402,6 +402,7 @@ class AppController extends ChangeNotifier {
     final label = name.trim();
     if (label.isEmpty || label.length > 80) throw const FormatException('category-name');
     final key = id ?? 'user:${_uuid.v4()}';
+    if (settings.categories[key]?.deleted ?? false) throw StateError('category-deleted');
     if (replacement != null) {
       if (key == 'Other' || replacement == key ||
           !categoryIds(settings, items).contains(replacement)) {

@@ -43,6 +43,27 @@ void main() {
       });
     }
   }
+  testWidgets('used category requires replacement and cancellation preserves warranties', (tester) async {
+    final app = await controllerWith([warranty(1, PlanTier.free)], PlanTier.free); await ready(app);
+    await render(tester, app, const CategoriesScreen(), 'en', false);
+    Future<void> openDelete() async {
+      await tester.tap(find.descendant(of: find.widgetWithText(ListTile, 'Phone'), matching: find.byType(PopupMenuButton<String>)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete category')); await tester.pumpAndSettle();
+    }
+    await openDelete();
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Delete category')).onPressed, isNull);
+    await tester.tap(find.text('Cancel')); await tester.pumpAndSettle();
+    expect(app.items.single.productType, 'Phone'); expect(app.settings.categories, isEmpty);
+    await openDelete();
+    await tester.tap(find.byType(DropdownButtonFormField<String>)); await tester.pumpAndSettle();
+    await tester.tap(find.text('Tablet').last); await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete category')); await tester.pumpAndSettle();
+    expect(app.items.single.productType, 'Tablet'); expect(app.items.single.id, 'item-1');
+    expect(find.widgetWithText(ListTile, 'Phone'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox()); app.dispose();
+  });
   testWidgets('Add shortcut preserves unsaved product and custom category survives language', (tester) async {
     final app = await controllerWith([], PlanTier.free); await ready(app);
     await render(tester, app, const AddWarrantyScreen(), 'en', false);
@@ -56,7 +77,7 @@ void main() {
     expect(find.text('Unsaved bicycle'), findsOneWidget);
     await tester.tap(find.text(AppLocalizations(const Locale('en')).text('chooseProductType'))); await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'My bicycle'); await tester.pumpAndSettle();
-    await tester.tap(find.text('My bicycle')); await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'My bicycle')); await tester.pumpAndSettle();
     expect(find.text('My bicycle'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox()); app.dispose();

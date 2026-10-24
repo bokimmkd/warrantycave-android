@@ -29,7 +29,9 @@ Map<String, dynamic> encodeCategories(Map<String, CategoryEntry> entries) =>
 Map<String, CategoryEntry> mergeCategories(
   Map<String, CategoryEntry> local, Map<String, CategoryEntry> remote,
 ) => {...local, for (final e in remote.entries)
-  if (!local.containsKey(e.key) || e.value.revision.compareTo(local[e.key]!.revision) > 0)
+  if (!local.containsKey(e.key) ||
+      (e.value.deleted && !local[e.key]!.deleted) ||
+      (e.value.deleted == local[e.key]!.deleted && e.value.revision.compareTo(local[e.key]!.revision) > 0))
     e.key: e.value,
 };
 

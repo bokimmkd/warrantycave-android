@@ -81,7 +81,7 @@ void main() {
     const deleted = CategoryEntry(name: 'Old', revision: '2', replacement: 'Tablet');
     const renamed = CategoryEntry(name: 'New', revision: '3');
     final merged = mergeCategories({'Phone': deleted, 'Computer': renamed}, {
-      'Phone': const CategoryEntry(name: 'Stale', revision: '1'),
+      'Phone': const CategoryEntry(name: 'Stale offline rename', revision: '9'),
       'user:new': const CategoryEntry(name: 'Bicycle', revision: '1'),
     });
     expect(merged['Phone'], deleted); expect(merged['Computer'], renamed);

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:warranty_cave/presentation/app_controller.dart';
 import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,15 @@ import 'package:warranty_cave/l10n/app_localizations.dart';
 import 'package:warranty_cave/l10n/category_translations.dart';
 import 'package:warranty_cave/l10n/additional_translations.dart';
 import 'plan_edit_access_test.dart' show controllerWith, warranty;
+
+Future<void> ready(AppController app) async {
+  if (app.deferredServicesReady) return;
+  final done = Completer<void>();
+  void changed() { if (app.deferredServicesReady && !done.isCompleted) done.complete(); }
+  app.addListener(changed);
+  try { await done.future.timeout(const Duration(seconds: 5)); }
+  finally { app.removeListener(changed); }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +49,7 @@ void main() {
   }
   test('rename preserves IDs, mandatory type, photos, currency and plan origin', () async {
     final app = await controllerWith([warranty(1, PlanTier.plus)], PlanTier.plus);
+    await ready(app);
     final original = app.items.single.toJson();
     await app.saveCategory(id: 'Phone', name: 'Telefonino');
     expect(app.items.single.toJson(), original);
@@ -50,6 +62,7 @@ void main() {
   });
   test('deletion moves all warranties and aliases repair offline/legacy records', () async {
     final app = await controllerWith([warranty(1, PlanTier.plus), warranty(2, PlanTier.free)], PlanTier.free);
+    await ready(app);
     final old = app.items.map((e) => e.toJson()).toList();
     await app.saveCategory(id: 'Phone', name: 'Telefono', replacement: 'Tablet');
     expect(app.items.length, 2);

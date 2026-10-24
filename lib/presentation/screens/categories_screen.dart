@@ -8,6 +8,7 @@ import '../theme.dart';
 
 Future<String?> editCategory(BuildContext context, {String? id}) async {
   final app = context.read<AppController>();
+  final owner = app.user?.uid;
   final controller = TextEditingController(text: id == null ? '' : context.l10n.productLabel(id, app.settings));
   final form = GlobalKey<FormState>();
   final label = await showDialog<String>(context: context, builder: (dialogContext) => AlertDialog(
@@ -33,7 +34,7 @@ Future<String?> editCategory(BuildContext context, {String? id}) async {
   ));
   // Dispose after the route has finished removing its editable field.
   WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
-  if (label == null || !context.mounted) return null;
+  if (label == null || !context.mounted || app.user?.uid != owner) return null;
   try { return await app.saveCategory(id: id, name: label); }
   catch (_) { if (context.mounted) AppSnackbars.error(context, context.l10n.text('saveFailed')); return null; }
 }
@@ -43,6 +44,7 @@ class CategoriesScreen extends StatelessWidget {
 
   Future<void> remove(BuildContext context, String id) async {
     final app = context.read<AppController>();
+    final owner = app.user?.uid;
     final count = app.items.where((e) => e.productType == id).length;
     final choices = categoryIds(app.settings, app.items).where((e) => e != id).toList();
     String? replacement = count == 0 ? 'Other' : null;
@@ -69,7 +71,7 @@ class CategoriesScreen extends StatelessWidget {
         ],
       ),
     ));
-    if (selected == null || !context.mounted) return;
+    if (selected == null || !context.mounted || app.user?.uid != owner) return;
     try {
       await app.saveCategory(id: id, name: context.l10n.productLabel(id, app.settings), replacement: selected);
     } catch (_) { if (context.mounted) AppSnackbars.error(context, context.l10n.text('saveFailed')); }

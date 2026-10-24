@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,6 +27,15 @@ Future<void> render(WidgetTester tester, AppController app, Widget screen, Strin
   await tester.pumpAndSettle();
 }
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    await (FontLoader('Roboto')..addFont(rootBundle.load('assets/fonts/DejaVuSans.ttf'))).load();
+    final root = Platform.environment['FLUTTER_ROOT'];
+    if (root != null) {
+      final file = File('$root/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf');
+      if (file.existsSync()) await (FontLoader('MaterialIcons')..addFont(Future.value(ByteData.sublistView(await file.readAsBytes())))).load();
+    }
+  });
   for (final code in appLanguages.map((e) => e.code)) {
     for (final dark in [false, true]) {
       testWidgets('category management fits $code dark=$dark', (tester) async {

@@ -1,0 +1,24 @@
+name: Category visual verification
+on:
+  push:
+    branches: [qa/1.0.37-category-previews]
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+          cache: true
+      - run: |
+          base64 --decode assets/fonts/DejaVuSans.ttf.b64 > assets/fonts/DejaVuSans.ttf
+          base64 --decode assets/fonts/DejaVuSans-Bold.ttf.b64 > assets/fonts/DejaVuSans-Bold.ttf
+          flutter pub get
+          CAPTURE_UI=true flutter test --update-goldens test/categories_ui_test.dart
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WarrantyCave-1.0.37-category-previews
+          path: test/captures/categories-*.png
+          retention-days: 3

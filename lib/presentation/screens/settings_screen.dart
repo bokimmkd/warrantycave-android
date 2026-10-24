@@ -529,7 +529,9 @@ class _SettingsScreenState extends State<SettingsScreen>
               leading: const Icon(Icons.category_outlined),
               title: Text(context.l10n.text('manageCategories')),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CategoriesScreen())),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => CategoriesScreen(onSelectTab: widget.onSelectTab),
+              )),
             )),
             Card(
               child: Column(

@@ -5,6 +5,7 @@ import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
 import '../theme.dart';
+import '../widgets.dart';
 
 Future<String?> editCategory(BuildContext context, {String? id}) async {
   final app = context.read<AppController>();
@@ -40,7 +41,10 @@ Future<String?> editCategory(BuildContext context, {String? id}) async {
 }
 
 class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({super.key});
+  const CategoriesScreen({super.key, this.onSelectTab, this.selectedTab = 4});
+
+  final ValueChanged<int>? onSelectTab;
+  final int selectedTab;
 
   Future<void> remove(BuildContext context, String id) async {
     final app = context.read<AppController>();
@@ -83,7 +87,7 @@ class CategoriesScreen extends StatelessWidget {
     final ids = categoryIds(app.settings, app.items);
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.text('manageCategories'))),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
+      body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.all(16), children: [
         FilledButton.icon(onPressed: app.accountActionBusy ? null : () => editCategory(context),
           icon: const Icon(Icons.add), label: Text(context.l10n.text('addCategory'))),
         const SizedBox(height: 12),
@@ -101,7 +105,11 @@ class CategoriesScreen extends StatelessWidget {
             ],
           ),
         )),
-      ]),
+      ])),
+      bottomNavigationBar: onSelectTab == null ? null : AppBottomNavigation(
+        selectedIndex: selectedTab,
+        onSelected: onSelectTab!,
+      ),
     );
   }
 }

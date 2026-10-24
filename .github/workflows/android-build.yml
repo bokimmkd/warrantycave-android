@@ -3,14 +3,14 @@ name: Android release APK and AAB
 on:
   workflow_dispatch:
   push:
-    branches: [main, feature/warrantycave-next-update, feature/individual-reminders-dark-mode, feature/plan-item-edit-access, feature/admob-release-readiness, feature/compact-ui-polish, feature/play-updates-adaptive-banner, feature/meta-install-compact-account, release/1.0.31-inline-ads, release/1.0.32-rate-app, release/1.0.33-analytics-review, release/1.0.37-categories-eur]
+    branches: [main, feature/warrantycave-next-update, feature/individual-reminders-dark-mode, feature/plan-item-edit-access, feature/admob-release-readiness, feature/compact-ui-polish, feature/play-updates-adaptive-banner, feature/meta-install-compact-account, release/1.0.31-inline-ads, release/1.0.32-rate-app, release/1.0.33-analytics-review, release/1.0.38-category-navigation]
 
 permissions:
   contents: write # Allows an unpublished draft delivery if Actions storage is full.
 
 concurrency:
   group: android-release-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref == 'refs/heads/release/1.0.37-categories-eur' }}
+  cancel-in-progress: ${{ github.ref == 'refs/heads/release/1.0.38-category-navigation' }}
 
 jobs:
   build:
@@ -65,7 +65,7 @@ jobs:
         id: artifacts
         continue-on-error: true
         with:
-          name: WarrantyCave-1.0.37-build-48-test-candidate
+          name: WarrantyCave-1.0.38-build-49-test-candidate
           path: |
             build/app/outputs/flutter-apk/app-debug.apk
             build/app/outputs/flutter-apk/app-release.apk
@@ -74,7 +74,7 @@ jobs:
             build/app/outputs/bundle/release/checksums.txt
             build/app/outputs/mapping/release/
             test/captures/*.png
-            docs/releases/1.0.37-test-candidate.md
+            docs/releases/1.0.38-test-candidate.md
             pubspec.lock
             build/app/test-results/testDebugUnitTest/*.xml
           if-no-files-found: error
@@ -84,5 +84,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          zip -q -r WarrantyCave-1.0.37-48-test-candidate.zip build/app/outputs/flutter-apk/app-release.apk build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/signing-certificate.txt build/app/outputs/bundle/release/checksums.txt build/app/outputs/mapping/release build/app/test-results/testDebugUnitTest test/captures docs/releases/1.0.37-test-candidate.md pubspec.lock
-          gh release create "test-1.0.37-48-${{ github.run_id }}" WarrantyCave-1.0.37-48-test-candidate.zip --draft --target "$GITHUB_SHA" --title "WarrantyCave 1.0.37 (48) — unpublished test candidate" --notes "Testing only. Do not publish to Google Play until Boki tests and confirms. This unpublished draft is an artifact-delivery fallback; it is not a production release."
+          zip -q -r WarrantyCave-1.0.38-49-test-candidate.zip build/app/outputs/flutter-apk/app-release.apk build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/signing-certificate.txt build/app/outputs/bundle/release/checksums.txt build/app/outputs/mapping/release build/app/test-results/testDebugUnitTest test/captures docs/releases/1.0.38-test-candidate.md pubspec.lock
+          gh release create "test-1.0.38-49-${{ github.run_id }}" WarrantyCave-1.0.38-49-test-candidate.zip --draft --target "$GITHUB_SHA" --title "WarrantyCave 1.0.38 (49) — unpublished test candidate" --notes "Owner authorized Production submission after verification. This unpublished GitHub draft only retains build artifacts; Google Play submission is performed separately."

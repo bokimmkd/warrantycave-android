@@ -696,7 +696,19 @@ class _AddWarrantyScreenState extends State<AddWarrantyScreen> {
             icon: const Icon(Icons.category_outlined),
             label: Text(context.l10n.text('manageCategories')),
             onPressed: () async {
-              await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CategoriesScreen()));
+              await Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (categoryContext) => CategoriesScreen(
+                  selectedTab: 2,
+                  onSelectTab: widget.onSelectTab == null ? null : (value) {
+                    // Return to this existing form instead of opening a new one.
+                    if (value == 2) {
+                      Navigator.of(categoryContext).pop();
+                    } else {
+                      widget.onSelectTab!(value);
+                    }
+                  },
+                ),
+              ));
               if (mounted && productType != null) {
                 setState(() => productType = resolveCategory(productType!, context.read<AppController>().settings.categories));
               }

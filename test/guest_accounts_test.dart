@@ -30,6 +30,7 @@ class Cloud extends Fake implements FirebaseCloudService {
   Completer<void>? gate;
   @override Future<void> registerReferralSignup({required String uid,
     required String ownCode, required String invitedByCode, required String email}) async {}
+  @override Future<void> saveItem(String uid, WarrantyItem item) async {}
   @override Future<EntitlementResult> getEntitlements() async {
     await gate?.future;
     if (offline) throw StateError('offline');
@@ -88,6 +89,32 @@ void main() {
     await app.signIn('A@test.com', 'password');
     expect(app.items.single.id, 'free-A'); expect(app.effectivePlan, PlanTier.free);
   });
+  test('Plus expiry retains all downloaded warranties locally through restart and Free login', () async {
+    cloud.plan = PlanTier.plus;
+    await app.signIn('A@test.com', 'password');
+    for (var i = 0; i < 12; i++) {
+      await app.upsert(item('paid-$i'));
+    }
+    final before = app.items.map((e) => e.toJson()).toList();
+    // This is a subscription expiry, not a sign-out or account deletion.
+    cloud.plan = PlanTier.free;
+    await app.signIn('A@test.com', 'password');
+    expect(app.signedIn, isTrue);
+    expect(app.effectivePlan, PlanTier.free);
+    expect(app.items.map((e) => e.toJson()).toList(), before);
+    expect(app.canAdd, isFalse);
+    final disk = JsonLocalStorageService(directory: dir);
+    final restored = await disk.activate('A', email: 'A@test.com');
+    expect(restored.$1.map((e) => e.toJson()).toList(), before);
+    await app.signOut();
+    expect(app.items, isEmpty);
+    await app.signIn('A@test.com', 'password');
+    expect(app.effectivePlan, PlanTier.free);
+    expect(app.items.map((e) => e.toJson()).toList(), before);
+    await app.signOut();
+    await app.signIn('B@test.com', 'password');
+    expect(app.items, isEmpty);
+  });
   test('failed login does not transfer or hide guest data', () async {
     await app.upsert(item('guest')); accounts.failLogin = true;
     await expectLater(app.signIn('A@test.com','wrong'), throwsStateError);
@@ -120,3 +147,4 @@ void main() {
     await expectLater(app.purchasePlan(PlanTier.plus), throwsStateError);
   });
 }
+

@@ -157,7 +157,11 @@ void main() {
     for (final entry in [('receipt-photo-attachment', '1 of 2'), ('warranty-photo-attachment', '1 of 1')]) {
       await tester.scrollUntilVisible(find.byKey(Key(entry.$1)), 220,
         scrollable: find.byType(Scrollable).first);
-      await tester.tap(find.byKey(Key(entry.$1)));
+      final attachment = find.byKey(Key(entry.$1));
+      await Scrollable.ensureVisible(tester.element(attachment), alignment: .5);
+      await tester.pumpAndSettle();
+      expect(attachment.hitTestable(), findsOneWidget);
+      await tester.tap(attachment.hitTestable());
       await tester.pumpAndSettle();
       expect(find.text(entry.$2), findsOneWidget);
       if (entry.$1 == 'receipt-photo-attachment') {

@@ -1,0 +1,4 @@
+<resources>
+    <!-- Keep Flutter's task-hijacking mitigation on Android 10 and earlier. -->
+    <string name="warrantycave_task_affinity" translatable="false"></string>
+</resources>

@@ -93,7 +93,9 @@ void main() {
     cloud.plan = PlanTier.plus;
     await app.signIn('A@test.com', 'password');
     for (var i = 0; i < 12; i++) {
-      await app.upsert(item('paid-$i'));
+      await app.upsert(WarrantyItem.fromJson({
+        ...item('paid-$i').toJson(), 'createdOnPlan': PlanTier.plus.name,
+      }));
     }
     final before = app.items.map((e) => e.toJson()).toList();
     // This is a subscription expiry, not a sign-out or account deletion.

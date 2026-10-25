@@ -103,20 +103,52 @@ void main() {
     await render(tester);
     expect(find.text(item.servicePhone), findsOneWidget);
     expect(find.text(item.serviceEmail), findsOneWidget);
-    final table = tester.widget<Table>(find.byKey(const Key('warranty-details-table')));
-    expect(table.children.length, 12);
+    final ctx = tester.element(find.byType(ItemDetailScreen));
+    for (final key in ['brand','model','serialNumber','storeRetailer',
+      'authorizedService','servicePhone','serviceEmail','usedAt','purchaseDate',
+      'purchasePrice','warrantyDuration','expiryDate']) {
+      expect(find.text(ctx.l10n.text(key)), findsOneWidget, reason: key);
+    }
     for (final scheme in ['tel', 'mailto']) {
       final contact = find.byKey(Key('warranty-contact-$scheme'));
       expect(tester.getSize(contact).height, greaterThanOrEqualTo(48));
       expect(tester.widget<InkWell>(contact).onTap, isNotNull);
     }
-    final ctx = tester.element(find.byType(ItemDetailScreen));
-    expect(find.text(ctx.l10n.text('extendedWarrantyBadge')), findsOneWidget);
+    expect(find.text(ctx.l10n.text('extendedWarrantyBadge').toUpperCase()), findsOneWidget);
     expect(find.byType(AppBottomNavigation), findsOneWidget);
     await tester.tap(find.byKey(const Key('product-photo-preview')));
     await tester.pumpAndSettle();
     expect(find.text('1 of 1'), findsOneWidget);
     expect(find.byType(InteractiveViewer), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('horizontal product header is compact and both badges have equal dimensions', (tester) async {
+    await render(tester);
+    final photo = tester.getRect(find.byKey(const Key('product-photo-preview')));
+    final name = tester.getRect(find.byKey(const Key('warranty-product-name')));
+    expect(photo.right, lessThan(name.left));
+    expect(name.center.dy, inInclusiveRange(photo.top, photo.bottom));
+    final status = tester.getSize(find.byKey(const Key('warranty-status-badge')));
+    final extended = tester.getSize(find.byKey(const Key('warranty-extended-badge')));
+    expect(status, extended);
+    expect(tester.getSize(find.byKey(const Key('warranty-header'))).height, lessThan(220));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('service email uses the full row under its caption without ellipsis', (tester) async {
+    await render(tester);
+    final contact = find.byKey(const Key('warranty-contact-mailto'));
+    await tester.scrollUntilVisible(contact, 200,
+      scrollable: find.byType(Scrollable).first);
+    final ctx = tester.element(find.byType(ItemDetailScreen));
+    final caption = find.text(ctx.l10n.text('serviceEmail'));
+    final address = find.text(item.serviceEmail);
+    expect(tester.getTopLeft(address).dy, greaterThan(tester.getTopLeft(caption).dy));
+    expect(tester.getSize(address).width,
+      greaterThan(tester.getSize(contact).width * .8));
+    expect(tester.widget<Text>(address).overflow, isNot(TextOverflow.ellipsis));
+    expect(tester.widget<InkWell>(contact).onTap, isNotNull);
     expect(tester.takeException(), isNull);
   });
 
@@ -160,6 +192,9 @@ void main() {
     for (final language in ['en','mk','de','es','fr','it','tr','el','pl','cs','pt-PT','pt-BR']) {
       for (final dark in [false, true]) {
         await render(tester, language: language, width: 320, scale: 1.5, dark: dark);
+        expect(tester.getSize(find.byKey(const Key('warranty-status-badge'))),
+          tester.getSize(find.byKey(const Key('warranty-extended-badge'))),
+          reason: '$language equal badges dark=$dark');
         final ctx = tester.element(find.byType(ItemDetailScreen));
         await tester.scrollUntilVisible(find.text(ctx.l10n.text('deleteWarrantyLabel')), 200,
           scrollable: find.byType(Scrollable).first);
@@ -171,3 +206,4 @@ void main() {
     }
   });
 }
+

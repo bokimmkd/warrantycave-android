@@ -125,80 +125,7 @@ class ItemDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  InkWell(
-                    key: const Key('product-photo-preview'),
-                    onTap: item.productPhoto == null ? null : () => _openPhotos(context, [item.productPhoto!]),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                    width: 68,
-                    height: 68,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child:
-                        item.productPhoto != null &&
-                            (isCloudPhoto(item.productPhoto!) ||
-                                File(item.productPhoto!).existsSync())
-                        ? StoredPhoto(item.productPhoto!)
-                        : Icon(
-                            iconForType(item.productType),
-                            size: 38,
-                            color: caveBlue,
-                          ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    item.productName,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    context.l10n.productLabel(item.productType, context.read<AppController>().settings),
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                    StatusChip(
-                    item.status(
-                      thresholdDays: app.settings.expiringThresholdDays,
-                    ),
-                  ),
-                  if (item.isExtendedWarranty)
-                    Chip(
-                      label: Text(context.l10n.text('extendedWarrantyBadge')),
-                      avatar: const Icon(Icons.verified_outlined, size: 18),
-                    ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    localizedRemainingLabel(context, item),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _WarrantyHeader(item: item, settings: app.settings),
           const SizedBox(height: 16),
           _Details(item: item),
           if (item.receiptPhotos.isNotEmpty || item.warrantyPhotos.isNotEmpty) ...[
@@ -587,6 +514,123 @@ class ItemDetailScreen extends StatelessWidget {
   }
 }
 
+class _WarrantyHeader extends StatelessWidget {
+  const _WarrantyHeader({required this.item, required this.settings});
+  final WarrantyItem item;
+  final AppSettings settings;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final (statusLabel, statusColor, statusIcon) = switch (
+      item.status(thresholdDays: settings.expiringThresholdDays)
+    ) {
+      WarrantyStatus.active => (context.l10n.text('active'), caveTeal, Icons.shield_outlined),
+      WarrantyStatus.expiringSoon => (context.l10n.text('expiringSoon'), Colors.orange, Icons.schedule_outlined),
+      WarrantyStatus.expired => (context.l10n.text('expired'), Colors.redAccent, Icons.cancel_outlined),
+    };
+    return Card(
+      key: const Key('warranty-header'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              key: const Key('warranty-product-heading'),
+              children: [
+                InkWell(
+                  key: const Key('product-photo-preview'),
+                  onTap: item.productPhoto == null ? null
+                      : () => _openPhotos(context, [item.productPhoto!]),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: 68, height: 68,
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: item.productPhoto != null &&
+                        (isCloudPhoto(item.productPhoto!) || File(item.productPhoto!).existsSync())
+                      ? StoredPhoto(item.productPhoto!)
+                      : Icon(iconForType(item.productType), size: 32, color: colors.primary),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.productName,
+                        key: const Key('warranty-product-name'),
+                        style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800,
+                          color: colors.onSurface)),
+                      const SizedBox(height: 4),
+                      Text(context.l10n.productLabel(item.productType, settings),
+                        style: TextStyle(color: colors.onSurfaceVariant)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _DetailBadge(
+                    key: const Key('warranty-status-badge'),
+                    label: statusLabel, color: statusColor, icon: statusIcon)),
+                  if (item.isExtendedWarranty) ...[
+                    const SizedBox(width: 8),
+                    Expanded(child: _DetailBadge(
+                      key: const Key('warranty-extended-badge'),
+                      label: context.l10n.text('extendedWarrantyBadge'),
+                      color: colors.primary, icon: Icons.verified_outlined)),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(localizedRemainingLabel(context, item),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w700, color: colors.primary)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailBadge extends StatelessWidget {
+  const _DetailBadge({super.key, required this.label, required this.color, required this.icon});
+  final String label;
+  final Color color;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    constraints: const BoxConstraints(minHeight: 36),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: .08),
+      border: Border.all(color: color.withValues(alpha: .30)),
+      borderRadius: BorderRadius.circular(18),
+    ),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 5),
+        Expanded(child: Text(label.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.onSurface))),
+      ],
+    ),
+  );
+}
+
 void _openPhotos(BuildContext context, List<String> paths) {
   Navigator.push(
     context,
@@ -633,60 +677,55 @@ class _Details extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14),
-        child: Table(
-          key: const Key('warranty-details-table'),
-          columnWidths: const {0: FlexColumnWidth(0.46), 1: FlexColumnWidth(0.54)},
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          border: TableBorder(
-            horizontalInside: BorderSide(color: colors.outlineVariant, width: 0.5),
-          ),
-          children: rows.map((row) => TableRow(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 10, 12, 10),
-              child: Text(row.label, style: TextStyle(color: colors.onSurfaceVariant)),
-            ),
-            _value(context, row),
-          ])).toList(),
+        child: Column(
+          key: const Key('warranty-details-fields'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) Divider(height: 1, thickness: .5, color: colors.outlineVariant),
+              _field(context, rows[i]),
+            ],
+          ],
         ),
       ),
     );
   }
 
-  Widget _value(BuildContext context, _DetailEntry row) {
+  Widget _field(BuildContext context, _DetailEntry row) {
     final colors = Theme.of(context).colorScheme;
-    final text = Text(
-      row.value,
-      textAlign: TextAlign.end,
-      style: TextStyle(fontWeight: FontWeight.w700, color: colors.onSurface),
-    );
-    if (row.contact == null) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: text,
-      );
-    }
-    return Semantics(
-      button: true,
-      label: row.label,
-      child: InkWell(
-        key: Key('warranty-contact-${row.contact!.scheme}'),
-        onTap: () => launchUrl(row.contact!),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
+    final content = ConstrainedBox(
+      constraints: BoxConstraints(minHeight: row.contact == null ? 44 : 48),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(row.label, style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant)),
+            const SizedBox(height: 2),
+            Row(
               children: [
-                Expanded(child: text),
-                const SizedBox(width: 6),
-                Icon(
-                  row.contact!.scheme == 'tel' ? Icons.call_outlined : Icons.email_outlined,
-                  size: 18,
-                  color: colors.primary,
-                ),
+                Expanded(child: Text(row.value,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(fontWeight: FontWeight.w700, color: colors.onSurface))),
+                if (row.contact != null) ...[
+                  const SizedBox(width: 8),
+                  Icon(row.contact!.scheme == 'tel' ? Icons.call_outlined : Icons.email_outlined,
+                    size: 18, color: colors.primary),
+                ],
               ],
             ),
-          ),
+          ],
+        ),
+      ),
+    );
+    return MergeSemantics(
+      child: row.contact == null ? content : Semantics(
+        button: true,
+        child: InkWell(
+          key: Key('warranty-contact-${row.contact!.scheme}'),
+          onTap: () => launchUrl(row.contact!),
+          child: content,
         ),
       ),
     );
@@ -813,4 +852,5 @@ class _PhotoPreviewState extends State<_PhotoPreview> {
     ),
   );
 }
+
 

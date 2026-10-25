@@ -72,6 +72,11 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.facebook.android:facebook-core:18.3.0")
     testImplementation("junit:junit:4.13.2")
+    // Flutter integration_test also supplies these on the debug runtime classpath.
+    // Align that classpath so Gradle consistent resolution can build instrumentation.
+    debugImplementation("androidx.test:runner:1.6.2")
+    debugImplementation("androidx.test:core:1.6.1")
+    debugImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test:core:1.6.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

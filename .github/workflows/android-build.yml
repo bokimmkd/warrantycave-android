@@ -43,7 +43,9 @@ jobs:
           python3 tool/generate_locales.py
           git diff --exit-code -- lib/l10n/additional_translations.dart
       - name: Dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          git diff --exit-code -- pubspec.lock
       - name: Analyze changed UI
         run: flutter analyze --no-fatal-infos --no-fatal-warnings lib/domain/category_entry.dart lib/domain/category_catalog.dart lib/l10n/category_translations.dart lib/presentation/screens/categories_screen.dart lib/presentation/screens/add_warranty_screen.dart lib/presentation/screens/item_detail_screen.dart test/categories_test.dart test/categories_ui_test.dart test/product_type_modal_test.dart test/warranty_details_ui_test.dart test/guest_accounts_test.dart lib/main.dart lib/data/account_local_store.dart lib/presentation/screens/auth_screen.dart lib/presentation/screens/upgrade_screen.dart test/account_local_store_test.dart test/guest_accounts_test.dart lib/data/firebase_services.dart lib/presentation/app_controller.dart lib/data/usage_analytics.dart lib/data/play_review.dart lib/presentation/release_engagement_host.dart lib/data/play_updates.dart lib/data/ad_service.dart lib/presentation/play_update_widgets.dart lib/presentation/compact_header.dart lib/presentation/widgets.dart lib/presentation/main_shell.dart lib/presentation/screens/home_screen.dart lib/presentation/screens/items_screen.dart lib/presentation/screens/reminders_screen.dart lib/presentation/screens/settings_screen.dart
       - name: Tests

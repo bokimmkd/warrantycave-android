@@ -224,8 +224,8 @@ class LocalSubscriptionService implements SubscriptionService {
   String? get setupError => null;
   @override
   String priceFor(PlanTier tier) => switch (tier) {
-    PlanTier.basic => '\$2.99 / year',
-    PlanTier.plus => '\$5.99 / year',
+    PlanTier.basic => '\$2.99',
+    PlanTier.plus => '\$5.99',
     PlanTier.free => '\$0 forever',
   };
   @override

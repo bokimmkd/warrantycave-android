@@ -1774,6 +1774,32 @@ class AppLocalizations {
   // Less frequently used screen copy is kept by key here so every entry is
   // visibly complete for all supported languages.
   static const _extended = <String, Map<String, String>>{
+    'annualPlanPrice': {
+      'en': '{price} / year',
+      'mk': '{price} / годишно',
+      'de': '{price} / Jahr',
+      'es': '{price} / año',
+      'fr': '{price} / an',
+      'it': '{price} / anno',
+      'tr': '{price} / yıl',
+      'el': '{price} / έτος',
+      'pl': '{price} / rok',
+      'cs': '{price} / rok',
+      'pt': '{price} / ano',
+    },
+    'annualSubscriptionNotice': {
+      'en': 'Annual subscription · Renews automatically. Cancel anytime in Google Play.',
+      'mk': 'Годишна претплата · Се обновува автоматски. Откажи во секое време преку Google Play.',
+      'de': 'Jahresabo · Verlängert sich automatisch. Jederzeit in Google Play kündbar.',
+      'es': 'Suscripción anual · Se renueva automáticamente. Cancela cuando quieras en Google Play.',
+      'fr': 'Abonnement annuel · Renouvellement automatique. Résiliable à tout moment dans Google Play.',
+      'it': 'Abbonamento annuale · Si rinnova automaticamente. Disdici in qualsiasi momento su Google Play.',
+      'tr': 'Yıllık abonelik · Otomatik yenilenir. Google Play üzerinden dilediğin zaman iptal edebilirsin.',
+      'el': 'Ετήσια συνδρομή · Ανανεώνεται αυτόματα. Ακύρωση ανά πάσα στιγμή στο Google Play.',
+      'pl': 'Subskrypcja roczna · Odnawia się automatycznie. Anuluj w dowolnym momencie w Google Play.',
+      'cs': 'Roční předplatné · Obnovuje se automaticky. Zrušit ho lze kdykoli na Google Play.',
+      'pt': 'Plano anual · Renovação automática. Cancele a qualquer momento no Google Play.',
+    },
     'authGoogle': {'en': 'Connecting to Google…', 'mk': 'Поврзување со Google…', 'de': 'Verbindung mit Google…', 'es': 'Conectando con Google…', 'fr': 'Connexion à Google…', 'it': 'Connessione a Google…', 'tr': 'Google bağlantısı kuruluyor…', 'el': 'Σύνδεση με το Google…'},
     'authLocal': {'en': 'Opening your account…', 'mk': 'Отворање на сметката…', 'de': 'Konto wird geöffnet…', 'es': 'Abriendo tu cuenta…', 'fr': 'Ouverture de votre compte…', 'it': 'Apertura del tuo account…', 'tr': 'Hesabınız açılıyor…', 'el': 'Άνοιγμα λογαριασμού…'},
     'authCloud': {'en': 'Syncing warranties…', 'mk': 'Синхронизирање гаранции…', 'de': 'Garantien werden synchronisiert…', 'es': 'Sincronizando garantías…', 'fr': 'Synchronisation des garanties…', 'it': 'Sincronizzazione garanzie…', 'tr': 'Garantiler eşitleniyor…', 'el': 'Συγχρονισμός εγγυήσεων…'},

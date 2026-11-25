@@ -19,6 +19,7 @@ Future<AppController> controllerWith(
   List<WarrantyItem> items,
   PlanTier tier, {
   DateTime? expiresAt,
+  SubscriptionService? subscriptions,
 }) async {
   final controller = AppController(
     storage: _MemoryStorage(
@@ -27,7 +28,7 @@ Future<AppController> controllerWith(
     ),
     photos: _NoopPhotos(),
     notifications: _NoopNotifications(),
-    subscriptions: LocalSubscriptionService(),
+    subscriptions: subscriptions ?? LocalSubscriptionService(),
   );
   await controller.initialize();
   return controller;

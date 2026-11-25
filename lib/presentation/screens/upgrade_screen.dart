@@ -73,7 +73,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           const SizedBox(height: 12),
           _PlanCard(
             tier: PlanTier.basic,
-            price: app.billingPrice(PlanTier.basic),
+            price: _annualPrice(context, app, PlanTier.basic),
             features: [
               context.l10n.text('upTo25'),
               context.l10n.text('cloudSync'),
@@ -91,7 +91,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           const SizedBox(height: 12),
           _PlanCard(
             tier: PlanTier.plus,
-            price: app.billingPrice(PlanTier.plus),
+            price: _annualPrice(context, app, PlanTier.plus),
             features: [
               context.l10n.text('upTo100'),
               context.l10n.text('cloudSync'),
@@ -104,6 +104,14 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             selected: chosen == PlanTier.plus,
             current: app.effectivePlan == PlanTier.plus,
             onTap: () => setState(() => selected = PlanTier.plus),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            context.l10n.text('annualSubscriptionNotice'),
+            textAlign: TextAlign.center,
+            style: AppTypography.muted.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -125,7 +133,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 ? context.l10n.text('currentPlan')
                 : context.l10n.format('continueWith', {
                     'plan': _tierLabel(context, chosen),
-                    'price': app.billingPrice(chosen),
+                    'price': chosen == PlanTier.free
+                        ? app.billingPrice(chosen)
+                        : _annualPrice(context, app, chosen),
                   }),
             onPressed:
                 chosen == app.effectivePlan ||
@@ -189,6 +199,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
       ),
     );
   }
+
+  String _annualPrice(BuildContext context, AppController app, PlanTier tier) =>
+      context.l10n.format('annualPlanPrice', {'price': app.billingPrice(tier)});
 
   String _tierLabel(BuildContext context, PlanTier tier) =>
       context.l10n.text(switch (tier) {
@@ -277,12 +290,16 @@ class _PlanCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Text(
-                  price,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Theme.of(context).colorScheme.primary,
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    price,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),

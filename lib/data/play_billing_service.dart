@@ -44,8 +44,8 @@ class GooglePlaySubscriptionService implements SubscriptionService {
 
   @override
   String priceFor(PlanTier tier) => _products[tier]?.price ?? switch (tier) {
-    PlanTier.basic => '\$2.99 / year',
-    PlanTier.plus => '\$5.99 / year',
+    PlanTier.basic => '\$2.99',
+    PlanTier.plus => '\$5.99',
     PlanTier.free => '\$0 forever',
   };
 

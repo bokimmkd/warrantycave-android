@@ -62,7 +62,9 @@ void main() {
     final plus = find.text('5,99 € / Jahr');
     final list = find.byType(Scrollable);
     await tester.scrollUntilVisible(basic, 180, scrollable: list);
-    expect(basic, findsOneWidget);
+    await Scrollable.ensureVisible(tester.element(basic), alignment: 0.35);
+    await tester.pumpAndSettle();
+    expect(basic.hitTestable(), findsOneWidget);
     await tester.tap(basic);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(plus, 180, scrollable: list);

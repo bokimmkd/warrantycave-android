@@ -88,9 +88,15 @@ class CaveHeader extends StatelessWidget {
     );
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Icon-only actions keep their fixed touch targets with Bold Text;
+        // they do not need a separate row unless width or text size requires it.
+        final iconOnlyActions =
+            actions.length == 1 && actions.single is IconButton;
         final stacked =
             constraints.maxWidth < 340 ||
-            (MediaQuery.boldTextOf(context) && constraints.maxWidth < 390) ||
+            (MediaQuery.boldTextOf(context) &&
+                !iconOnlyActions &&
+                constraints.maxWidth < 390) ||
             MediaQuery.textScalerOf(context).scale(14) > 18;
         if (actions.isEmpty) return heading;
         if (stacked) {

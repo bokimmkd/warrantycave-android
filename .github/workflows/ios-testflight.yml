@@ -1,4 +1,5 @@
 name: iOS internal TestFlight
+# Rebuild the internal beta with the compact Bold Text search header.
 
 on:
   push:

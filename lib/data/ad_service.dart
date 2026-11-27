@@ -6,25 +6,38 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 abstract final class AdService {
   static const _testBannerId = 'ca-app-pub-3940256099942544/6300978111';
-  static const _productionBannerId =
-      'ca-app-pub-1171723950608276/9463569777';
+  static const _productionBannerId = 'ca-app-pub-1171723950608276/9463569777';
   static const _testInlineBannerId = 'ca-app-pub-3940256099942544/9214589741';
   static const _productionInlineBannerId =
       'ca-app-pub-1171723950608276/9035972595';
   static const _forceTestAds = bool.fromEnvironment('ADMOB_TEST_ADS');
+  static const _iosBannerId = String.fromEnvironment('IOS_ADMOB_BANNER_ID');
+  static const _iosInlineId = String.fromEnvironment(
+    'IOS_ADMOB_INLINE_BANNER_ID',
+  );
+  static bool get _isIOS => defaultTargetPlatform == TargetPlatform.iOS;
+  static bool get _useTestAds => kDebugMode || _forceTestAds;
+  static bool get _supported =>
+      !(_isIOS && const bool.fromEnvironment('IOS_DISABLE_ADS')) &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          (_isIOS &&
+              (_useTestAds ||
+                  (_iosBannerId.isNotEmpty && _iosInlineId.isNotEmpty))));
 
-  static String get inlineBannerId =>
-      kDebugMode || _forceTestAds ? _testInlineBannerId : _productionInlineBannerId;
+  static String get inlineBannerId => _isIOS
+      ? (_useTestAds ? 'ca-app-pub-3940256099942544/2934735716' : _iosInlineId)
+      : (_useTestAds ? _testInlineBannerId : _productionInlineBannerId);
 
-  static String get _bannerId =>
-      kDebugMode || _forceTestAds ? _testBannerId : _productionBannerId;
+  static String get _bannerId => _isIOS
+      ? (_useTestAds ? 'ca-app-pub-3940256099942544/2934735716' : _iosBannerId)
+      : (_useTestAds ? _testBannerId : _productionBannerId);
 
   static Future<void>? _initialization;
 
-  static Future<void> initialize() =>
-      _initialization ??= _initializeOnce();
+  static Future<void> initialize() => _initialization ??= _initializeOnce();
 
   static Future<void> _initializeOnce() async {
+    if (!_supported) return;
     final consent = ConsentInformation.instance;
     final consentResolved = Completer<void>();
     consent.requestConsentInfoUpdate(
@@ -46,11 +59,13 @@ abstract final class AdService {
   }
 
   static Future<bool> canLoadAds() async {
+    if (!_supported) return false;
     await initialize();
     return ConsentInformation.instance.canRequestAds();
   }
 
   static Future<bool> privacyOptionsRequired() async {
+    if (!_supported) return false;
     await initialize();
     return await ConsentInformation.instance
             .getPrivacyOptionsRequirementStatus() ==
@@ -70,7 +85,7 @@ abstract final class AdService {
   }) => BannerAd(
     adUnitId: _bannerId,
     size: size,
-    request: const AdRequest(),
+    request: AdRequest(nonPersonalizedAds: _isIOS ? true : null),
     listener: BannerAdListener(
       onAdLoaded: (_) => onLoaded(),
       onAdFailedToLoad: (ad, _) {
@@ -96,38 +111,63 @@ class _FreeBannerAdState extends State<FreeBannerAd> {
   int _generation = 0;
 
   Future<void> _load(int width, int generation) async {
-    if (!await AdService.canLoadAds() || !mounted || generation != _generation) return;
-    final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width);
+    if (!await AdService.canLoadAds() || !mounted || generation != _generation)
+      return;
+    final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+      width,
+    );
     if (size == null || !mounted || generation != _generation) return;
-    final banner = AdService.banner(size: size,
-      onLoaded: () { if (mounted && generation == _generation) setState(() => loaded = true); },
-      onFailed: () { if (mounted && generation == _generation) setState(() { loaded = false; ad = null; }); },
+    final banner = AdService.banner(
+      size: size,
+      onLoaded: () {
+        if (mounted && generation == _generation) setState(() => loaded = true);
+      },
+      onFailed: () {
+        if (mounted && generation == _generation)
+          setState(() {
+            loaded = false;
+            ad = null;
+          });
+      },
     );
     ad = banner;
     await banner.load();
   }
 
   @override
-  void dispose() { _generation++; ad?.dispose(); super.dispose(); }
+  void dispose() {
+    _generation++;
+    ad?.dispose();
+    super.dispose();
+  }
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, constraints) {
-    final width = constraints.maxWidth.floor();
-    final orientation = MediaQuery.orientationOf(context);
-    if (width > 0 && (width != _width || orientation != _orientation)) {
-      _width = width; _orientation = orientation;
-      final generation = ++_generation;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || generation != _generation) return;
-        ad?.dispose(); ad = null;
-        setState(() => loaded = false);
-        unawaited(_load(width, generation));
-      });
-      return const SizedBox.shrink();
-    }
-    if (!loaded || ad == null) return const SizedBox.shrink();
-    return ColoredBox(color: Theme.of(context).colorScheme.surface,
-      child: SizedBox(width: ad!.size.width.toDouble(), height: ad!.size.height.toDouble(),
-        child: AdWidget(ad: ad!)));
-  });
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = constraints.maxWidth.floor();
+      final orientation = MediaQuery.orientationOf(context);
+      if (width > 0 && (width != _width || orientation != _orientation)) {
+        _width = width;
+        _orientation = orientation;
+        final generation = ++_generation;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || generation != _generation) return;
+          ad?.dispose();
+          ad = null;
+          setState(() => loaded = false);
+          unawaited(_load(width, generation));
+        });
+        return const SizedBox.shrink();
+      }
+      if (!loaded || ad == null) return const SizedBox.shrink();
+      return ColoredBox(
+        color: Theme.of(context).colorScheme.surface,
+        child: SizedBox(
+          width: ad!.size.width.toDouble(),
+          height: ad!.size.height.toDouble(),
+          child: AdWidget(ad: ad!),
+        ),
+      );
+    },
+  );
 }

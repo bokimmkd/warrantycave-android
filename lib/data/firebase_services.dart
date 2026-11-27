@@ -1,5 +1,6 @@
 import '../domain/category_entry.dart';
 import '../domain/category_catalog.dart';
+
 import 'dart:convert';
 import 'dart:async';
 
@@ -63,24 +64,52 @@ class FirebaseAccountService {
     // Match School Assistant: clear the previous Google selection before
     // requesting an ID token for the Firebase web OAuth client.
     await timeLoginStage('google.reset', _googleSignIn.signOut);
-    final googleUser = await timeLoginStage('google.accountPicker', _googleSignIn.signIn);
+    final googleUser = await timeLoginStage(
+      'google.accountPicker',
+      _googleSignIn.signIn,
+    );
     if (googleUser == null) {
       throw FirebaseAuthException(
         code: 'google-sign-in-canceled',
         message: 'Google sign-in was canceled.',
       );
     }
-    final googleAuth = await timeLoginStage('google.token', () => googleUser.authentication);
+    final googleAuth = await timeLoginStage(
+      'google.token',
+      () => googleUser.authentication,
+    );
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
       accessToken: googleAuth.accessToken,
     );
-    final result = await timeLoginStage('firebase.authentication', () => _auth.signInWithCredential(credential));
+    final result = await timeLoginStage(
+      'firebase.authentication',
+      () => _auth.signInWithCredential(credential),
+    );
     if (result.additionalUserInfo?.isNewUser == true) {
       unawaited(analytics?.signUp('google') ?? Future<void>.value());
     }
     return result.user!;
   }
+
+  Future<User> signInWithApple() async {
+    final result = await _auth.signInWithProvider(
+      AppleAuthProvider()
+        ..addScope('email')
+        ..addScope('name'),
+    );
+    if (result.additionalUserInfo?.isNewUser == true) {
+      unawaited(analytics?.signUp('apple') ?? Future<void>.value());
+    }
+    return result.user!;
+  }
+
+  String? _appleRevocationCode;
+  bool get usesApple =>
+      currentUser?.providerData.any(
+        (provider) => provider.providerId == 'apple.com',
+      ) ??
+      false;
 
   Future<void> resetPassword(String email) =>
       _auth.sendPasswordResetEmail(email: email);
@@ -101,7 +130,16 @@ class FirebaseAccountService {
   Future<void> reauthenticate({String? password}) async {
     final user = currentUser;
     if (user == null) return;
-    if (usesPassword) {
+    _appleRevocationCode = null;
+    if (usesApple && Platform.isIOS) {
+      final credential = await user.reauthenticateWithProvider(
+        AppleAuthProvider(),
+      );
+      _appleRevocationCode = credential.additionalUserInfo?.authorizationCode;
+      if (_appleRevocationCode == null) {
+        throw FirebaseAuthException(code: 'missing-apple-authorization-code');
+      }
+    } else if (usesPassword) {
       if (password == null || password.isEmpty) {
         throw FirebaseAuthException(code: 'password-required');
       }
@@ -129,7 +167,18 @@ class FirebaseAccountService {
     }
   }
 
-  Future<void> deleteCurrentUser() async => currentUser?.delete();
+  Future<void> deleteCurrentUser() async {
+    // Revoke only after cloud deletion succeeded; reauthentication provides a
+    // fresh one-time authorization code for Apple's token revocation endpoint.
+    final code = _appleRevocationCode;
+    if (usesApple && Platform.isIOS) {
+      if (code == null)
+        throw FirebaseAuthException(code: 'requires-recent-login');
+      await _auth.revokeTokenWithAuthorizationCode(code);
+      _appleRevocationCode = null;
+    }
+    await currentUser?.delete();
+  }
 }
 
 class CloudBootstrapResult {
@@ -223,6 +272,29 @@ class FirebaseCloudService {
     );
   }
 
+  Future<String> appleBillingAccountToken() async {
+    const sandbox = bool.fromEnvironment('IOS_APPLE_BILLING_SANDBOX');
+    final result = await _callFunction('getAppleBillingAccount', {
+      if (sandbox) 'sandbox': true,
+    });
+    final token = result['appAccountToken'];
+    if (token is! String || !RegExp(r'^[a-fA-F0-9-]{36}$').hasMatch(token)) {
+      throw StateError('App Store billing is unavailable.');
+    }
+    return token;
+  }
+
+  Future<EntitlementResult> confirmApplePurchase({
+    required String productId,
+    required String signedTransaction,
+  }) async {
+    await _callFunction('confirmApplePurchase', {
+      'productId': productId,
+      'signedTransaction': signedTransaction,
+    });
+    return getEntitlements();
+  }
+
   Future<EntitlementResult> confirmPlayPurchase({
     required String productId,
     required String purchaseToken,
@@ -276,12 +348,16 @@ class FirebaseCloudService {
       _profile(uid).get(),
       _items(uid).orderBy('createdAt', descending: true).get(),
     ]);
-    final profileSnapshot = snapshots[0] as DocumentSnapshot<Map<String, dynamic>>;
+    final profileSnapshot =
+        snapshots[0] as DocumentSnapshot<Map<String, dynamic>>;
     var mergedSettings = localSettings;
     final remoteProfile = profileSnapshot.data();
     if (remoteProfile != null) {
       mergedSettings = localSettings.copyWith(
-        categories: mergeCategories(localSettings.categories, decodeCategories(remoteProfile['categories'])),
+        categories: mergeCategories(
+          localSettings.categories,
+          decodeCategories(remoteProfile['categories']),
+        ),
         firstName:
             remoteProfile['firstName'] as String? ?? localSettings.firstName,
         lastName:
@@ -311,9 +387,11 @@ class FirebaseCloudService {
     // must still see all existing account warranties immediately after login.
     final remote = snapshots[1] as QuerySnapshot<Map<String, dynamic>>;
     final downloaded = remote.docs
-        .map((doc) => WarrantyItem.fromJson(doc.data())).toList();
+        .map((doc) => WarrantyItem.fromJson(doc.data()))
+        .toList();
     final merged = mergeAccountWarranties(
-      ownsLocalData ? localItems : const <WarrantyItem>[], downloaded,
+      ownsLocalData ? localItems : const <WarrantyItem>[],
+      downloaded,
       localSettings.pendingCloudDeletionIds,
     ).map((item) => normalizeItemCategory(item, mergedSettings)).toList();
     mergedSettings = mergedSettings.copyWith(cloudOwnerUid: uid);
@@ -337,7 +415,10 @@ class FirebaseCloudService {
     final profileSnapshot = await _profile(uid).get();
     final remoteProfile = profileSnapshot.data();
     final mergedSettings = localSettings.copyWith(
-      categories: mergeCategories(localSettings.categories, decodeCategories(remoteProfile?['categories'])),
+      categories: mergeCategories(
+        localSettings.categories,
+        decodeCategories(remoteProfile?['categories']),
+      ),
       firstName:
           remoteProfile?['firstName'] as String? ?? localSettings.firstName,
       lastName: remoteProfile?['lastName'] as String? ?? localSettings.lastName,
@@ -363,7 +444,14 @@ class FirebaseCloudService {
         .orderBy('createdAt', descending: true)
         .get();
     return CloudBootstrapResult(
-      remote.docs.map((doc) => normalizeItemCategory(WarrantyItem.fromJson(doc.data()), mergedSettings)).toList(),
+      remote.docs
+          .map(
+            (doc) => normalizeItemCategory(
+              WarrantyItem.fromJson(doc.data()),
+              mergedSettings,
+            ),
+          )
+          .toList(),
       mergedSettings,
     );
   }
@@ -372,8 +460,10 @@ class FirebaseCloudService {
     await _firestore.runTransaction<void>((transaction) async {
       final ref = _profile(uid);
       final snapshot = await transaction.get(ref);
-      final categories = mergeCategories(settings.categories,
-        decodeCategories(snapshot.data()?['categories']));
+      final categories = mergeCategories(
+        settings.categories,
+        decodeCategories(snapshot.data()?['categories']),
+      );
       transaction.set(ref, {
         'firstName': settings.firstName,
         'lastName': settings.lastName,
@@ -647,10 +737,18 @@ class FirebaseCloudService {
 bool warrantyNeedsUpload(WarrantyItem local, WarrantyItem? remote) =>
     remote == null || jsonEncode(local.toJson()) != jsonEncode(remote.toJson());
 
-List<WarrantyItem> mergeAccountWarranties(List<WarrantyItem> local,
-    List<WarrantyItem> remote, List<String> deleted) {
-  final result = {for (final item in remote) item.id: item,
-    for (final item in local) item.id: item};
-  for (final id in deleted) { result.remove(id); }
-  return result.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+List<WarrantyItem> mergeAccountWarranties(
+  List<WarrantyItem> local,
+  List<WarrantyItem> remote,
+  List<String> deleted,
+) {
+  final result = {
+    for (final item in remote) item.id: item,
+    for (final item in local) item.id: item,
+  };
+  for (final id in deleted) {
+    result.remove(id);
+  }
+  return result.values.toList()
+    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 }

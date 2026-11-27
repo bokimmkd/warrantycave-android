@@ -30,18 +30,28 @@ class _RemindersScreenState extends State<RemindersScreen>
             CaveHeader(
               title: context.l10n.text('reminders'),
               subtitle: context.l10n.text('remindersCaveSubtitle'),
-              actions: [IconButton(
-                tooltip: context.l10n.text('reminderInfo'),
-                icon: const Icon(Icons.info_outline),
-                onPressed: () => AppBottomSheets.show<void>(context,
-                  title: context.l10n.text('reminders'),
-                  child: Text('${context.l10n.text('localAlerts')}\n\n${context.l10n.text('reminderDefaultsHint')}')),
-              )],
+              actions: [
+                IconButton(
+                  tooltip: context.l10n.text('reminderInfo'),
+                  icon: const Icon(Icons.info_outline),
+                  onPressed: () => AppBottomSheets.show<void>(
+                    context,
+                    title: context.l10n.text('reminders'),
+                    child: Text(
+                      '${context.l10n.text('localAlerts')}\n\n${context.l10n.text('reminderDefaultsHint')}',
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            Text(context.l10n.text('expiryReminder'),
-              style: TextStyle(fontSize: 13,
-                color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            Text(
+              context.l10n.text('expiryReminder'),
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 6),
             Card(
               child: Column(
@@ -100,14 +110,19 @@ class _RemindersScreenState extends State<RemindersScreen>
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    Icon(Icons.lock_clock_outlined, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      Icons.lock_clock_outlined,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         context.l10n.format('monitored', {
                           'count': app.countedItemCount,
                         }),
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ],
@@ -134,7 +149,13 @@ class _Switch extends StatelessWidget {
   Widget build(BuildContext context) => SwitchListTile(
     title: Text(
       title,
-      style: TextStyle(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
+      style: TextStyle(
+        fontWeight: AppTypography.headingWeight(
+          context,
+          standard: FontWeight.w700,
+        ),
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 14),
     visualDensity: VisualDensity.compact,
@@ -142,4 +163,3 @@ class _Switch extends StatelessWidget {
     onChanged: onChanged,
   );
 }
-

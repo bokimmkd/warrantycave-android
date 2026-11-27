@@ -33,7 +33,10 @@ class _HomeScreenState extends State<HomeScreen>
   void closeSearch() {
     FocusScope.of(context).unfocus();
     searchController.clear();
-    setState(() { query = ''; searchOpen = false; });
+    setState(() {
+      query = '';
+      searchOpen = false;
+    });
   }
 
   @override
@@ -41,12 +44,20 @@ class _HomeScreenState extends State<HomeScreen>
     searchController.dispose();
     super.dispose();
   }
+
   @override
   bool get wantKeepAlive => true;
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final app = context.watch<AppController>();
+    final search = IconButton(
+      tooltip: context.l10n.text('searchWarranties'),
+      onPressed: () =>
+          searchOpen ? closeSearch() : setState(() => searchOpen = true),
+      icon: Icon(searchOpen ? Icons.search_off : Icons.search),
+    );
+    final addLabel = context.l10n.text('add');
     final filtered =
         app.items
             .where(
@@ -79,13 +90,17 @@ class _HomeScreenState extends State<HomeScreen>
               title: 'WarrantyCave',
               brand: true,
               subtitle: context.l10n.text('homeCaveSubtitle'),
-              actions: [
+              compactActions: [
+                search,
                 IconButton(
-                  tooltip: context.l10n.text('searchWarranties'),
-                  onPressed: () => searchOpen ? closeSearch()
-                      : setState(() => searchOpen = true),
-                  icon: Icon(searchOpen ? Icons.search_off : Icons.search),
+                  tooltip: addLabel,
+                  onPressed: widget.onAdd,
+                  icon: const Icon(Icons.add_circle_outline, size: 21),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
+              ],
+              actions: [
+                search,
                 TextButton.icon(
                   onPressed: widget.onAdd,
                   style: TextButton.styleFrom(
@@ -93,19 +108,28 @@ class _HomeScreenState extends State<HomeScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                   icon: const Icon(Icons.add_circle_outline, size: 21),
-                  label: Text(context.l10n.text('add')),
+                  label: Text(addLabel),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(context.l10n.text('goodToSeeYou'),
-              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800,
-                color: Theme.of(context).colorScheme.onSurface)),
-            if (searchOpen) CompactSearchField(
-              controller: searchController,
-              onChanged: (v) => setState(() => query = v),
-              onClose: closeSearch,
+            Text(
+              context.l10n.text('goodToSeeYou'),
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: AppTypography.headingWeight(
+                  context,
+                  standard: FontWeight.w800,
+                ),
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
+            if (searchOpen)
+              CompactSearchField(
+                controller: searchController,
+                onChanged: (v) => setState(() => query = v),
+                onClose: closeSearch,
+              ),
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, c) => Row(
@@ -210,22 +234,33 @@ class _Metric extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
           child: Column(
             children: [
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(icon, color: color, size: 19),
-                const SizedBox(width: 6),
-                Flexible(child: Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.w900,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              )),
-              ]),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: color, size: 19),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      '$count',
+                      style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: AppTypography.headingWeight(
+                          context,
+                          standard: FontWeight.w900,
+                        ),
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 2),
               Text(
                 label,
-                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -246,4 +281,3 @@ class _Empty extends StatelessWidget {
     onAction: onAdd,
   );
 }
-

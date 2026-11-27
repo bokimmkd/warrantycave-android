@@ -10,6 +10,7 @@ import 'package:warranty_cave/data/services.dart';
 import 'package:warranty_cave/domain/models.dart';
 import 'package:warranty_cave/l10n/app_localizations.dart';
 import 'package:warranty_cave/presentation/app_controller.dart';
+import 'package:warranty_cave/presentation/compact_header.dart';
 import 'package:warranty_cave/presentation/screens/home_screen.dart';
 import 'package:warranty_cave/presentation/screens/items_screen.dart';
 import 'package:warranty_cave/presentation/screens/reminders_screen.dart';
@@ -38,6 +39,7 @@ Future<AppController> _render(
   double width = 390,
   double scale = 1,
   bool dark = false,
+  bool bold = false,
   String language = 'en',
   double keyboard = 0,
   double topInset = 0,
@@ -56,7 +58,9 @@ Future<AppController> _render(
     ChangeNotifierProvider.value(
       value: controller,
       child: MaterialApp(
-        theme: dark ? buildDarkTheme() : buildTheme(),
+        theme: (dark ? buildDarkTheme() : buildTheme()).copyWith(
+          platform: bold ? TargetPlatform.iOS : null,
+        ),
         locale: appLocale(language),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: const [
@@ -68,6 +72,7 @@ Future<AppController> _render(
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.linear(scale),
+            boldText: bold,
             viewInsets: EdgeInsets.only(bottom: keyboard),
             viewPadding: EdgeInsets.only(top: topInset, bottom: bottomInset),
             padding: EdgeInsets.only(
@@ -246,13 +251,24 @@ void main() {
     }
   }
 
-  for (final page in [0, 1]) {
-    testWidgets('tab $page search filters and closing restores items', (
+  for (final (page, bold) in [(0, false), (1, false), (0, true)]) {
+    testWidgets('tab $page search filters and restores items with bold=$bold', (
       tester,
     ) async {
-      final controller = await _render(tester, page);
+      final controller = await _render(tester, page, bold: bold);
+      final search = find.byTooltip('Search warranties');
+      if (bold) {
+        final header = tester.getRect(find.byType(CaveHeader));
+        final searchButton = find.widgetWithIcon(IconButton, Icons.search);
+        final add = find.widgetWithIcon(IconButton, Icons.add_circle_outline);
+        expect(tester.widget<IconButton>(add).tooltip, 'Add');
+        expect(tester.getCenter(searchButton).dy, closeTo(header.center.dy, 1));
+        expect(tester.getCenter(add).dy, closeTo(header.center.dy, 1));
+        expect(tester.getSize(searchButton), const Size(48, 48));
+        expect(tester.getSize(add), const Size(48, 48));
+      }
       expect(find.byType(TextField), findsNothing);
-      await tester.tap(find.byTooltip('Search warranties'));
+      await tester.tap(search);
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Samsung');
       await tester.pumpAndSettle();

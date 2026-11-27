@@ -1,0 +1,118 @@
+name: iOS internal TestFlight
+
+on:
+  push:
+    branches: [feature/ios-port]
+    paths:
+      - .github/workflows/ios-testflight.yml
+      - lib/presentation/compact_header.dart
+      - lib/presentation/screens/home_screen.dart
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: warrantycave-testflight
+  cancel-in-progress: false
+
+jobs:
+  internal-testflight:
+    if: github.repository == 'bokimmkd/warrantycave-android' && github.ref == 'refs/heads/feature/ios-port'
+    runs-on: xcode-27
+    timeout-minutes: 75
+    env:
+      CI: true
+      FLUTTER_SUPPRESS_ANALYTICS: true
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify App Store SDK requirement before compiling
+        run: |
+          xcodebuild -version
+          sdk_version=$(xcrun --sdk iphoneos --show-sdk-version)
+          test "${sdk_version%%.*}" -ge 27
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install 'PyJWT[crypto]==2.10.1'
+      - name: Configure real Firebase for internal testing
+        env:
+          IOS_FIREBASE_PLIST_BASE64: ${{ secrets.IOS_FIREBASE_PLIST_BASE64 }}
+          ENABLE_SANDBOX_BILLING: ${{ vars.IOS_TESTFLIGHT_SANDBOX_BILLING }}
+        run: |
+          args=(--internal)
+          if [[ "$ENABLE_SANDBOX_BILLING" == true ]]; then
+            args+=(--sandbox-billing)
+          fi
+          python3 - <<'PY'
+          import os, base64, json
+          from pathlib import Path
+          os.umask(0o077)
+          Path('ios/Runner/GoogleService-Info.plist').write_bytes(base64.b64decode(os.environ['IOS_FIREBASE_PLIST_BASE64'], validate=True))
+          Path('.ios-config.json').write_text(json.dumps({'teamId':'QJ63494GZJ','appStoreId':'6840100351'}))
+          PY
+          python3 scripts/configure_ios.py "${args[@]}" --firebase-plist ios/Runner/GoogleService-Info.plist --config .ios-config.json
+      - name: Prepare ephemeral signing keychain
+        env:
+          APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
+          IOS_DISTRIBUTION_PRIVATE_KEY_BASE64: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY_BASE64 }}
+        run: python3 scripts/prepare_ios_signing.py
+      - run: python3 -m unittest discover -s scripts -p 'test_ios_release.py'
+      - run: flutter config --no-enable-swift-package-manager
+      - run: flutter pub get
+      - name: Build signed internal-only IPA
+        run: |
+          set -o pipefail
+          log="$RUNNER_TEMP/warrantycave-ios-build.log"
+          for attempt in 1 2; do
+            if flutter build ipa --release --build-number="$GITHUB_RUN_NUMBER" --dart-define-from-file=.ios-dart-defines.json --export-options-plist="$IOS_EXPORT_OPTIONS" 2>&1 | tee "$log"; then
+              exit 0
+            fi
+            if [[ "$attempt" == 2 ]] || ! grep -q 'Error running pod install' "$log"; then
+              exit 1
+            fi
+            sleep 15
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warrantycave-internal-testflight-ipa
+          path: build/ios/ipa/*.ipa
+          retention-days: 7
+      - name: Verify archive and upload to TestFlight
+        run: |
+          python3 - <<'PY'
+          import json, os, plistlib, subprocess
+          from pathlib import Path
+          options=plistlib.loads(Path(os.environ['IOS_EXPORT_OPTIONS']).read_bytes())
+          assert options['testFlightInternalTestingOnly'] is True
+          app=Path('build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app')
+          info=plistlib.loads((app/'Info.plist').read_bytes())
+          assert info['CFBundleIdentifier']=='com.warrantycave.app'
+          assert info['ITSAppUsesNonExemptEncryption'] is False
+          subprocess.run(['codesign','--verify','--deep','--strict',str(app)],check=True)
+          ipa=list(Path('build/ios/ipa').glob('*.ipa'))
+          assert len(ipa)==1
+          ids=json.loads((Path(os.environ['RUNNER_TEMP'])/'warrantycave-signing/api-identifiers.json').read_text())
+          subprocess.run(['xcrun','altool','--upload-app','--type','ios','--file',str(ipa[0]),'--apiKey',ids['key_id'],'--apiIssuer',ids['issuer_id']],check=True)
+          PY
+      - name: Remove ephemeral signing credentials
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os, shutil, subprocess
+          from pathlib import Path
+          folder=Path(os.environ['RUNNER_TEMP'])/'warrantycave-signing'
+          previous=folder/'previous-keychains.json'
+          if previous.exists():
+              subprocess.run(['security','list-keychains','-d','user','-s',*json.loads(previous.read_text())],check=False)
+          if (folder/'signing.keychain-db').exists():
+              subprocess.run(['security','delete-keychain',str(folder/'signing.keychain-db')],check=False)
+          (Path.home()/'private_keys/AuthKey_ALKZ736LBU.p8').unlink(missing_ok=True)
+          shutil.rmtree(folder,ignore_errors=True)
+          PY

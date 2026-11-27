@@ -1,3 +1,4 @@
+import 'ios_translations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'additional_translations.dart';
@@ -61,6 +62,7 @@ class AppLocalizations {
       : locale.languageCode;
 
   String text(String key) =>
+      iosTranslations[localeCode]?[key] ??
       categoryTranslations[localeCode]?[key] ??
       additionalTranslations[localeCode]?[key] ??
       (_values[locale.languageCode] ?? _values['en']!)[key] ??

@@ -1,6 +1,10 @@
 import 'auth_screen.dart';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
@@ -17,10 +21,21 @@ class UpgradeScreen extends StatefulWidget {
 
 class _UpgradeScreenState extends State<UpgradeScreen> {
   PlanTier? selected;
+  bool get isIOS => defaultTargetPlatform == TargetPlatform.iOS;
+  String price(AppController app, PlanTier tier) => tier == PlanTier.free
+      ? app.billingPrice(tier)
+      : isIOS
+      ? context.l10n.format('appleAnnualPrice', {
+          'price': app.billingPrice(tier),
+        })
+      : _annualPrice(context, app, tier);
 
   Future<bool> _requireAccount(AppController app) async {
     if (app.signedIn && app.emailVerified) return true;
-    await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AuthScreen(forPaidPlan: true)));
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const AuthScreen(forPaidPlan: true)),
+    );
     return mounted && app.signedIn && app.emailVerified && !app.accountBusy;
   }
 
@@ -43,7 +58,10 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 24,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppTypography.headingWeight(
+                context,
+                standard: FontWeight.w900,
+              ),
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
@@ -51,7 +69,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           Text(
             context.l10n.text('unlockCloud'),
             textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 24),
           _PlanCard(
@@ -73,7 +93,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           const SizedBox(height: 12),
           _PlanCard(
             tier: PlanTier.basic,
-            price: _annualPrice(context, app, PlanTier.basic),
+            price: price(app, PlanTier.basic),
             features: [
               context.l10n.text('upTo25'),
               context.l10n.text('cloudSync'),
@@ -91,7 +111,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           const SizedBox(height: 12),
           _PlanCard(
             tier: PlanTier.plus,
-            price: _annualPrice(context, app, PlanTier.plus),
+            price: price(app, PlanTier.plus),
             features: [
               context.l10n.text('upTo100'),
               context.l10n.text('cloudSync'),
@@ -105,14 +125,16 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             current: app.effectivePlan == PlanTier.plus,
             onTap: () => setState(() => selected = PlanTier.plus),
           ),
-          const SizedBox(height: 12),
-          Text(
-            context.l10n.text('annualSubscriptionNotice'),
-            textAlign: TextAlign.center,
-            style: AppTypography.muted.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+          if (!isIOS) ...[
+            const SizedBox(height: 12),
+            Text(
+              context.l10n.text('annualSubscriptionNotice'),
+              textAlign: TextAlign.center,
+              style: AppTypography.muted.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 12),
           Text(
             context.l10n.text('planExpiryEditNotice'),
@@ -123,9 +145,11 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            context.l10n.text('securePurchase'),
+            context.l10n.text(isIOS ? 'appleSecurePurchase' : 'securePurchase'),
             textAlign: TextAlign.center,
-            style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: AppTypography.muted.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 14),
           PrimaryButton(
@@ -133,9 +157,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 ? context.l10n.text('currentPlan')
                 : context.l10n.format('continueWith', {
                     'plan': _tierLabel(context, chosen),
-                    'price': chosen == PlanTier.free
-                        ? app.billingPrice(chosen)
-                        : _annualPrice(context, app, chosen),
+                    'price': price(app, chosen),
                   }),
             onPressed:
                 chosen == app.effectivePlan ||
@@ -185,6 +207,35 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                   },
             icon: Icons.restore_rounded,
           ),
+          if (isIOS) ...[
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.text('appleSubscriptionTerms'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () => launchUrl(
+                    Uri.parse(
+                      'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                    ),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: Text(context.l10n.text('terms')),
+                ),
+                TextButton(
+                  onPressed: () => launchUrl(
+                    Uri.parse('https://warrantycave.com/privacy'),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: Text(context.l10n.text('privacyPolicy')),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 10),
           OutlineButton(
             label: context.l10n.text('notNow'),
@@ -209,6 +260,85 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
         PlanTier.basic => 'basic',
         PlanTier.plus => 'plus',
       });
+}
+
+/// Keeps long localized prices readable with Bold Text and larger text sizes.
+class PlanPriceHeading extends StatelessWidget {
+  const PlanPriceHeading({
+    super.key,
+    required this.title,
+    required this.price,
+    required this.selected,
+  });
+  final String title;
+  final String price;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final titleWidget = Text(
+        title,
+        style: TextStyle(
+          fontSize: 20,
+          height: 1.25,
+          fontWeight: AppTypography.headingWeight(
+            context,
+            standard: FontWeight.w900,
+          ),
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      );
+      final priceWidget = Text(
+        price,
+        softWrap: true,
+        style: TextStyle(
+          fontSize: 18,
+          height: 1.3,
+          fontWeight: AppTypography.headingWeight(
+            context,
+            standard: FontWeight.w900,
+          ),
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
+      final selectedIcon = Icon(
+        selected ? Icons.check_circle : Icons.circle_outlined,
+        color: selected ? caveTeal : AppColors.border,
+      );
+      final stacked =
+          constraints.maxWidth < 390 &&
+          (MediaQuery.boldTextOf(context) ||
+              MediaQuery.textScalerOf(context).scale(14) > 18);
+      if (stacked) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: titleWidget),
+                const SizedBox(width: 8),
+                selectedIcon,
+              ],
+            ),
+            const SizedBox(height: 8),
+            priceWidget,
+          ],
+        );
+      }
+      return Row(
+        children: [
+          Expanded(child: titleWidget),
+          Expanded(
+            flex: 2,
+            child: Align(alignment: Alignment.centerRight, child: priceWidget),
+          ),
+          const SizedBox(width: 8),
+          selectedIcon,
+        ],
+      );
+    },
+  );
 }
 
 class _PlanCard extends StatelessWidget {
@@ -269,45 +399,22 @@ class _PlanCard extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: AppTypography.headingWeight(
+                      context,
+                      standard: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
             if (recommended) const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    context.l10n.text(switch (tier) {
-                      PlanTier.free => 'free',
-                      PlanTier.basic => 'basic',
-                      PlanTier.plus => 'plus',
-                    }),
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    price,
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  selected ? Icons.check_circle : Icons.circle_outlined,
-                  color: selected ? caveTeal : AppColors.border,
-                ),
-              ],
+            PlanPriceHeading(
+              title: context.l10n.text(switch (tier) {
+                PlanTier.free => 'free',
+                PlanTier.basic => 'basic',
+                PlanTier.plus => 'plus',
+              }),
+              price: price,
+              selected: selected,
             ),
             if (current) ...[
               const SizedBox(height: 8),
@@ -316,7 +423,10 @@ class _PlanCard extends StatelessWidget {
                 style: TextStyle(
                   color: caveTeal,
                   fontSize: 11,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppTypography.headingWeight(
+                    context,
+                    standard: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
@@ -332,7 +442,9 @@ class _PlanCard extends StatelessWidget {
                       child: Text(
                         e,
                         softWrap: true,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ],

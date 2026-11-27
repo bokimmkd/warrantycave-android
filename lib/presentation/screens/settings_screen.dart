@@ -1,6 +1,9 @@
 import 'categories_screen.dart';
 import 'auth_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import '../../data/store_links.dart';
+import '../share_origin.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -50,6 +53,10 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> rateApp() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await open(StoreLinks.review);
+      return;
+    }
     try {
       await const MethodChannel('com.warrantycave.app/play_updates')
           .invokeMethod<void>('listing');
@@ -513,8 +520,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                     icon: const Icon(Icons.share_outlined),
                     onPressed: () => SharePlus.instance.share(
                       ShareParams(
+                        sharePositionOrigin: shareOrigin(context),
                         text: context.l10n.format('referralShare', {
-                          'downloadLink': ReferralPolicy.googlePlayDownloadUrl,
+                          'downloadLink': StoreLinks.download,
                           'code': ReferralPolicy.normalize(s.referralCode),
                         }),
                       ),
@@ -683,7 +691,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                     onTap: () => open('https://warrantycave.com/privacy'),
                   ),
                   const UsageMeasurementChoice(),
-                  const MetaMeasurementChoice(),
+                  if (defaultTargetPlatform == TargetPlatform.android)
+                    const MetaMeasurementChoice(),
                   FutureBuilder<bool>(
                     future: _adPrivacyOptionsRequired,
                     builder: (context, snapshot) {

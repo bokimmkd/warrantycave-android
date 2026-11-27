@@ -1,3 +1,4 @@
+import '../share_origin.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -201,6 +202,7 @@ class ItemDetailScreen extends StatelessWidget {
   Future<void> _shareText(BuildContext context, WarrantyItem item) =>
       SharePlus.instance.share(
         ShareParams(
+          sharePositionOrigin: shareOrigin(context),
           text: context.l10n.format('shareWarrantyText', {
             'product': item.productName,
             'details': '${item.brand} ${item.model}',
@@ -491,6 +493,7 @@ class ItemDetailScreen extends StatelessWidget {
       } else {
         await SharePlus.instance.share(
           ShareParams(
+          sharePositionOrigin: shareOrigin(context),
             files: [XFile(file.path)],
             subject: context.l10n.format('claimPackSubject', {
               'product': item.productName,
@@ -852,5 +855,3 @@ class _PhotoPreviewState extends State<_PhotoPreview> {
     ),
   );
 }
-
-

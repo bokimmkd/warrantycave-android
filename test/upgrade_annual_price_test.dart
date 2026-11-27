@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -20,67 +21,78 @@ class _StorePrices extends LocalSubscriptionService {
 }
 
 void main() {
-  testWidgets('store prices retain their currency and show the annual period', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(320, 640);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    testWidgets(
+      '$platform store prices retain currency and show one annual period',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-    final app = await controllerWith(
-      [],
-      PlanTier.free,
-      subscriptions: _StorePrices(),
-    );
-    await tester.pumpWidget(
-      ChangeNotifierProvider.value(
-        value: app,
-        child: MaterialApp(
-          theme: buildDarkTheme(),
-          locale: const Locale('de'),
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaler: const TextScaler.linear(1.4),
+        final app = await controllerWith(
+          [],
+          PlanTier.free,
+          subscriptions: _StorePrices(),
+        );
+        await tester.pumpWidget(
+          ChangeNotifierProvider.value(
+            value: app,
+            child: MaterialApp(
+              theme: buildDarkTheme(),
+              locale: const Locale('de'),
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: const TextScaler.linear(1.4)),
+                child: child!,
+              ),
+              home: UpgradeScreen(onSelectTab: (_) {}),
             ),
-            child: child!,
           ),
-          home: UpgradeScreen(onSelectTab: (_) {}),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-    final basic = find.text('2,99 € / Jahr');
-    final plus = find.text('5,99 € / Jahr');
-    final list = find.byType(Scrollable);
-    await tester.scrollUntilVisible(basic, 180, scrollable: list);
-    await Scrollable.ensureVisible(tester.element(basic), alignment: 0.35);
-    await tester.pumpAndSettle();
-    expect(basic.hitTestable(), findsOneWidget);
-    await tester.tap(basic);
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(plus, 180, scrollable: list);
-    expect(plus, findsOneWidget);
+        final basic = find.text('2,99 € / Jahr');
+        final plus = find.text('5,99 € / Jahr');
+        final list = find.byType(Scrollable);
+        await tester.scrollUntilVisible(basic, 180, scrollable: list);
+        await Scrollable.ensureVisible(tester.element(basic), alignment: 0.35);
+        await tester.pumpAndSettle();
+        expect(basic.hitTestable(), findsOneWidget);
+        await tester.tap(basic);
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(plus, 180, scrollable: list);
+        expect(plus, findsOneWidget);
 
-    final notice = find.text(
-      'Jahresabo · Verlängert sich automatisch. '
-      'Jederzeit in Google Play kündbar.',
+        final notice = find.text(
+          platform == TargetPlatform.iOS
+              ? 'Der Kauf wird sicher mit der Bestätigung im App Store abgeschlossen.'
+              : 'Jahresabo · Verlängert sich automatisch. '
+                    'Jederzeit in Google Play kündbar.',
+        );
+        await tester.scrollUntilVisible(notice, 180, scrollable: list);
+        expect(notice, findsOneWidget);
+        final action = find.text('Weiter mit Basic — 2,99 € / Jahr');
+        await tester.scrollUntilVisible(action, 180, scrollable: list);
+        expect(action, findsOneWidget);
+        if (platform == TargetPlatform.iOS) {
+          final terms = find.textContaining('Einjähriges Abonnement.');
+          await tester.scrollUntilVisible(terms, 180, scrollable: list);
+          expect(terms, findsOneWidget);
+          expect(find.textContaining('Google Play'), findsNothing);
+        }
+        expect(tester.takeException(), isNull);
+      },
+      variant: TargetPlatformVariant({platform}),
     );
-    await tester.scrollUntilVisible(notice, 180, scrollable: list);
-    expect(notice, findsOneWidget);
-    final action = find.text('Weiter mit Basic — 2,99 € / Jahr');
-    await tester.scrollUntilVisible(action, 180, scrollable: list);
-    expect(action, findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+  }
 
   test('fallback prices are amounts, ready for one localized period', () {
     final local = LocalSubscriptionService();

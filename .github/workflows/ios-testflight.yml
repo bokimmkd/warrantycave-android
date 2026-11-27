@@ -1,5 +1,4 @@
 name: iOS internal TestFlight
-# Rebuild the internal beta with the compact Bold Text search header.
 
 on:
   push:
@@ -42,7 +41,12 @@ jobs:
       - name: Configure real Firebase for internal testing
         env:
           IOS_FIREBASE_PLIST_BASE64: ${{ secrets.IOS_FIREBASE_PLIST_BASE64 }}
+          ENABLE_SANDBOX_BILLING: ${{ vars.IOS_TESTFLIGHT_SANDBOX_BILLING }}
         run: |
+          args=(--internal)
+          if [[ "$ENABLE_SANDBOX_BILLING" == true ]]; then
+            args+=(--sandbox-billing)
+          fi
           python3 - <<'PY'
           import os, base64, json
           from pathlib import Path
@@ -50,7 +54,7 @@ jobs:
           Path('ios/Runner/GoogleService-Info.plist').write_bytes(base64.b64decode(os.environ['IOS_FIREBASE_PLIST_BASE64'], validate=True))
           Path('.ios-config.json').write_text(json.dumps({'teamId':'QJ63494GZJ','appStoreId':'6840100351'}))
           PY
-          python3 scripts/configure_ios.py --internal --firebase-plist ios/Runner/GoogleService-Info.plist --config .ios-config.json
+          python3 scripts/configure_ios.py "${args[@]}" --firebase-plist ios/Runner/GoogleService-Info.plist --config .ios-config.json
       - name: Prepare ephemeral signing keychain
         env:
           APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
@@ -60,7 +64,18 @@ jobs:
       - run: flutter config --no-enable-swift-package-manager
       - run: flutter pub get
       - name: Build signed internal-only IPA
-        run: flutter build ipa --release --build-number="$GITHUB_RUN_NUMBER" --dart-define-from-file=.ios-dart-defines.json --export-options-plist="$IOS_EXPORT_OPTIONS"
+        run: |
+          set -o pipefail
+          log="$RUNNER_TEMP/warrantycave-ios-build.log"
+          for attempt in 1 2; do
+            if flutter build ipa --release --build-number="$GITHUB_RUN_NUMBER" --dart-define-from-file=.ios-dart-defines.json --export-options-plist="$IOS_EXPORT_OPTIONS" 2>&1 | tee "$log"; then
+              exit 0
+            fi
+            if [[ "$attempt" == 2 ]] || ! grep -q 'Error running pod install' "$log"; then
+              exit 1
+            fi
+            sleep 15
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: warrantycave-internal-testflight-ipa

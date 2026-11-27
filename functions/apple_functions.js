@@ -10,8 +10,12 @@ const {referralRewardExpiryMs} = require('./referral');
 const applePrivateKey = defineSecret('APPLE_IAP_PRIVATE_KEY');
 const functionOptions = {region: 'us-central1', secrets: [applePrivateKey]};
 
-function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
+function registerAppleFunctions({db, requireUser, entitlements, storeFactory,
+  sandboxTesterUids = process.env.APPLE_SANDBOX_TESTER_UIDS || '',
+  sandboxEnabled = process.env.APPLE_ALLOW_SANDBOX === 'true'}) {
   const store = storeFactory || (() => createAppleStore(applePrivateKey.value()));
+  const sandboxTesters = new Set(sandboxTesterUids.split(',').map((uid) => uid.trim()).filter(Boolean));
+  const canUseSandbox = (uid) => sandboxEnabled && sandboxTesters.has(uid);
   const accountRef = (uid) => db.collection('appleBillingAccounts').doc(uid);
   const subscriptionRef = (environment, id) =>
     db.collection('appleSubscriptions').doc(`${environment}-${id}`);
@@ -72,7 +76,8 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
 
   async function refresh(uid) {
     const rows = await db.collection('appleSubscriptions').where('uid', '==', uid).get();
-    const stale = rows.docs.filter((row) =>
+    const eligible = (row) => row.data().environment !== 'Sandbox' || canUseSandbox(uid);
+    const stale = rows.docs.filter(eligible).filter((row) =>
       Date.now() - (row.data().verificationStartedAt || 0) > 5 * 60 * 1000);
     if (stale.length) {
       const apple = store();
@@ -82,7 +87,8 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
         await save(await apple.current(data.originalTransactionId, data.environment), uid, startedAt);
       }
     }
-    return (await db.collection('appleSubscriptions').where('uid', '==', uid).get()).docs.map((row) => row.data());
+    return (await db.collection('appleSubscriptions').where('uid', '==', uid).get())
+      .docs.filter(eligible).map((row) => row.data());
   }
 
   return {
@@ -90,6 +96,9 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
     getAppleBillingAccount: onCall(functionOptions, async (request) => {
       const auth = requireUser(request);
       if (auth.token.email_verified !== true) throw new HttpsError('failed-precondition', 'Verify your account first.');
+      if (request.data?.sandbox === true && !canUseSandbox(auth.uid)) {
+        throw new HttpsError('permission-denied', 'This account is not enabled for App Store sandbox purchases.');
+      }
       store(); // Fail before checkout if verification has not been configured.
       return db.runTransaction(async (tx) => {
         const ref = accountRef(auth.uid);
@@ -108,6 +117,9 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
       let verified;
       try { verified = await apple.verifyTransaction(request.data?.signedTransaction); }
       catch (_) { throw new HttpsError('invalid-argument', 'Apple purchase verification failed.'); }
+      if (verified.environment === 'Sandbox' && !canUseSandbox(auth.uid)) {
+        throw new HttpsError('permission-denied', 'This account is not enabled for App Store sandbox purchases.');
+      }
       const transaction = verified.payload;
       if (transaction.productId !== request.data?.productId) {
         throw new HttpsError('invalid-argument', 'Apple product mismatch.');
@@ -139,6 +151,9 @@ function registerAppleFunctions({db, requireUser, entitlements, storeFactory}) {
         if (typeof token !== 'string' || !/^[a-f0-9-]{36}$/i.test(token)) { response.sendStatus(200); return; }
         const account = await db.collection('appleAccountTokens').doc(token).get();
         if (!account.exists) { response.sendStatus(200); return; }
+        if (verified.environment === 'Sandbox' && !canUseSandbox(account.data().uid)) {
+          response.sendStatus(200); return;
+        }
         const user = await db.collection('users').doc(account.data().uid).get();
         if (!user.exists) { response.sendStatus(200); return; }
         const startedAt = Date.now();

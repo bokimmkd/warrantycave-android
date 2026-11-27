@@ -9,21 +9,24 @@ layouts. Keep the existing date-field ellipsis as requested. The next internal
 build keeps the single search icon beside My Items at normal text size with
 Bold Text; narrow and enlarged-text layouts retain the separate-row fallback.
 
-Purchases are still disabled. Paid Apps Agreement was accepted, but the last
-verified status is Pending User Info: banking and tax are unfinished. Apple
-requires an Active agreement even for sandbox purchases. Do not use the browser
-while the banking takeover is pending, enter banking/tax data, enable real ads,
-or submit a public release as part of this internal UI iteration.
+Purchases are disabled by default. The account holder completes banking and
+tax details in App Store Connect. The last verified Paid Apps Agreement status
+is Pending User Info. Apple requires the agreement to be active for sandbox
+purchases.
 
 After the account holder completes banking/tax and the agreement is Active:
 
 1. Create a separate In-App Purchase server key and securely configure the
    APPLE_IAP_PRIVATE_KEY secret and Apple identifiers described in IOS-PORT.md.
-2. Deploy and verify the Apple entitlement/notification functions, explicitly
-   enable sandbox verification, and validate Apple's test notification.
-3. Prepare a billing-enabled internal TestFlight configuration with matching
-   archive guards. The existing internal workflow deliberately rejects enabled
-   billing; do not simply flip a Dart define or bypass its guard.
+2. Deploy and verify the Apple entitlement/notification functions. Set
+   `APPLE_ALLOW_SANDBOX=true` and `APPLE_SANDBOX_TESTER_UIDS` to the
+   comma-separated Firebase UIDs of the designated test accounts. Validate
+   Apple's test notification.
+3. Set the GitHub Actions repository variable `IOS_TESTFLIGHT_SANDBOX_BILLING=true`
+   when Apple and the backend are ready, then run the internal workflow. While
+   the workflow is only on the feature branch, a push changing its workflow
+   file triggers the run. Remove or clear the variable to return to the beta
+   with purchases disabled.
 4. On a test account, verify Basic/Plus purchase, cancel, restore, tier changes,
    expiry and wrong-account restore. TestFlight purchases use Apple's sandbox
    and do not charge the tester. Existing unit tests are not device acceptance.
@@ -38,7 +41,8 @@ application. Local warranties, scanning, PDF export and cloud account behavior
 can be tested on a physical device. Ads and Apple purchases are disabled while
 their production configuration and sandbox acceptance tests remain pending.
 
-`configure_ios.py --internal` selects this explicit configuration. Its archive
+`configure_ios.py --internal` selects this explicit configuration, with
+`--sandbox-billing` for the purchase-enabled beta. Its archive
 guard requires matching Dart defines, the registered App Store ID, and an export
 plist with `method=app-store-connect` and `testFlightInternalTestingOnly=true`.
 The public release guard continues to require real iOS ads and enabled billing;

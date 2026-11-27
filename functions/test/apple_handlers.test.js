@@ -5,7 +5,8 @@ const {registerAppleFunctions} = require('../apple_functions');
 
 const TOKEN = '4b293923-b932-450a-bc62-96599c5c3481';
 function fixture({owner = 'alice', refunded = false, invalidSignature = false,
-  upperCaseToken = false, environment = 'Production', price = 2990, offerDiscountType} = {}) {
+  upperCaseToken = false, environment = 'Production', price = 2990, offerDiscountType,
+  sandboxTesterUids = 'alice'} = {}) {
   const subscriptionPath = `appleSubscriptions/${environment}-1001`;
   const records = new Map([
     ['users/alice', {}],
@@ -32,7 +33,7 @@ function fixture({owner = 'alice', refunded = false, invalidSignature = false,
     productId: 'warrantycave_basic_yearly', price, offerDiscountType,
     appAccountToken: upperCaseToken ? TOKEN.toUpperCase() : TOKEN};
   const handlers = registerAppleFunctions({
-    db, requireUser: (request) => request.auth,
+    db, requireUser: (request) => request.auth, sandboxTesterUids, sandboxEnabled: true,
     entitlements: async () => ({plan: records.get(subscriptionPath).plan}),
     storeFactory: () => ({
       verifyTransaction: async (signed) => {
@@ -83,6 +84,15 @@ test('sandbox, free-trial and zero-price transactions cannot grant a real referr
     assert.equal(records.has('referralRewards/alice'), false);
     assert.equal(records.get('users/bob').referralPlusUntil, undefined);
   }
+});
+
+test('sandbox purchases cannot grant entitlements to an unapproved account', async () => {
+  const {handlers, request, calls} = fixture({environment: 'Sandbox', sandboxTesterUids: 'bob'});
+  await assert.rejects(handlers.getAppleBillingAccount.run({
+    ...request, data: {sandbox: true},
+  }), {code: 'permission-denied'});
+  await assert.rejects(handlers.confirmApplePurchase.run(request), {code: 'permission-denied'});
+  assert.deepEqual(calls, [['verify', 'previously.signed.receipt']]);
 });
 
 test('a real paid referral is granted once, even if its client-owned profile is deleted and recreated', async () => {

@@ -50,8 +50,25 @@ class ArchiveConfigurationTest(unittest.TestCase):
                 validate(environment)
 
     def test_internal_flag_cannot_be_used_for_public_release(self):
-        with self.assertRaises(ValueError):
-            validate(self.environment(IOS_INTERNAL_TESTING='true'))
+        for flag in ('IOS_INTERNAL_TESTING', 'IOS_APPLE_BILLING_SANDBOX'):
+            with self.assertRaises(ValueError):
+                validate(self.environment(**{flag: 'true'}))
+
+    def test_sandbox_billing_requires_matching_internal_archive(self):
+        with tempfile.TemporaryDirectory() as folder:
+            options = Path(folder) / 'ExportOptions.plist'
+            options.write_bytes(plistlib.dumps({
+                'method': 'app-store-connect', 'testFlightInternalTestingOnly': True,
+            }))
+            environment = self.environment(
+                IOS_INTERNAL_TESTING='true', IOS_DISABLE_ADS='true',
+                IOS_APPLE_BILLING_ENABLED='true', IOS_APPLE_BILLING_SANDBOX='true',
+                IOS_APP_STORE_ID='6840100351',
+            )
+            environment.update(IOS_CONFIGURATION_KIND='internal-sandbox', IOS_EXPORT_OPTIONS=str(options))
+            validate(environment)
+            with self.assertRaises(ValueError):
+                validate(dict(environment, IOS_CONFIGURATION_KIND='internal'))
 
 
 if __name__ == '__main__':

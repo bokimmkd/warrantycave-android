@@ -1,10 +1,13 @@
 #!/bin/sh
 set -eu
-if [ "${CONFIGURATION:-Debug}" != "Debug" ] && [ "${IOS_CONFIGURATION_KIND:-local}" != "release" ] && [ "${IOS_CONFIGURATION_KIND:-local}" != "internal" ]; then
-  echo 'error: Configure the real iOS services with scripts/configure_ios.py --release before archiving.' >&2
-  exit 1
-fi
 if [ "${CONFIGURATION:-Debug}" != "Debug" ]; then
+  case "${IOS_CONFIGURATION_KIND:-local}" in
+    release|internal|internal-sandbox) ;;
+    *)
+      echo 'error: Configure the registered iOS services before archiving.' >&2
+      exit 1
+      ;;
+  esac
   python3 "$SRCROOT/../scripts/check_ios_release.py"
 fi
 source_plist="$SRCROOT/Runner/GoogleService-Info.plist"

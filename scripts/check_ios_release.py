@@ -15,19 +15,24 @@ def validate(environment):
             continue
         key, value = base64.b64decode(encoded, validate=True).decode().split('=', 1)
         defines[key] = value
-    if environment.get('IOS_CONFIGURATION_KIND') == 'internal':
+    kind = environment.get('IOS_CONFIGURATION_KIND')
+    if kind in {'internal', 'internal-sandbox'}:
+        sandbox = 'true' if kind == 'internal-sandbox' else 'false'
         for key, expected in {'IOS_LOCAL_ONLY': 'false', 'IOS_DISABLE_ADS': 'true',
-                              'IOS_APPLE_BILLING_ENABLED': 'false',
+                              'IOS_APPLE_BILLING_ENABLED': sandbox,
                               'IOS_INTERNAL_TESTING': 'true'}.items():
             if defines.get(key) != expected:
                 raise ValueError(f'Internal archive requires {key}={expected}.')
+        if defines.get('IOS_APPLE_BILLING_SANDBOX', 'false') != sandbox:
+            raise ValueError(f'Internal archive requires IOS_APPLE_BILLING_SANDBOX={sandbox}.')
         if defines.get('IOS_APP_STORE_ID') != '6840100351':
             raise ValueError('Internal archive requires the registered WarrantyCave app.')
         options = plistlib.loads(Path(environment.get('IOS_EXPORT_OPTIONS', '')).read_bytes())
         if options.get('testFlightInternalTestingOnly') is not True or options.get('method') != 'app-store-connect':
             raise ValueError('Internal archives must export for TestFlight internal testing only.')
         return
-    if defines.get('IOS_INTERNAL_TESTING') == 'true':
+    if (defines.get('IOS_INTERNAL_TESTING') == 'true' or
+            defines.get('IOS_APPLE_BILLING_SANDBOX') == 'true'):
         raise ValueError('Internal testing defines cannot be used for a public release.')
     for key, expected in {'IOS_LOCAL_ONLY': 'false', 'IOS_DISABLE_ADS': 'false',
                           'IOS_APPLE_BILLING_ENABLED': 'true'}.items():

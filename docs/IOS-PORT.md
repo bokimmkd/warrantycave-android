@@ -101,6 +101,7 @@ Configure on the Firebase Functions deployment (not in the app):
 | `APPLE_IAP_ISSUER_ID` | Issuer ID for the key |
 | Secret `APPLE_IAP_PRIVATE_KEY` | Contents of the server API `.p8` key |
 | `APPLE_ALLOW_SANDBOX` | `true` for TestFlight/sandbox testing; explicit choice for production |
+| `APPLE_SANDBOX_TESTER_UIDS` | Comma-separated Firebase UIDs of accounts approved for sandbox testing |
 
 Deploy the new `getAppleBillingAccount`, `confirmApplePurchase`,
 `onAppleSubscriptionUpdate` functions and updated `getEntitlements` together.

@@ -273,7 +273,10 @@ class FirebaseCloudService {
   }
 
   Future<String> appleBillingAccountToken() async {
-    final result = await _callFunction('getAppleBillingAccount', const {});
+    const sandbox = bool.fromEnvironment('IOS_APPLE_BILLING_SANDBOX');
+    final result = await _callFunction('getAppleBillingAccount', {
+      if (sandbox) 'sandbox': true,
+    });
     final token = result['appAccountToken'];
     if (token is! String || !RegExp(r'^[a-fA-F0-9-]{36}$').hasMatch(token)) {
       throw StateError('App Store billing is unavailable.');

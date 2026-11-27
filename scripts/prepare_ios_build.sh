@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-if [ "${CONFIGURATION:-Debug}" != "Debug" ] && [ "${IOS_CONFIGURATION_KIND:-local}" != "release" ]; then
+if [ "${CONFIGURATION:-Debug}" != "Debug" ] && [ "${IOS_CONFIGURATION_KIND:-local}" != "release" ] && [ "${IOS_CONFIGURATION_KIND:-local}" != "internal" ]; then
   echo 'error: Configure the real iOS services with scripts/configure_ios.py --release before archiving.' >&2
   exit 1
 fi

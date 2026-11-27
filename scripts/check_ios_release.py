@@ -4,6 +4,8 @@ import base64
 import os
 import re
 import sys
+import plistlib
+from pathlib import Path
 
 
 def validate(environment):
@@ -13,6 +15,20 @@ def validate(environment):
             continue
         key, value = base64.b64decode(encoded, validate=True).decode().split('=', 1)
         defines[key] = value
+    if environment.get('IOS_CONFIGURATION_KIND') == 'internal':
+        for key, expected in {'IOS_LOCAL_ONLY': 'false', 'IOS_DISABLE_ADS': 'true',
+                              'IOS_APPLE_BILLING_ENABLED': 'false',
+                              'IOS_INTERNAL_TESTING': 'true'}.items():
+            if defines.get(key) != expected:
+                raise ValueError(f'Internal archive requires {key}={expected}.')
+        if defines.get('IOS_APP_STORE_ID') != '6840100351':
+            raise ValueError('Internal archive requires the registered WarrantyCave app.')
+        options = plistlib.loads(Path(environment.get('IOS_EXPORT_OPTIONS', '')).read_bytes())
+        if options.get('testFlightInternalTestingOnly') is not True or options.get('method') != 'app-store-connect':
+            raise ValueError('Internal archives must export for TestFlight internal testing only.')
+        return
+    if defines.get('IOS_INTERNAL_TESTING') == 'true':
+        raise ValueError('Internal testing defines cannot be used for a public release.')
     for key, expected in {'IOS_LOCAL_ONLY': 'false', 'IOS_DISABLE_ADS': 'false',
                           'IOS_APPLE_BILLING_ENABLED': 'true'}.items():
         if defines.get(key) != expected:
@@ -31,5 +47,5 @@ def validate(environment):
 if __name__ == '__main__':
     try:
         validate(os.environ)
-    except (ValueError, UnicodeError) as error:
+    except (ValueError, UnicodeError, OSError) as error:
         sys.exit(f'error: {error}')

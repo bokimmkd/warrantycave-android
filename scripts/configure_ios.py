@@ -13,9 +13,14 @@ SAMPLE_APP = 'ca-app-pub-3940256099942544~1458002511'
 
 
 def configure(args):
+    internal = getattr(args, 'internal', False)
+    if internal and (args.local or args.release):
+        raise ValueError('--internal cannot be combined with --local or --release.')
     config = json.loads(Path(args.config).read_text()) if args.config else {}
     defines = {'IOS_LOCAL_ONLY': bool(args.local), 'IOS_APPLE_BILLING_ENABLED': False,
                'IOS_DISABLE_ADS': bool(args.local)}
+    if internal:
+        defines.update(IOS_INTERNAL_TESTING=True, IOS_DISABLE_ADS=True)
     values = {
         'IOS_CONFIGURATION_KIND': 'local' if args.local else 'development',
         'IOS_ADMOB_APP_ID': SAMPLE_APP,
@@ -46,6 +51,9 @@ def configure(args):
         if source != destination.resolve():
             shutil.copyfile(source, destination)
         defines['IOS_APPLE_BILLING_ENABLED'] = config.get('appleBillingEnabled') is True
+        if internal:
+            defines['IOS_APPLE_BILLING_ENABLED'] = False
+            values['IOS_CONFIGURATION_KIND'] = 'internal'
         for field, native_key, dart_key, pattern in [
             ('admobAppId', 'IOS_ADMOB_APP_ID', None, r'ca-app-pub-\d{16}~\d{10}'),
             ('admobBannerId', None, 'IOS_ADMOB_BANNER_ID', r'ca-app-pub-\d{16}/\d{10}'),
@@ -88,6 +96,7 @@ if __name__ == '__main__':
     parser.add_argument('--firebase-plist')
     parser.add_argument('--config', help='Private JSON with the real iOS service IDs.')
     parser.add_argument('--release', action='store_true')
+    parser.add_argument('--internal', action='store_true', help='Internal-only TestFlight build; ads and purchases disabled.')
     try:
         configure(parser.parse_args())
     except (ValueError, OSError, plistlib.InvalidFileException) as error:

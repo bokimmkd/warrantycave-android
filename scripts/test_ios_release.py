@@ -1,5 +1,8 @@
 import base64
 import unittest
+import tempfile
+import plistlib
+from pathlib import Path
 from check_ios_release import validate
 
 
@@ -28,6 +31,27 @@ class ArchiveConfigurationTest(unittest.TestCase):
                        'ca-app-pub-3940256099942544/2934735716']:
             with self.assertRaises(ValueError):
                 validate(self.environment(IOS_ADMOB_BANNER_ID=banner))
+
+    def test_internal_build_requires_internal_only_export_and_disabled_commerce(self):
+        with tempfile.TemporaryDirectory() as folder:
+            options = Path(folder) / 'ExportOptions.plist'
+            environment = self.environment(IOS_INTERNAL_TESTING='true', IOS_DISABLE_ADS='true',
+                IOS_APPLE_BILLING_ENABLED='false', IOS_APP_STORE_ID='6840100351')
+            environment.update(IOS_CONFIGURATION_KIND='internal', IOS_EXPORT_OPTIONS=str(options))
+            options.write_bytes(plistlib.dumps({'method':'app-store-connect', 'testFlightInternalTestingOnly':True}))
+            validate(environment)
+            options.write_bytes(plistlib.dumps({'method':'app-store-connect', 'testFlightInternalTestingOnly':False}))
+            with self.assertRaises(ValueError):
+                validate(environment)
+            options.write_bytes(plistlib.dumps({'method':'app-store-connect', 'testFlightInternalTestingOnly':True}))
+            environment.update(self.environment(IOS_INTERNAL_TESTING='true', IOS_DISABLE_ADS='false',
+                IOS_APPLE_BILLING_ENABLED='false', IOS_APP_STORE_ID='6840100351'))
+            with self.assertRaises(ValueError):
+                validate(environment)
+
+    def test_internal_flag_cannot_be_used_for_public_release(self):
+        with self.assertRaises(ValueError):
+            validate(self.environment(IOS_INTERNAL_TESTING='true'))
 
 
 if __name__ == '__main__':

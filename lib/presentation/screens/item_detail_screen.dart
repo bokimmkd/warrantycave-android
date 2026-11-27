@@ -1,3 +1,4 @@
+import '../share_origin.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../share_origin.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/models.dart';
@@ -92,24 +92,22 @@ class ItemDetailScreen extends StatelessWidget {
             },
             icon: Icon(
               Icons.edit_outlined,
-              color: canEdit
-                  ? null
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: canEdit ? null : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             tooltip: context.l10n.text(
               canEdit
                   ? 'edit'
                   : archived
-                  ? 'archivedEditTitle'
-                  : overLimit
-                  ? 'overLimitEditTitle'
-                  : 'editLockedTitle',
+                      ? 'archivedEditTitle'
+                      : overLimit
+                          ? 'overLimitEditTitle'
+                          : 'editLockedTitle',
             ),
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -128,83 +126,12 @@ class ItemDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE9F4FC),
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child:
-                        item.productPhoto != null &&
-                            (isCloudPhoto(item.productPhoto!) ||
-                                File(item.productPhoto!).existsSync())
-                        ? StoredPhoto(item.productPhoto!)
-                        : Icon(
-                            iconForType(item.productType),
-                            size: 38,
-                            color: caveBlue,
-                          ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    item.productName,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    context.l10n.productLabel(item.productType),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  StatusChip(
-                    item.status(
-                      thresholdDays: app.settings.expiringThresholdDays,
-                    ),
-                  ),
-                  if (item.isExtendedWarranty) ...[
-                    const SizedBox(height: 8),
-                    Chip(
-                      label: Text(context.l10n.text('extendedWarrantyBadge')),
-                      avatar: const Icon(Icons.verified_outlined, size: 18),
-                    ),
-                  ],
-                  const SizedBox(height: 10),
-                  Text(
-                    localizedRemainingLabel(context, item),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _WarrantyHeader(item: item, settings: app.settings),
           const SizedBox(height: 16),
           _Details(item: item),
-          if (item.servicePhone.isNotEmpty || item.serviceEmail.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _ServiceContact(item: item),
-          ],
-          if (item.productPhoto != null) ...[
-            const SizedBox(height: 18),
-            _PhotoGallery(
-              title: context.l10n.text('productPhoto'),
-              paths: [item.productPhoto!],
-            ),
+          if (item.receiptPhotos.isNotEmpty || item.warrantyPhotos.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            _DocumentAttachments(item: item),
           ],
           if (item.notes.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -226,20 +153,6 @@ class ItemDetailScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          ],
-          if (item.receiptPhotos.isNotEmpty) ...[
-            const SizedBox(height: 18),
-            _PhotoGallery(
-              title: context.l10n.text('receiptPhotos'),
-              paths: item.receiptPhotos,
-            ),
-          ],
-          if (item.warrantyPhotos.isNotEmpty) ...[
-            const SizedBox(height: 18),
-            _PhotoGallery(
-              title: context.l10n.text('warrantyPhotos'),
-              paths: item.warrantyPhotos,
             ),
           ],
           const SizedBox(height: 22),
@@ -451,19 +364,14 @@ class ItemDetailScreen extends StatelessWidget {
             pw.TableHelper.fromTextArray(
               data: [
                 [context.l10n.text('field'), context.l10n.text('value')],
-                [
-                  context.l10n.text('productType'),
-                  context.l10n.productLabel(item.productType),
-                ],
+                [context.l10n.text('productType'), context.l10n.productLabel(item.productType, context.read<AppController>().settings)],
                 [context.l10n.text('brand'), item.brand],
                 [context.l10n.text('model'), item.model],
                 [context.l10n.text('serialNumber'), item.serialNumber],
                 [context.l10n.text('warrantyStatus'), status],
                 if (item.isExtendedWarranty)
-                  [
-                    context.l10n.text('extendedWarrantyToggle'),
-                    context.l10n.text('extendedWarrantyBadge'),
-                  ],
+                  [context.l10n.text('extendedWarrantyToggle'),
+                   context.l10n.text('extendedWarrantyBadge')],
                 [
                   context.l10n.text('timeRemaining'),
                   localizedRemainingLabel(context, item),
@@ -482,10 +390,7 @@ class ItemDetailScreen extends StatelessWidget {
                     context.l10n.locale.toString(),
                   ).format(item.purchaseDate),
                 ],
-                [
-                  context.l10n.text('warrantyDuration'),
-                  context.l10n.duration(item.durationLabel),
-                ],
+                [context.l10n.text('warrantyDuration'), context.l10n.duration(item.durationLabel)],
                 [
                   context.l10n.text('expiryDate'),
                   DateFormat.yMMMd(
@@ -577,10 +482,8 @@ class ItemDetailScreen extends StatelessWidget {
       );
       await file.writeAsBytes(await doc.save());
       if (download) {
-        final saved =
-            await const MethodChannel(
-              'com.warrantycave.app/document_saver',
-            ).invokeMethod<bool>('savePdf', {
+        final saved = await const MethodChannel('com.warrantycave.app/document_saver')
+            .invokeMethod<bool>('savePdf', {
               'fileName': file.uri.pathSegments.last,
               'bytes': await file.readAsBytes(),
             });
@@ -590,7 +493,7 @@ class ItemDetailScreen extends StatelessWidget {
       } else {
         await SharePlus.instance.share(
           ShareParams(
-            sharePositionOrigin: shareOrigin(context),
+          sharePositionOrigin: shareOrigin(context),
             files: [XFile(file.path)],
             subject: context.l10n.format('claimPackSubject', {
               'product': item.productName,
@@ -614,171 +517,306 @@ class ItemDetailScreen extends StatelessWidget {
   }
 }
 
-class _Details extends StatelessWidget {
-  const _Details({required this.item});
+class _WarrantyHeader extends StatelessWidget {
+  const _WarrantyHeader({required this.item, required this.settings});
   final WarrantyItem item;
+  final AppSettings settings;
+
   @override
   Widget build(BuildContext context) {
-    final rows = <MapEntry<String, String>>[
-      MapEntry(context.l10n.text('brand'), item.brand),
-      MapEntry(context.l10n.text('model'), item.model),
-      MapEntry(context.l10n.text('serialNumber'), item.serialNumber),
-      MapEntry(context.l10n.text('storeRetailer'), item.store),
-      MapEntry(context.l10n.text('authorizedService'), item.authorizedService),
-      MapEntry(context.l10n.text('servicePhone'), item.servicePhone),
-      MapEntry(context.l10n.text('serviceEmail'), item.serviceEmail),
-      MapEntry(context.l10n.text('usedAt'), item.location),
-      MapEntry(
-        context.l10n.text('purchaseDate'),
-        DateFormat.yMMMd(
-          context.l10n.locale.toString(),
-        ).format(item.purchaseDate),
-      ),
-      MapEntry(
-        context.l10n.text('purchasePrice'),
-        item.purchasePrice == null
-            ? ''
-            : formatMoney(item.purchasePrice!, item.currency),
-      ),
-      MapEntry(
-        context.l10n.text('warrantyDuration'),
-        context.l10n.duration(item.durationLabel),
-      ),
-      MapEntry(
-        context.l10n.text('expiryDate'),
-        DateFormat.yMMMd(
-          context.l10n.locale.toString(),
-        ).format(item.expiryDate),
-      ),
-    ].where((e) => e.value.isNotEmpty);
+    final colors = Theme.of(context).colorScheme;
+    final (statusLabel, statusColor, statusIcon) = switch (
+      item.status(thresholdDays: settings.expiringThresholdDays)
+    ) {
+      WarrantyStatus.active => (context.l10n.text('active'), caveTeal, Icons.shield_outlined),
+      WarrantyStatus.expiringSoon => (context.l10n.text('expiringSoon'), Colors.orange, Icons.schedule_outlined),
+      WarrantyStatus.expired => (context.l10n.text('expired'), Colors.redAccent, Icons.cancel_outlined),
+    };
     return Card(
+      key: const Key('warranty-header'),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          children: rows
-              .map(
-                (e) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  child: Row(
+          children: [
+            Row(
+              key: const Key('warranty-product-heading'),
+              children: [
+                InkWell(
+                  key: const Key('product-photo-preview'),
+                  onTap: item.productPhoto == null ? null
+                      : () => _openPhotos(context, [item.productPhoto!]),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: 68, height: 68,
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: item.productPhoto != null &&
+                        (isCloudPhoto(item.productPhoto!) || File(item.productPhoto!).existsSync())
+                      ? StoredPhoto(item.productPhoto!)
+                      : Icon(iconForType(item.productType), size: 32, color: colors.primary),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          e.key,
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          e.value,
-                          textAlign: TextAlign.end,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
+                      Text(item.productName,
+                        key: const Key('warranty-product-name'),
+                        style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800,
+                          color: colors.onSurface)),
+                      const SizedBox(height: 4),
+                      Text(context.l10n.productLabel(item.productType, settings),
+                        style: TextStyle(color: colors.onSurfaceVariant)),
                     ],
                   ),
                 ),
-              )
-              .toList(),
+              ],
+            ),
+            const SizedBox(height: 12),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _DetailBadge(
+                    key: const Key('warranty-status-badge'),
+                    label: statusLabel, color: statusColor, icon: statusIcon)),
+                  if (item.isExtendedWarranty) ...[
+                    const SizedBox(width: 8),
+                    Expanded(child: _DetailBadge(
+                      key: const Key('warranty-extended-badge'),
+                      label: context.l10n.text('extendedWarrantyBadge'),
+                      color: colors.primary, icon: Icons.verified_outlined)),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(localizedRemainingLabel(context, item),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w700, color: colors.primary)),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ServiceContact extends StatelessWidget {
-  const _ServiceContact({required this.item});
-  final WarrantyItem item;
+class _DetailBadge extends StatelessWidget {
+  const _DetailBadge({super.key, required this.label, required this.color, required this.icon});
+  final String label;
+  final Color color;
+  final IconData icon;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: Column(
+  Widget build(BuildContext context) => Container(
+    constraints: const BoxConstraints(minHeight: 36),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: .08),
+      border: Border.all(color: color.withValues(alpha: .30)),
+      borderRadius: BorderRadius.circular(18),
+    ),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (item.servicePhone.isNotEmpty)
-          ListTile(
-            leading: const Icon(Icons.phone_outlined, color: caveBlue),
-            title: Text(
-              item.authorizedService.isEmpty
-                  ? context.l10n.text('servicePhone')
-                  : '${item.authorizedService} · ${context.l10n.text('phone')}',
-            ),
-            subtitle: Text(item.servicePhone),
-            trailing: const Icon(Icons.call_outlined),
-            onTap: () => launchUrl(Uri(scheme: 'tel', path: item.servicePhone)),
-          ),
-        if (item.servicePhone.isNotEmpty && item.serviceEmail.isNotEmpty)
-          const Divider(height: 1),
-        if (item.serviceEmail.isNotEmpty)
-          ListTile(
-            leading: const Icon(Icons.email_outlined, color: caveBlue),
-            title: Text(
-              item.authorizedService.isEmpty
-                  ? context.l10n.text('serviceEmail')
-                  : '${item.authorizedService} · ${context.l10n.text('email')}',
-            ),
-            subtitle: Text(item.serviceEmail),
-            trailing: const Icon(Icons.send_outlined),
-            onTap: () =>
-                launchUrl(Uri(scheme: 'mailto', path: item.serviceEmail)),
-          ),
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 5),
+        Expanded(child: Text(label.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.onSurface))),
       ],
     ),
   );
 }
 
-class _PhotoGallery extends StatelessWidget {
-  const _PhotoGallery({required this.title, required this.paths});
-  final String title;
-  final List<String> paths;
+void _openPhotos(BuildContext context, List<String> paths) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => _PhotoPreview(paths: paths, initialIndex: 0),
+    ),
+  );
+}
+
+class _DetailEntry {
+  const _DetailEntry(this.label, this.value, {this.contact});
+  final String label;
+  final String value;
+  final Uri? contact;
+}
+
+class _Details extends StatelessWidget {
+  const _Details({required this.item});
+  final WarrantyItem item;
+
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: Theme.of(context).colorScheme.onSurface,
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final rows = <_DetailEntry>[
+      _DetailEntry(context.l10n.text('brand'), item.brand),
+      _DetailEntry(context.l10n.text('model'), item.model),
+      _DetailEntry(context.l10n.text('serialNumber'), item.serialNumber),
+      _DetailEntry(context.l10n.text('storeRetailer'), item.store),
+      _DetailEntry(context.l10n.text('authorizedService'), item.authorizedService),
+      _DetailEntry(context.l10n.text('servicePhone'), item.servicePhone,
+        contact: Uri(scheme: 'tel', path: item.servicePhone)),
+      _DetailEntry(context.l10n.text('serviceEmail'), item.serviceEmail,
+        contact: Uri(scheme: 'mailto', path: item.serviceEmail)),
+      _DetailEntry(context.l10n.text('usedAt'), item.location),
+      _DetailEntry(context.l10n.text('purchaseDate'),
+        DateFormat.yMMMd(context.l10n.locale.toString()).format(item.purchaseDate)),
+      _DetailEntry(context.l10n.text('purchasePrice'),
+        item.purchasePrice == null ? '' : formatMoney(item.purchasePrice!, item.currency)),
+      _DetailEntry(context.l10n.text('warrantyDuration'),
+        context.l10n.duration(item.durationLabel)),
+      _DetailEntry(context.l10n.text('expiryDate'),
+        DateFormat.yMMMd(context.l10n.locale.toString()).format(item.expiryDate)),
+    ].where((row) => row.value.isNotEmpty).toList();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Column(
+          key: const Key('warranty-details-fields'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) Divider(height: 1, thickness: .5, color: colors.outlineVariant),
+              _field(context, rows[i]),
+            ],
+          ],
         ),
       ),
-      const SizedBox(height: 10),
-      SizedBox(
-        height: 120,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: paths.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 10),
-          itemBuilder: (context, i) => InkWell(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => _PhotoPreview(paths: paths, initialIndex: i),
-              ),
+    );
+  }
+
+  Widget _field(BuildContext context, _DetailEntry row) {
+    final colors = Theme.of(context).colorScheme;
+    final content = ConstrainedBox(
+      constraints: BoxConstraints(minHeight: row.contact == null ? 44 : 48),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(row.label, style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant)),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Expanded(child: Text(row.value,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(fontWeight: FontWeight.w700, color: colors.onSurface))),
+                if (row.contact != null) ...[
+                  const SizedBox(width: 8),
+                  Icon(row.contact!.scheme == 'tel' ? Icons.call_outlined : Icons.email_outlined,
+                    size: 18, color: colors.primary),
+                ],
+              ],
             ),
-            child: Hero(
-              tag: paths[i],
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: StoredPhoto(
-                  paths[i],
-                  width: 105,
-                  height: 120,
-                  fit: BoxFit.cover,
-                ),
+          ],
+        ),
+      ),
+    );
+    return MergeSemantics(
+      child: row.contact == null ? content : Semantics(
+        button: true,
+        child: InkWell(
+          key: Key('warranty-contact-${row.contact!.scheme}'),
+          onTap: () => launchUrl(row.contact!),
+          child: content,
+        ),
+      ),
+    );
+  }
+}
+
+class _DocumentAttachments extends StatelessWidget {
+  const _DocumentAttachments({required this.item});
+  final WarrantyItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final attachments = <Widget>[
+      if (item.receiptPhotos.isNotEmpty)
+        _PhotoAttachment(
+          key: const Key('receipt-photo-attachment'),
+          title: context.l10n.text('receiptPhotos'),
+          paths: item.receiptPhotos,
+        ),
+      if (item.warrantyPhotos.isNotEmpty)
+        _PhotoAttachment(
+          key: const Key('warranty-photo-attachment'),
+          title: context.l10n.text('warrantyPhotos'),
+          paths: item.warrantyPhotos,
+        ),
+    ];
+    return LayoutBuilder(builder: (context, constraints) {
+      // Long translations and enlarged accessibility text keep their full size.
+      if (attachments.length < 2 || constraints.maxWidth < 340 ||
+          MediaQuery.textScalerOf(context).scale(1) > 1.2) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < attachments.length; i++) ...[
+              if (i > 0) const SizedBox(height: 8),
+              attachments[i],
+            ],
+          ],
+        );
+      }
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: attachments[0]),
+          const SizedBox(width: 8),
+          Expanded(child: attachments[1]),
+        ],
+      );
+    });
+  }
+}
+
+class _PhotoAttachment extends StatelessWidget {
+  const _PhotoAttachment({super.key, required this.title, required this.paths});
+  final String title;
+  final List<String> paths;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: title,
+    value: '${paths.length}',
+    child: Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openPhotos(context, paths),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: StoredPhoto(paths.first, width: 44, height: 54, fit: BoxFit.cover),
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              if (paths.length > 1) ...[
+                const SizedBox(width: 4),
+                Text('${paths.length}', style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              ],
+            ],
           ),
         ),
       ),
-    ],
+    ),
   );
 }
 

@@ -1,8 +1,10 @@
 import 'auth_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_controller.dart';
@@ -20,11 +22,13 @@ class UpgradeScreen extends StatefulWidget {
 class _UpgradeScreenState extends State<UpgradeScreen> {
   PlanTier? selected;
   bool get isIOS => defaultTargetPlatform == TargetPlatform.iOS;
-  String price(AppController app, PlanTier tier) => isIOS
+  String price(AppController app, PlanTier tier) => tier == PlanTier.free
+      ? app.billingPrice(tier)
+      : isIOS
       ? context.l10n.format('appleAnnualPrice', {
           'price': app.billingPrice(tier),
         })
-      : app.billingPrice(tier);
+      : _annualPrice(context, app, tier);
 
   Future<bool> _requireAccount(AppController app) async {
     if (app.signedIn && app.emailVerified) return true;
@@ -118,6 +122,16 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             current: app.effectivePlan == PlanTier.plus,
             onTap: () => setState(() => selected = PlanTier.plus),
           ),
+          if (!isIOS) ...[
+            const SizedBox(height: 12),
+            Text(
+              context.l10n.text('annualSubscriptionNotice'),
+              textAlign: TextAlign.center,
+              style: AppTypography.muted.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Text(
             context.l10n.text('planExpiryEditNotice'),
@@ -234,6 +248,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     );
   }
 
+  String _annualPrice(BuildContext context, AppController app, PlanTier tier) =>
+      context.l10n.format('annualPlanPrice', {'price': app.billingPrice(tier)});
+
   String _tierLabel(BuildContext context, PlanTier tier) =>
       context.l10n.text(switch (tier) {
         PlanTier.free => 'free',
@@ -321,12 +338,16 @@ class _PlanCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Text(
-                  price,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Theme.of(context).colorScheme.primary,
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    price,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),

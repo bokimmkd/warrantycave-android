@@ -1,6 +1,8 @@
 # WarrantyCave iOS port
 
-Base: Android 1.0.36+47, release/1.0.36-navigation-labels at 229019cc.
+Base: Android 1.0.44+55, release/1.0.44-annual-pricing at 911a964c.
+The original iOS port from 1.0.36 is retained alongside the newer category,
+warranty-detail, dark-picker and annual-price changes.
 The iOS bundle ID is provisionally `com.warrantycave.app`; register that exact
 identifier in Apple Developer and as a separate iOS app in Firebase project
 `warrantycave`. The Android Firebase app and Android AdMob units cannot serve as

@@ -1,3 +1,4 @@
+import 'categories_screen.dart';
 import 'auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -532,6 +533,14 @@ class _SettingsScreenState extends State<SettingsScreen>
             ],
             const SizedBox(height: 14),
             _Label(context.l10n.text('warrantyPreferences')),
+            Card(child: ListTile(
+              leading: const Icon(Icons.category_outlined),
+              title: Text(context.l10n.text('manageCategories')),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => CategoriesScreen(onSelectTab: widget.onSelectTab),
+              )),
+            )),
             Card(
               child: Column(
                 children: [

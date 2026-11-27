@@ -17,7 +17,7 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'firstName', 'lastName', 'phone', 'defaultCurrency', 'languageCode',
           'referralCode', 'pendingReferralCode',
-          'updatedAt', 'cloudOwnerUid'
+          'updatedAt', 'cloudOwnerUid', 'categories'
         ]);
       allow delete: if owns(uid);
 

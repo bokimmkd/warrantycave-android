@@ -1,0 +1,6 @@
+<resources>
+    <!-- Android 11+ includes the OS task-affinity security patches.
+         Match the SDK AdActivity's default affinity so ad clicks reuse our task.
+         Do not change launchMode or hide ad tasks from Recents. -->
+    <string name="warrantycave_task_affinity" translatable="false">com.warrantycave.app</string>
+</resources>

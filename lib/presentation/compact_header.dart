@@ -8,11 +8,15 @@ class CaveHeader extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.actions = const [],
+    this.compactActions,
     this.brand = false,
     super.key,
   });
   final String title, subtitle;
   final List<Widget> actions;
+
+  /// Fixed-size alternatives for layouts where bold labels take more room.
+  final List<IconButton>? compactActions;
   final bool brand;
 
   @override
@@ -88,17 +92,20 @@ class CaveHeader extends StatelessWidget {
     );
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Icon-only actions keep their fixed touch targets with Bold Text;
-        // they do not need a separate row unless width or text size requires it.
-        final iconOnlyActions =
-            actions.length == 1 && actions.single is IconButton;
-        final stacked =
+        final constrainedBold =
+            MediaQuery.boldTextOf(context) && constraints.maxWidth < 390;
+        final needsSeparateRow =
             constraints.maxWidth < 340 ||
-            (MediaQuery.boldTextOf(context) &&
-                !iconOnlyActions &&
-                constraints.maxWidth < 390) ||
             MediaQuery.textScalerOf(context).scale(14) > 18;
         if (actions.isEmpty) return heading;
+        final inlineActions = constrainedBold && !needsSeparateRow
+            ? compactActions ?? actions
+            : actions;
+        final stacked =
+            needsSeparateRow ||
+            (constrainedBold &&
+                compactActions == null &&
+                !(actions.length == 1 && actions.single is IconButton));
         if (stacked) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,7 +121,7 @@ class CaveHeader extends StatelessWidget {
         return Row(
           children: [
             Expanded(child: heading),
-            ...actions,
+            ...inlineActions,
           ],
         );
       },

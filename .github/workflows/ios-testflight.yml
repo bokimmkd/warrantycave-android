@@ -3,7 +3,10 @@ name: iOS internal TestFlight
 on:
   push:
     branches: [feature/ios-port]
-    paths: [.github/workflows/ios-testflight.yml]
+    paths:
+      - .github/workflows/ios-testflight.yml
+      - lib/presentation/compact_header.dart
+      - lib/presentation/screens/home_screen.dart
   workflow_dispatch:
 
 permissions:

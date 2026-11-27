@@ -51,6 +51,13 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final app = context.watch<AppController>();
+    final search = IconButton(
+      tooltip: context.l10n.text('searchWarranties'),
+      onPressed: () =>
+          searchOpen ? closeSearch() : setState(() => searchOpen = true),
+      icon: Icon(searchOpen ? Icons.search_off : Icons.search),
+    );
+    final addLabel = context.l10n.text('add');
     final filtered =
         app.items
             .where(
@@ -83,14 +90,17 @@ class _HomeScreenState extends State<HomeScreen>
               title: 'WarrantyCave',
               brand: true,
               subtitle: context.l10n.text('homeCaveSubtitle'),
-              actions: [
+              compactActions: [
+                search,
                 IconButton(
-                  tooltip: context.l10n.text('searchWarranties'),
-                  onPressed: () => searchOpen
-                      ? closeSearch()
-                      : setState(() => searchOpen = true),
-                  icon: Icon(searchOpen ? Icons.search_off : Icons.search),
+                  tooltip: addLabel,
+                  onPressed: widget.onAdd,
+                  icon: const Icon(Icons.add_circle_outline, size: 21),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
+              ],
+              actions: [
+                search,
                 TextButton.icon(
                   onPressed: widget.onAdd,
                   style: TextButton.styleFrom(
@@ -98,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                   icon: const Icon(Icons.add_circle_outline, size: 21),
-                  label: Text(context.l10n.text('add')),
+                  label: Text(addLabel),
                 ),
               ],
             ),

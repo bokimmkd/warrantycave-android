@@ -16,19 +16,19 @@ concurrency:
 jobs:
   internal-testflight:
     if: github.repository == 'bokimmkd/warrantycave-android' && github.ref == 'refs/heads/feature/ios-port'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 75
     env:
       CI: true
       FLUTTER_SUPPRESS_ANALYTICS: true
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
       - name: Verify App Store SDK requirement before compiling
         run: |
           xcodebuild -version
           sdk_version=$(xcrun --sdk iphoneos --show-sdk-version)
-          test "${sdk_version%%.*}" -ge 26
+          test "${sdk_version%%.*}" -ge 27
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.47.5

@@ -58,7 +58,10 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 24,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppTypography.headingWeight(
+                context,
+                standard: FontWeight.w900,
+              ),
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
@@ -259,6 +262,85 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
       });
 }
 
+/// Keeps long localized prices readable with Bold Text and larger text sizes.
+class PlanPriceHeading extends StatelessWidget {
+  const PlanPriceHeading({
+    super.key,
+    required this.title,
+    required this.price,
+    required this.selected,
+  });
+  final String title;
+  final String price;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final titleWidget = Text(
+        title,
+        style: TextStyle(
+          fontSize: 20,
+          height: 1.25,
+          fontWeight: AppTypography.headingWeight(
+            context,
+            standard: FontWeight.w900,
+          ),
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      );
+      final priceWidget = Text(
+        price,
+        softWrap: true,
+        style: TextStyle(
+          fontSize: 18,
+          height: 1.3,
+          fontWeight: AppTypography.headingWeight(
+            context,
+            standard: FontWeight.w900,
+          ),
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
+      final selectedIcon = Icon(
+        selected ? Icons.check_circle : Icons.circle_outlined,
+        color: selected ? caveTeal : AppColors.border,
+      );
+      final stacked =
+          constraints.maxWidth < 390 &&
+          (MediaQuery.boldTextOf(context) ||
+              MediaQuery.textScalerOf(context).scale(14) > 18);
+      if (stacked) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: titleWidget),
+                const SizedBox(width: 8),
+                selectedIcon,
+              ],
+            ),
+            const SizedBox(height: 8),
+            priceWidget,
+          ],
+        );
+      }
+      return Row(
+        children: [
+          Expanded(child: titleWidget),
+          Expanded(
+            flex: 2,
+            child: Align(alignment: Alignment.centerRight, child: priceWidget),
+          ),
+          const SizedBox(width: 8),
+          selectedIcon,
+        ],
+      );
+    },
+  );
+}
+
 class _PlanCard extends StatelessWidget {
   const _PlanCard({
     required this.tier,
@@ -317,45 +399,22 @@ class _PlanCard extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: AppTypography.headingWeight(
+                      context,
+                      standard: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
             if (recommended) const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    context.l10n.text(switch (tier) {
-                      PlanTier.free => 'free',
-                      PlanTier.basic => 'basic',
-                      PlanTier.plus => 'plus',
-                    }),
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    price,
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  selected ? Icons.check_circle : Icons.circle_outlined,
-                  color: selected ? caveTeal : AppColors.border,
-                ),
-              ],
+            PlanPriceHeading(
+              title: context.l10n.text(switch (tier) {
+                PlanTier.free => 'free',
+                PlanTier.basic => 'basic',
+                PlanTier.plus => 'plus',
+              }),
+              price: price,
+              selected: selected,
             ),
             if (current) ...[
               const SizedBox(height: 8),
@@ -364,7 +423,10 @@ class _PlanCard extends StatelessWidget {
                 style: TextStyle(
                   color: caveTeal,
                   fontSize: 11,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppTypography.headingWeight(
+                    context,
+                    standard: FontWeight.w900,
+                  ),
                 ),
               ),
             ],

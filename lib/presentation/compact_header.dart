@@ -27,8 +27,11 @@ class CaveHeader extends StatelessWidget {
             gradient: const LinearGradient(colors: [caveBlue, skyBlue]),
             borderRadius: BorderRadius.circular(11),
           ),
-          child: const Icon(Icons.receipt_long_rounded,
-              size: 21, color: Colors.white),
+          child: const Icon(
+            Icons.receipt_long_rounded,
+            size: 21,
+            color: Colors.white,
+          ),
         ),
         const SizedBox(width: 9),
         Expanded(
@@ -37,49 +40,90 @@ class CaveHeader extends StatelessWidget {
             children: [
               if (brand)
                 Text.rich(
-                  TextSpan(children: [
-                    TextSpan(text: 'Warranty', style: TextStyle(color: scheme.onSurface)),
-                    TextSpan(text: 'Cave', style: TextStyle(color: scheme.secondary)),
-                  ]),
-                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Warranty',
+                        style: TextStyle(color: scheme.onSurface),
+                      ),
+                      TextSpan(
+                        text: 'Cave',
+                        style: TextStyle(color: scheme.secondary),
+                      ),
+                    ],
+                  ),
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: AppTypography.headingWeight(context),
+                  ),
                 )
               else
-                Text(title, style: TextStyle(
-                  fontSize: 22, height: 1.15, fontWeight: FontWeight.w800,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? scheme.onSurface : caveNavy,
-                )),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 22,
+                    height: 1.25,
+                    fontWeight: AppTypography.headingWeight(context),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? scheme.onSurface
+                        : caveNavy,
+                  ),
+                ),
               const SizedBox(height: 2),
-              Text(subtitle, style: TextStyle(
-                fontSize: 12, height: 1.25, fontWeight: FontWeight.w600,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? scheme.secondary : const Color(0xFF087F75),
-              )),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.25,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? scheme.secondary
+                      : const Color(0xFF087F75),
+                ),
+              ),
             ],
           ),
         ),
       ],
     );
-    return LayoutBuilder(builder: (context, constraints) {
-      final stacked = constraints.maxWidth < 340 ||
-          MediaQuery.textScalerOf(context).scale(14) > 18;
-      if (actions.isEmpty) return heading;
-      if (stacked) {
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          heading,
-          Align(alignment: Alignment.centerRight,
-            child: Wrap(children: actions)),
-        ]);
-      }
-      return Row(children: [Expanded(child: heading), ...actions]);
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stacked =
+            constraints.maxWidth < 340 ||
+            (MediaQuery.boldTextOf(context) && constraints.maxWidth < 390) ||
+            MediaQuery.textScalerOf(context).scale(14) > 18;
+        if (actions.isEmpty) return heading;
+        if (stacked) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              heading,
+              Align(
+                alignment: Alignment.centerRight,
+                child: Wrap(children: actions),
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: heading),
+            ...actions,
+          ],
+        );
+      },
+    );
   }
 }
 
 /// Search is hidden until requested; closing it also clears the active query.
 class CompactSearchField extends StatelessWidget {
-  const CompactSearchField({required this.controller,
-    required this.onChanged, required this.onClose, super.key});
+  const CompactSearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClose,
+    super.key,
+  });
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   final VoidCallback onClose;
@@ -95,7 +139,10 @@ class CompactSearchField extends StatelessWidget {
       onSubmitted: (_) => FocusScope.of(context).unfocus(),
       decoration: InputDecoration(
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
         prefixIcon: const Icon(Icons.search, size: 21),
         hintText: context.l10n.text('searchWarranties'),
         suffixIcon: IconButton(

@@ -148,7 +148,7 @@ class BrandMark extends StatelessWidget {
         ),
         style: TextStyle(
           fontSize: compact ? 18 : 24,
-          fontWeight: FontWeight.w800,
+          fontWeight: AppTypography.headingWeight(context),
         ),
       ),
     ],
@@ -160,19 +160,35 @@ class SectionTitle extends StatelessWidget {
   final String title;
   final Widget? action;
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final heading = Text(
+        title,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontWeight: AppTypography.headingWeight(context),
+          height: 1.25,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
-      ),
-      if (action != null) action!,
-    ],
+      );
+      if (action != null &&
+          (MediaQuery.boldTextOf(context) ||
+              MediaQuery.textScalerOf(context).scale(14) > 18) &&
+          constraints.maxWidth < 390) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            heading,
+            Align(alignment: Alignment.centerRight, child: action!),
+          ],
+        );
+      }
+      return Row(
+        children: [
+          Expanded(child: heading),
+          if (action != null) action!,
+        ],
+      );
+    },
   );
 }
 
@@ -202,15 +218,27 @@ class StatusChip extends StatelessWidget {
     if (!compact) return AppStatusChip(label: label, color: color, icon: icon);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(color: color.withValues(alpha: .11),
-        borderRadius: BorderRadius.circular(20)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 12, color: color),
-        const SizedBox(width: 3),
-        Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Theme.of(context).colorScheme.onSurface : color)),
-      ]),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .11),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.onSurface
+                  : color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -229,45 +257,94 @@ class WarrantyCard extends StatelessWidget {
   Widget build(BuildContext context) => AppCards(
     onTap: onTap,
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-    child: LayoutBuilder(builder: (context, constraints) {
-      final accessible = constraints.maxWidth < 270 ||
-          MediaQuery.textScalerOf(context).scale(14) > 18;
-      final title = Text(item.productName,
-        maxLines: accessible ? 2 : 1, overflow: TextOverflow.ellipsis,
-        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14,
-          color: Theme.of(context).colorScheme.onSurface));
-      final chip = StatusChip(item.status(thresholdDays: threshold), compact: true);
-      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          width: 44, height: 44,
-          decoration: BoxDecoration(color: const Color(0xFFE9F4FC),
-            borderRadius: BorderRadius.circular(10)),
-          clipBehavior: Clip.antiAlias,
-          child: item.productPhoto != null &&
-              (isCloudPhoto(item.productPhoto!) || File(item.productPhoto!).existsSync())
-              ? StoredPhoto(item.productPhoto!)
-              : Icon(iconForType(item.productType), color: caveBlue, size: 23),
-        ),
-        const SizedBox(width: 10),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final accessible =
+            constraints.maxWidth < 270 ||
+            (MediaQuery.boldTextOf(context) && constraints.maxWidth < 340) ||
+            MediaQuery.textScalerOf(context).scale(14) > 18;
+        final title = Text(
+          item.productName,
+          maxLines: accessible ? 2 : 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontWeight: AppTypography.headingWeight(context),
+            fontSize: 14,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        );
+        final chip = StatusChip(
+          item.status(thresholdDays: threshold),
+          compact: true,
+        );
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (accessible) ...[title, const SizedBox(height: 2), chip]
-            else Row(children: [Expanded(child: title), const SizedBox(width: 6), chip]),
-            if ([item.brand, item.model].any((e) => e.isNotEmpty))
-              Text([item.brand, item.model].where((e) => e.isNotEmpty).join(' • '),
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 2),
-            Text(
-              '${DateFormat.yMMMd(context.l10n.locale.toString()).format(item.expiryDate)} • ${localizedRemainingLabel(context, item)}',
-              style: TextStyle(fontSize: 11.5,
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE9F4FC),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child:
+                  item.productPhoto != null &&
+                      (isCloudPhoto(item.productPhoto!) ||
+                          File(item.productPhoto!).existsSync())
+                  ? StoredPhoto(item.productPhoto!)
+                  : Icon(
+                      iconForType(item.productType),
+                      color: caveBlue,
+                      size: 23,
+                    ),
             ),
-          ])),
-      ]);
-    }),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (accessible) ...[
+                    title,
+                    const SizedBox(height: 2),
+                    chip,
+                  ] else
+                    Row(
+                      children: [
+                        Expanded(child: title),
+                        const SizedBox(width: 6),
+                        chip,
+                      ],
+                    ),
+                  if ([item.brand, item.model].any((e) => e.isNotEmpty))
+                    Text(
+                      [
+                        item.brand,
+                        item.model,
+                      ].where((e) => e.isNotEmpty).join(' • '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${DateFormat.yMMMd(context.l10n.locale.toString()).format(item.expiryDate)} • ${localizedRemainingLabel(context, item)}',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    ),
   );
 }
 
@@ -286,4 +363,3 @@ String localizedRemainingLabel(
   }
   return context.l10n.format('daysRemaining', {'days': days});
 }
-

@@ -16,6 +16,17 @@ abstract final class AppColors {
 }
 
 abstract final class AppTypography {
+  // iOS has heavier system faces. Keep headings semibold by default while
+  // allowing Flutter to apply the user's accessibility Bold Text preference.
+  static FontWeight headingWeight(
+    BuildContext context, {
+    FontWeight standard = FontWeight.w800,
+  }) => Theme.of(context).platform == TargetPlatform.iOS
+      ? FontWeight.w600
+      : standard;
+
+  static TextStyle buttonFor(BuildContext context) =>
+      button.copyWith(fontWeight: headingWeight(context));
   static const display = TextStyle(
     fontSize: 28,
     height: 1.15,
@@ -95,7 +106,9 @@ class AppCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: color == AppColors.surface ? Theme.of(context).colorScheme.surface : color,
+      color: color == AppColors.surface
+          ? Theme.of(context).colorScheme.surface
+          : color,
       borderRadius: BorderRadius.circular(AppRadius.large),
       border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       boxShadow: AppShadows.card,
@@ -128,14 +141,18 @@ abstract final class AppInputFields {
     helperText: helper,
     filled: true,
     fillColor: Theme.of(context).colorScheme.surface,
-    labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    labelStyle: TextStyle(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    ),
     floatingLabelStyle: TextStyle(
       color: Theme.of(context).colorScheme.primary,
       fontWeight: FontWeight.w700,
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppRadius.medium),
-      borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+      borderSide: BorderSide(
+        color: Theme.of(context).colorScheme.outlineVariant,
+      ),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -182,7 +199,7 @@ class PrimaryButton extends StatelessWidget {
           : Icon(icon ?? Icons.arrow_forward_rounded),
       label: Text(
         loading ? 'Please wait…' : label,
-        style: AppTypography.button,
+        style: AppTypography.buttonFor(context),
       ),
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.caveBlue,
@@ -224,7 +241,7 @@ class SecondaryButton extends StatelessWidget {
     child: FilledButton.icon(
       onPressed: onPressed,
       icon: Icon(icon ?? Icons.arrow_forward_rounded),
-      label: Text(label, style: AppTypography.button),
+      label: Text(label, style: AppTypography.buttonFor(context)),
       style: FilledButton.styleFrom(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -253,10 +270,13 @@ class OutlineButton extends StatelessWidget {
     child: OutlinedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon ?? Icons.arrow_forward_rounded),
-      label: Text(label, style: AppTypography.button),
+      label: Text(label, style: AppTypography.buttonFor(context)),
       style: OutlinedButton.styleFrom(
         foregroundColor: Theme.of(context).colorScheme.primary,
-        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 1.4),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          width: 1.4,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
@@ -281,7 +301,7 @@ class DangerButton extends StatelessWidget {
     child: OutlinedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon),
-      label: Text(label, style: AppTypography.button),
+      label: Text(label, style: AppTypography.buttonFor(context)),
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.danger,
         backgroundColor: AppColors.danger.withValues(alpha: .05),
@@ -434,13 +454,18 @@ abstract final class AppDialogs {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: AppTypography.title.copyWith(color: Theme.of(context).colorScheme.onSurface),
+              style: AppTypography.title.copyWith(
+                fontWeight: AppTypography.headingWeight(context),
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: AppTypography.muted.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 22),
             PrimaryButton(
@@ -491,13 +516,18 @@ abstract final class AppDialogs {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: AppTypography.title.copyWith(color: Theme.of(context).colorScheme.onSurface),
+                  style: AppTypography.title.copyWith(
+                    fontWeight: AppTypography.headingWeight(context),
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: AppTypography.muted.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 22),
                 Row(
@@ -570,7 +600,13 @@ abstract final class AppBottomSheets {
               ),
             ),
             const SizedBox(height: 16),
-            Text(title, style: AppTypography.title.copyWith(color: Theme.of(sheetContext).colorScheme.onSurface)),
+            Text(
+              title,
+              style: AppTypography.title.copyWith(
+                fontWeight: AppTypography.headingWeight(sheetContext),
+                color: Theme.of(sheetContext).colorScheme.onSurface,
+              ),
+            ),
             const SizedBox(height: 14),
             child,
           ],
@@ -608,9 +644,22 @@ class AppEmptyStates extends StatelessWidget {
           child: Icon(icon, size: 32, color: AppColors.sky),
         ),
         const SizedBox(height: 14),
-        Text(title, textAlign: TextAlign.center, style: AppTypography.title.copyWith(color: Theme.of(context).colorScheme.onSurface)),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: AppTypography.title.copyWith(
+            fontWeight: AppTypography.headingWeight(context),
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
         const SizedBox(height: 6),
-        Text(message, textAlign: TextAlign.center, style: AppTypography.muted.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: AppTypography.muted.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
         if (actionLabel != null && onAction != null) ...[
           const SizedBox(height: 18),
           PrimaryButton(

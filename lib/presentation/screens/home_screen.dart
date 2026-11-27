@@ -33,7 +33,10 @@ class _HomeScreenState extends State<HomeScreen>
   void closeSearch() {
     FocusScope.of(context).unfocus();
     searchController.clear();
-    setState(() { query = ''; searchOpen = false; });
+    setState(() {
+      query = '';
+      searchOpen = false;
+    });
   }
 
   @override
@@ -41,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen>
     searchController.dispose();
     super.dispose();
   }
+
   @override
   bool get wantKeepAlive => true;
   @override
@@ -82,7 +86,8 @@ class _HomeScreenState extends State<HomeScreen>
               actions: [
                 IconButton(
                   tooltip: context.l10n.text('searchWarranties'),
-                  onPressed: () => searchOpen ? closeSearch()
+                  onPressed: () => searchOpen
+                      ? closeSearch()
                       : setState(() => searchOpen = true),
                   icon: Icon(searchOpen ? Icons.search_off : Icons.search),
                 ),
@@ -98,14 +103,23 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
             const SizedBox(height: 8),
-            Text(context.l10n.text('goodToSeeYou'),
-              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800,
-                color: Theme.of(context).colorScheme.onSurface)),
-            if (searchOpen) CompactSearchField(
-              controller: searchController,
-              onChanged: (v) => setState(() => query = v),
-              onClose: closeSearch,
+            Text(
+              context.l10n.text('goodToSeeYou'),
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: AppTypography.headingWeight(
+                  context,
+                  standard: FontWeight.w800,
+                ),
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
+            if (searchOpen)
+              CompactSearchField(
+                controller: searchController,
+                onChanged: (v) => setState(() => query = v),
+                onClose: closeSearch,
+              ),
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, c) => Row(
@@ -210,22 +224,33 @@ class _Metric extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
           child: Column(
             children: [
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(icon, color: color, size: 19),
-                const SizedBox(width: 6),
-                Flexible(child: Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.w900,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              )),
-              ]),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: color, size: 19),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      '$count',
+                      style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: AppTypography.headingWeight(
+                          context,
+                          standard: FontWeight.w900,
+                        ),
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 2),
               Text(
                 label,
-                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -246,4 +271,3 @@ class _Empty extends StatelessWidget {
     onAction: onAdd,
   );
 }
-

@@ -16,13 +16,19 @@ concurrency:
 jobs:
   internal-testflight:
     if: github.repository == 'bokimmkd/warrantycave-android' && github.ref == 'refs/heads/feature/ios-port'
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 75
     env:
       CI: true
       FLUTTER_SUPPRESS_ANALYTICS: true
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
+      - name: Verify App Store SDK requirement before compiling
+        run: |
+          xcodebuild -version
+          sdk_version=$(xcrun --sdk iphoneos --show-sdk-version)
+          test "${sdk_version%%.*}" -ge 26
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.47.5
@@ -54,6 +60,11 @@ jobs:
       - run: flutter pub get
       - name: Build signed internal-only IPA
         run: flutter build ipa --release --build-number="$GITHUB_RUN_NUMBER" --dart-define-from-file=.ios-dart-defines.json --export-options-plist="$IOS_EXPORT_OPTIONS"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warrantycave-internal-testflight-ipa
+          path: build/ios/ipa/*.ipa
+          retention-days: 7
       - name: Verify archive and upload to TestFlight
         run: |
           python3 - <<'PY'
@@ -71,11 +82,6 @@ jobs:
           ids=json.loads((Path(os.environ['RUNNER_TEMP'])/'warrantycave-signing/api-identifiers.json').read_text())
           subprocess.run(['xcrun','altool','--upload-app','--type','ios','--file',str(ipa[0]),'--apiKey',ids['key_id'],'--apiIssuer',ids['issuer_id']],check=True)
           PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: warrantycave-internal-testflight-ipa
-          path: build/ios/ipa/*.ipa
-          retention-days: 7
       - name: Remove ephemeral signing credentials
         if: always()
         run: |
